@@ -1,0 +1,76 @@
+name: prayer_lock
+description: "Prayer Lock AI — pray on time, with fewer distractions."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # State management. Riverpod over Provider/Bloc because prayer state is
+  # heavily derived (next prayer, countdown, streak all fall out of one
+  # schedule) and Riverpod's computed providers express that directly.
+  flutter_riverpod: ^2.6.1
+
+  # Declarative routing, so deep links from notifications resolve to the right
+  # screen without imperative navigation from a background isolate.
+  go_router: ^14.6.2
+
+  # Timezone database. Dart's core library has no IANA support, and prayer
+  # times are meaningless without correct local offsets across DST.
+  timezone: ^0.10.0
+  flutter_timezone: ^4.1.1
+
+  # Formatting of dates and numbers, locale-aware.
+  intl: ^0.20.2
+
+  # Local notifications, including the exact-alarm scheduling that prayer
+  # reminders require.
+  flutter_local_notifications: ^18.0.1
+
+  # Location for automatic prayer-time detection.
+  geolocator: ^13.0.2
+
+  # Camera for prayer verification.
+  camera: ^0.11.0+2
+
+  # Adhan playback.
+  audioplayers: ^6.1.0
+
+  # Local persistence. sqflite for structured prayer history, secure storage
+  # for tokens — tokens must never sit in a plain database file.
+  # SQLCipher-backed sqflite. Prayer history reveals religious practice and
+  # daily routine, so it is encrypted at rest rather than stored in a plain
+  # database file readable by anyone with device access.
+  sqflite_sqlcipher: ^3.1.0+1
+  path: ^1.9.0
+  flutter_secure_storage: ^9.2.2
+  shared_preferences: ^2.3.3
+
+  # Network client with interceptor support for auth refresh and retries.
+  dio: ^5.7.0
+
+  # Offline detection, so the sync queue knows when to drain.
+  connectivity_plus: ^6.1.0
+
+  # Runtime permission requests (camera, location, notifications).
+  permission_handler: ^11.3.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+  mocktail: ^1.0.4
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/audio/

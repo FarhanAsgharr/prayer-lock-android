@@ -1,0 +1,41 @@
+# Static analysis configuration.
+#
+# `flutter analyze` must be clean before every commit. Warnings that are
+# tolerated become warnings that are ignored, and real defects then hide among
+# them.
+
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  errors:
+    # Treat these as build-breaking rather than advisory. Each has caused a
+    # real production incident in mobile apps often enough to be worth failing
+    # the build over.
+    unused_import: error
+    unused_local_variable: error
+    dead_code: error
+    # An unawaited Future in this codebase usually means a database write or a
+    # notification schedule that silently did not happen.
+    unawaited_futures: warning
+
+linter:
+  rules:
+    # Disabled deliberately: this rule cannot be satisfied for a private field
+    # supplied by a named parameter. Dart accepts the `{required this._field}`
+    # declaration but rejects the call site, because a private name cannot be
+    # used as an argument label — so the suggested fix does not compile. The
+    # codebase uses named parameters with private fields widely for
+    # readability, so the rule is off rather than suppressed line by line.
+    prefer_initializing_formals: false
+
+    # Enabled beyond the Flutter defaults.
+    always_declare_return_types: true
+    avoid_empty_else: true
+    avoid_slow_async_io: true
+    cancel_subscriptions: true
+    close_sinks: true
+    prefer_const_constructors: true
+    prefer_final_locals: true
+    require_trailing_commas: true
+    unnecessary_await_in_return: true
+    use_build_context_synchronously: true

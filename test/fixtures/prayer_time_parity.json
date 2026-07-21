@@ -1,0 +1,1086 @@
+{
+  "generatedBy": "backend/scripts/generate_parity_fixtures.py",
+  "warning": "Generated file. Do not edit by hand.",
+  "cases": [
+    {
+      "city": "Makkah",
+      "latitude": 21.4225,
+      "longitude": 39.8262,
+      "utcOffsetHours": 3.0,
+      "date": "2026-01-15",
+      "method": "muslim_world_league",
+      "madhab": "shafi",
+      "highLatitudeRule": "middle_of_the_night",
+      "expected": {
+        "fajr": "2026-01-15T02:42:51.956558Z",
+        "sunrise": "2026-01-15T04:00:59.637452Z",
+        "dhuhr": "2026-01-15T09:30:03.810629Z",
+        "asr": "2026-01-15T12:37:28.868887Z",
+        "maghrib": "2026-01-15T14:59:07.983805Z",
+        "isha": "2026-01-15T16:12:46.985498Z"
+      }
+    },
+    {
+      "city": "Makkah",
+      "latitude": 21.4225,
+      "longitude": 39.8262,
+      "utcOffsetHours": 3.0,
+      "date": "2026-03-20",
+      "method": "egyptian",
+      "madhab": "hanafi",
+      "highLatitudeRule": "seventh_of_the_night",
+      "expected": {
+        "fajr": "2026-03-20T02:04:17.234033Z",
+        "sunrise": "2026-03-20T03:24:45.023162Z",
+        "dhuhr": "2026-03-20T09:28:11.520544Z",
+        "asr": "2026-03-20T13:50:12.545795Z",
+        "maghrib": "2026-03-20T15:31:38.017926Z",
+        "isha": "2026-03-20T16:43:25.795835Z"
+      }
+    },
+    {
+      "city": "Makkah",
+      "latitude": 21.4225,
+      "longitude": 39.8262,
+      "utcOffsetHours": 3.0,
+      "date": "2026-06-21",
+      "method": "karachi",
+      "madhab": "ahle_hadith",
+      "highLatitudeRule": "twilight_angle",
+      "expected": {
+        "fajr": "2026-06-21T01:13:58.230299Z",
+        "sunrise": "2026-06-21T02:39:21.885586Z",
+        "dhuhr": "2026-06-21T09:22:29.869538Z",
+        "asr": "2026-06-21T12:42:19.140116Z",
+        "maghrib": "2026-06-21T16:05:37.853489Z",
+        "isha": "2026-06-21T17:31:01.508776Z"
+      }
+    },
+    {
+      "city": "Makkah",
+      "latitude": 21.4225,
+      "longitude": 39.8262,
+      "utcOffsetHours": 3.0,
+      "date": "2026-07-20",
+      "method": "umm_al_qura",
+      "madhab": "jafari",
+      "highLatitudeRule": "middle_of_the_night",
+      "expected": {
+        "fajr": "2026-07-20T01:23:57.401648Z",
+        "sunrise": "2026-07-20T02:49:15.904406Z",
+        "dhuhr": "2026-07-20T09:27:05.631987Z",
+        "asr": "2026-07-20T12:42:25.127723Z",
+        "maghrib": "2026-07-20T16:19:44.256163Z",
+        "isha": "2026-07-20T17:49:44.256163Z"
+      }
+    },
+    {
+      "city": "Makkah",
+      "latitude": 21.4225,
+      "longitude": 39.8262,
+      "utcOffsetHours": 3.0,
+      "date": "2026-09-23",
+      "method": "dubai",
+      "madhab": "shafi",
+      "highLatitudeRule": "seventh_of_the_night",
+      "expected": {
+        "fajr": "2026-09-23T01:54:55.015662Z",
+        "sunrise": "2026-09-23T03:09:44.351718Z",
+        "dhuhr": "2026-09-23T09:13:05.318921Z",
+        "asr": "2026-09-23T12:37:50.395144Z",
+        "maghrib": "2026-09-23T15:16:26.286124Z",
+        "isha": "2026-09-23T16:31:15.622180Z"
+      }
+    },
+    {
+      "city": "Makkah",
+      "latitude": 21.4225,
+      "longitude": 39.8262,
+      "utcOffsetHours": 3.0,
+      "date": "2026-12-21",
+      "method": "qatar",
+      "madhab": "hanafi",
+      "highLatitudeRule": "twilight_angle",
+      "expected": {
+        "fajr": "2026-12-21T02:34:29.302207Z",
+        "sunrise": "2026-12-21T03:53:54.988380Z",
+        "dhuhr": "2026-12-21T09:18:42.173963Z",
+        "asr": "2026-12-21T13:07:44.136121Z",
+        "maghrib": "2026-12-21T14:43:29.359545Z",
+        "isha": "2026-12-21T16:13:29.359545Z"
+      }
+    },
+    {
+      "city": "Cairo",
+      "latitude": 30.0444,
+      "longitude": 31.2357,
+      "utcOffsetHours": 2.0,
+      "date": "2026-01-15",
+      "method": "kuwait",
+      "madhab": "ahle_hadith",
+      "highLatitudeRule": "middle_of_the_night",
+      "expected": {
+        "fajr": "2026-01-15T03:27:41.688173Z",
+        "sunrise": "2026-01-15T04:51:44.716359Z",
+        "dhuhr": "2026-01-15T10:04:26.033531Z",
+        "asr": "2026-01-15T12:57:41.743396Z",
+        "maghrib": "2026-01-15T15:17:07.350704Z",
+        "isha": "2026-01-15T16:38:47.161713Z"
+      }
+    },
+    {
+      "city": "Cairo",
+      "latitude": 30.0444,
+      "longitude": 31.2357,
+      "utcOffsetHours": 2.0,
+      "date": "2026-03-20",
+      "method": "moonsighting_committee",
+      "madhab": "jafari",
+      "highLatitudeRule": "seventh_of_the_night",
+      "expected": {
+        "fajr": "2026-03-20T02:39:04.854646Z",
+        "sunrise": "2026-03-20T03:58:52.732719Z",
+        "dhuhr": "2026-03-20T10:02:32.817901Z",
+        "asr": "2026-03-20T13:29:42.510994Z",
+        "maghrib": "2026-03-20T16:20:51.227605Z",
+        "isha": "2026-03-20T17:26:00.781156Z"
+      }
+    },
+    {
+      "city": "Cairo",
+      "latitude": 30.0444,
+      "longitude": 31.2357,
+      "utcOffsetHours": 3.0,
+      "date": "2026-06-21",
+      "method": "singapore",
+      "madhab": "shafi",
+      "highLatitudeRule": "twilight_angle",
+      "expected": {
+        "fajr": "2026-06-21T01:05:04.162270Z",
+        "sunrise": "2026-06-21T02:54:26.479718Z",
+        "dhuhr": "2026-06-21T09:56:51.901162Z",
+        "asr": "2026-06-21T13:32:21.375822Z",
+        "maghrib": "2026-06-21T16:59:17.322607Z",
+        "isha": "2026-06-21T18:35:58.221622Z"
+      }
+    },
+    {
+      "city": "Cairo",
+      "latitude": 30.0444,
+      "longitude": 31.2357,
+      "utcOffsetHours": 3.0,
+      "date": "2026-07-20",
+      "method": "turkey",
+      "madhab": "hanafi",
+      "highLatitudeRule": "middle_of_the_night",
+      "expected": {
+        "fajr": "2026-07-20T01:34:16.281292Z",
+        "sunrise": "2026-07-20T03:06:58.169204Z",
+        "dhuhr": "2026-07-20T10:01:27.431929Z",
+        "asr": "2026-07-20T14:51:40.969462Z",
+        "maghrib": "2026-07-20T16:55:56.694654Z",
+        "isha": "2026-07-20T18:22:49.073485Z"
+      }
+    },
+    {
+      "city": "Cairo",
+      "latitude": 30.0444,
+      "longitude": 31.2357,
+      "utcOffsetHours": 3.0,
+      "date": "2026-09-23",
+      "method": "tehran",
+      "madhab": "ahle_hadith",
+      "highLatitudeRule": "seventh_of_the_night",
+      "expected": {
+        "fajr": "2026-09-23T02:25:34.665940Z",
+        "sunrise": "2026-09-23T03:43:57.202660Z",
+        "dhuhr": "2026-09-23T09:47:26.536524Z",
+        "asr": "2026-09-23T13:14:31.344432Z",
+        "maghrib": "2026-09-23T16:07:52.900987Z",
+        "isha": "2026-09-23T16:51:58.934780Z"
+      }
+    },
+    {
+      "city": "Cairo",
+      "latitude": 30.0444,
+      "longitude": 31.2357,
+      "utcOffsetHours": 2.0,
+      "date": "2026-12-21",
+      "method": "north_america",
+      "madhab": "jafari",
+      "highLatitudeRule": "twilight_angle",
+      "expected": {
+        "fajr": "2026-12-21T03:35:49.996765Z",
+        "sunrise": "2026-12-21T04:46:49.819686Z",
+        "dhuhr": "2026-12-21T09:53:04.605229Z",
+        "asr": "2026-12-21T12:40:54.593575Z",
+        "maghrib": "2026-12-21T15:15:34.880669Z",
+        "isha": "2026-12-21T16:10:19.213693Z"
+      }
+    },
+    {
+      "city": "Karachi",
+      "latitude": 24.8607,
+      "longitude": 67.0011,
+      "utcOffsetHours": 5.0,
+      "date": "2026-01-15",
+      "method": "muslim_world_league",
+      "madhab": "shafi",
+      "highLatitudeRule": "middle_of_the_night",
+      "expected": {
+        "fajr": "2026-01-15T00:58:23.964200Z",
+        "sunrise": "2026-01-15T02:18:32.486381Z",
+        "dhuhr": "2026-01-15T07:41:20.241242Z",
+        "asr": "2026-01-15T10:43:38.128439Z",
+        "maghrib": "2026-01-15T13:04:07.996103Z",
+        "isha": "2026-01-15T14:19:41.808506Z"
+      }
+    },
+    {
+      "city": "Karachi",
+      "latitude": 24.8607,
+      "longitude": 67.0011,
+      "utcOffsetHours": 5.0,
+      "date": "2026-03-20",
+      "method": "egyptian",
+      "madhab": "hanafi",
+      "highLatitudeRule": "seventh_of_the_night",
+      "expected": {
+        "fajr": "2026-03-20T00:13:24.259692Z",
+        "sunrise": "2026-03-20T01:36:03.615288Z",
+        "dhuhr": "2026-03-20T07:39:30.881041Z",
+        "asr": "2026-03-20T12:01:24.031527Z",
+        "maghrib": "2026-03-20T13:42:58.146794Z",
+        "isha": "2026-03-20T14:56:42.196281Z"
+      }
+    },
+    {
+      "city": "Karachi",
+      "latitude": 24.8607,
+      "longitude": 67.0011,
+      "utcOffsetHours": 5.0,
+      "date": "2026-06-21",
+      "method": "karachi",
+      "madhab": "ahle_hadith",
+      "highLatitudeRule": "twilight_angle",
+      "expected": {
+        "fajr": "2026-06-20T23:14:12.528288Z",
+        "sunrise": "2026-06-21T00:43:20.494765Z",
+        "dhuhr": "2026-06-21T07:33:46.907630Z",
+        "asr": "2026-06-21T10:55:11.874752Z",
+        "maghrib": "2026-06-21T14:24:13.320495Z",
+        "isha": "2026-06-21T15:53:21.286972Z"
+      }
+    },
+    {
+      "city": "Karachi",
+      "latitude": 24.8607,
+      "longitude": 67.0011,
+      "utcOffsetHours": 5.0,
+      "date": "2026-07-20",
+      "method": "umm_al_qura",
+      "madhab": "jafari",
+      "highLatitudeRule": "middle_of_the_night",
+      "expected": {
+        "fajr": "2026-07-19T23:25:25.704053Z",
+        "sunrise": "2026-07-20T00:54:12.424646Z",
+        "dhuhr": "2026-07-20T07:38:23.401001Z",
+        "asr": "2026-07-20T11:02:45.285488Z",
+        "maghrib": "2026-07-20T14:37:52.130657Z",
+        "isha": "2026-07-20T16:07:52.130657Z"
+      }
+    },
+    {
+      "city": "Karachi",
+      "latitude": 24.8607,
+      "longitude": 67.0011,
+      "utcOffsetHours": 5.0,
+      "date": "2026-09-23",
+      "method": "dubai",
+      "madhab": "shafi",
+      "highLatitudeRule": "seventh_of_the_night",
+      "expected": {
+        "fajr": "2026-09-23T00:04:06.372086Z",
+        "sunrise": "2026-09-23T01:20:57.612471Z",
+        "dhuhr": "2026-09-23T07:24:24.932664Z",
+        "asr": "2026-09-23T10:50:32.924443Z",
+        "maghrib": "2026-09-23T13:27:52.252857Z",
+        "isha": "2026-09-23T14:44:43.493241Z"
+      }
+    },
+    {
+      "city": "Karachi",
+      "latitude": 24.8607,
+      "longitude": 67.0011,
+      "utcOffsetHours": 5.0,
+      "date": "2026-12-21",
+      "method": "qatar",
+      "madhab": "hanafi",
+      "highLatitudeRule": "twilight_angle",
+      "expected": {
+        "fajr": "2026-12-21T00:50:43.904919Z",
+        "sunrise": "2026-12-21T02:12:13.890845Z",
+        "dhuhr": "2026-12-21T07:29:57.948167Z",
+        "asr": "2026-12-21T11:11:44.048146Z",
+        "maghrib": "2026-12-21T12:47:42.005488Z",
+        "isha": "2026-12-21T14:17:42.005488Z"
+      }
+    },
+    {
+      "city": "London",
+      "latitude": 51.5074,
+      "longitude": -0.1278,
+      "utcOffsetHours": 0.0,
+      "date": "2026-01-15",
+      "method": "kuwait",
+      "madhab": "ahle_hadith",
+      "highLatitudeRule": "middle_of_the_night",
+      "expected": {
+        "fajr": "2026-01-15T05:58:59.361569Z",
+        "sunrise": "2026-01-15T07:59:17.786340Z",
+        "dhuhr": "2026-01-15T12:09:55.106349Z",
+        "asr": "2026-01-15T14:01:11.401399Z",
+        "maghrib": "2026-01-15T16:20:32.426358Z",
+        "isha": "2026-01-15T18:17:33.917936Z"
+      }
+    },
+    {
+      "city": "London",
+      "latitude": 51.5074,
+      "longitude": -0.1278,
+      "utcOffsetHours": 0.0,
+      "date": "2026-03-20",
+      "method": "moonsighting_committee",
+      "madhab": "jafari",
+      "highLatitudeRule": "seventh_of_the_night",
+      "expected": {
+        "fajr": "2026-03-20T04:24:21.824788Z",
+        "sunrise": "2026-03-20T06:02:50.533726Z",
+        "dhuhr": "2026-03-20T12:07:58.514237Z",
+        "asr": "2026-03-20T15:25:26.887370Z",
+        "maghrib": "2026-03-20T18:33:29.571159Z",
+        "isha": "2026-03-20T20:06:47.476298Z"
+      }
+    },
+    {
+      "city": "London",
+      "latitude": 51.5074,
+      "longitude": -0.1278,
+      "utcOffsetHours": 1.0,
+      "date": "2026-06-21",
+      "method": "singapore",
+      "madhab": "shafi",
+      "highLatitudeRule": "twilight_angle",
+      "expected": {
+        "fajr": "2026-06-21T01:15:57.176545Z",
+        "sunrise": "2026-06-21T03:43:10.972191Z",
+        "dhuhr": "2026-06-21T12:02:20.278723Z",
+        "asr": "2026-06-21T16:25:08.810026Z",
+        "maghrib": "2026-06-21T20:21:29.585255Z",
+        "isha": "2026-06-21T22:34:00.001335Z"
+      }
+    },
+    {
+      "city": "London",
+      "latitude": 51.5074,
+      "longitude": -0.1278,
+      "utcOffsetHours": 1.0,
+      "date": "2026-07-20",
+      "method": "turkey",
+      "madhab": "hanafi",
+      "highLatitudeRule": "middle_of_the_night",
+      "expected": {
+        "fajr": "2026-07-20T00:06:54.961081Z",
+        "sunrise": "2026-07-20T04:07:33.418049Z",
+        "dhuhr": "2026-07-20T12:06:54.961081Z",
+        "asr": "2026-07-20T17:33:50.855286Z",
+        "maghrib": "2026-07-20T20:06:16.504114Z",
+        "isha": "2026-07-20T23:14:59.442330Z"
+      }
+    },
+    {
+      "city": "London",
+      "latitude": 51.5074,
+      "longitude": -0.1278,
+      "utcOffsetHours": 1.0,
+      "date": "2026-09-23",
+      "method": "tehran",
+      "madhab": "ahle_hadith",
+      "highLatitudeRule": "seventh_of_the_night",
+      "expected": {
+        "fajr": "2026-09-23T04:10:14.302310Z",
+        "sunrise": "2026-09-23T05:48:27.970503Z",
+        "dhuhr": "2026-09-23T11:52:51.942922Z",
+        "asr": "2026-09-23T15:09:50.973948Z",
+        "maghrib": "2026-09-23T18:20:52.293153Z",
+        "isha": "2026-09-23T19:23:19.339888Z"
+      }
+    },
+    {
+      "city": "London",
+      "latitude": 51.5074,
+      "longitude": -0.1278,
+      "utcOffsetHours": 0.0,
+      "date": "2026-12-21",
+      "method": "north_america",
+      "madhab": "jafari",
+      "highLatitudeRule": "twilight_angle",
+      "expected": {
+        "fajr": "2026-12-21T06:19:39.463535Z",
+        "sunrise": "2026-12-21T08:03:48.125485Z",
+        "dhuhr": "2026-12-21T11:58:34.442272Z",
+        "asr": "2026-12-21T13:37:31.442862Z",
+        "maghrib": "2026-12-21T16:18:29.693695Z",
+        "isha": "2026-12-21T17:37:29.421010Z"
+      }
+    },
+    {
+      "city": "NewYork",
+      "latitude": 40.7128,
+      "longitude": -74.006,
+      "utcOffsetHours": -5.0,
+      "date": "2026-01-15",
+      "method": "muslim_world_league",
+      "madhab": "shafi",
+      "highLatitudeRule": "middle_of_the_night",
+      "expected": {
+        "fajr": "2026-01-15T10:41:10.296090Z",
+        "sunrise": "2026-01-15T12:17:48.023214Z",
+        "dhuhr": "2026-01-15T17:05:30.171381Z",
+        "asr": "2026-01-15T19:34:01.722384Z",
+        "maghrib": "2026-01-15T21:53:12.319549Z",
+        "isha": "2026-01-15T23:24:25.081330Z"
+      }
+    },
+    {
+      "city": "NewYork",
+      "latitude": 40.7128,
+      "longitude": -74.006,
+      "utcOffsetHours": -4.0,
+      "date": "2026-03-20",
+      "method": "egyptian",
+      "madhab": "hanafi",
+      "highLatitudeRule": "seventh_of_the_night",
+      "expected": {
+        "fajr": "2026-03-20T09:18:46.242272Z",
+        "sunrise": "2026-03-20T10:58:54.189889Z",
+        "dhuhr": "2026-03-20T17:03:25.642331Z",
+        "asr": "2026-03-20T21:20:17.782530Z",
+        "maghrib": "2026-03-20T23:07:57.094774Z",
+        "isha": "2026-03-21T00:37:03.547028Z"
+      }
+    },
+    {
+      "city": "NewYork",
+      "latitude": 40.7128,
+      "longitude": -74.006,
+      "utcOffsetHours": -4.0,
+      "date": "2026-06-21",
+      "method": "karachi",
+      "madhab": "ahle_hadith",
+      "highLatitudeRule": "twilight_angle",
+      "expected": {
+        "fajr": "2026-06-21T07:18:37.052757Z",
+        "sunrise": "2026-06-21T09:25:06.169822Z",
+        "dhuhr": "2026-06-21T16:57:53.725189Z",
+        "asr": "2026-06-21T20:58:09.119572Z",
+        "maghrib": "2026-06-22T00:30:41.280555Z",
+        "isha": "2026-06-22T02:37:10.397620Z"
+      }
+    },
+    {
+      "city": "NewYork",
+      "latitude": 40.7128,
+      "longitude": -74.006,
+      "utcOffsetHours": -4.0,
+      "date": "2026-07-20",
+      "method": "umm_al_qura",
+      "madhab": "jafari",
+      "highLatitudeRule": "middle_of_the_night",
+      "expected": {
+        "fajr": "2026-07-20T07:41:04.828495Z",
+        "sunrise": "2026-07-20T09:42:08.561129Z",
+        "dhuhr": "2026-07-20T17:02:26.393341Z",
+        "asr": "2026-07-20T21:00:00.590983Z",
+        "maghrib": "2026-07-21T00:42:02.494115Z",
+        "isha": "2026-07-21T02:12:02.494115Z"
+      }
+    },
+    {
+      "city": "NewYork",
+      "latitude": 40.7128,
+      "longitude": -74.006,
+      "utcOffsetHours": -4.0,
+      "date": "2026-09-23",
+      "method": "dubai",
+      "madhab": "shafi",
+      "highLatitudeRule": "seventh_of_the_night",
+      "expected": {
+        "fajr": "2026-09-23T09:11:59.161978Z",
+        "sunrise": "2026-09-23T10:44:50.308087Z",
+        "dhuhr": "2026-09-23T16:48:18.395715Z",
+        "asr": "2026-09-23T20:13:08.068215Z",
+        "maghrib": "2026-09-23T22:51:46.483343Z",
+        "isha": "2026-09-24T00:24:37.629453Z"
+      }
+    },
+    {
+      "city": "NewYork",
+      "latitude": 40.7128,
+      "longitude": -74.006,
+      "utcOffsetHours": -5.0,
+      "date": "2026-12-21",
+      "method": "qatar",
+      "madhab": "hanafi",
+      "highLatitudeRule": "twilight_angle",
+      "expected": {
+        "fajr": "2026-12-21T10:37:49.762120Z",
+        "sunrise": "2026-12-21T12:16:39.247781Z",
+        "dhuhr": "2026-12-21T16:54:11.329152Z",
+        "asr": "2026-12-21T19:51:05.642181Z",
+        "maghrib": "2026-12-21T21:31:43.410522Z",
+        "isha": "2026-12-21T23:01:43.410522Z"
+      }
+    },
+    {
+      "city": "Jakarta",
+      "latitude": -6.2088,
+      "longitude": 106.8456,
+      "utcOffsetHours": 7.0,
+      "date": "2026-01-15",
+      "method": "kuwait",
+      "madhab": "ahle_hadith",
+      "highLatitudeRule": "middle_of_the_night",
+      "expected": {
+        "fajr": "2026-01-14T21:33:45.685145Z",
+        "sunrise": "2026-01-14T22:48:41.332453Z",
+        "dhuhr": "2026-01-15T05:01:55.218067Z",
+        "asr": "2026-01-15T08:26:48.905991Z",
+        "maghrib": "2026-01-15T11:15:09.103681Z",
+        "isha": "2026-01-15T12:27:52.051841Z"
+      }
+    },
+    {
+      "city": "Jakarta",
+      "latitude": -6.2088,
+      "longitude": 106.8456,
+      "utcOffsetHours": 7.0,
+      "date": "2026-03-20",
+      "method": "moonsighting_committee",
+      "madhab": "jafari",
+      "highLatitudeRule": "seventh_of_the_night",
+      "expected": {
+        "fajr": "2026-03-19T21:47:39.339707Z",
+        "sunrise": "2026-03-19T22:56:44.846685Z",
+        "dhuhr": "2026-03-20T05:00:10.159312Z",
+        "asr": "2026-03-20T08:10:33.453890Z",
+        "maghrib": "2026-03-20T11:16:20.058844Z",
+        "isha": "2026-03-20T12:12:40.978918Z"
+      }
+    },
+    {
+      "city": "Jakarta",
+      "latitude": -6.2088,
+      "longitude": 106.8456,
+      "utcOffsetHours": 7.0,
+      "date": "2026-06-21",
+      "method": "singapore",
+      "madhab": "shafi",
+      "highLatitudeRule": "twilight_angle",
+      "expected": {
+        "fajr": "2026-06-20T21:37:50.131911Z",
+        "sunrise": "2026-06-20T23:01:32.143221Z",
+        "dhuhr": "2026-06-21T04:54:22.781745Z",
+        "asr": "2026-06-21T08:16:17.474000Z",
+        "maghrib": "2026-06-21T10:47:13.420269Z",
+        "isha": "2026-06-21T12:02:12.112271Z"
+      }
+    },
+    {
+      "city": "Jakarta",
+      "latitude": -6.2088,
+      "longitude": 106.8456,
+      "utcOffsetHours": 7.0,
+      "date": "2026-07-20",
+      "method": "turkey",
+      "madhab": "hanafi",
+      "highLatitudeRule": "middle_of_the_night",
+      "expected": {
+        "fajr": "2026-07-19T21:51:17.439200Z",
+        "sunrise": "2026-07-19T23:04:49.390020Z",
+        "dhuhr": "2026-07-20T04:59:00.341367Z",
+        "asr": "2026-07-20T09:14:45.261213Z",
+        "maghrib": "2026-07-20T10:53:11.292714Z",
+        "isha": "2026-07-20T12:02:26.757008Z"
+      }
+    },
+    {
+      "city": "Jakarta",
+      "latitude": -6.2088,
+      "longitude": 106.8456,
+      "utcOffsetHours": 7.0,
+      "date": "2026-09-23",
+      "method": "tehran",
+      "madhab": "ahle_hadith",
+      "highLatitudeRule": "seventh_of_the_night",
+      "expected": {
+        "fajr": "2026-09-22T21:33:48.650971Z",
+        "sunrise": "2026-09-22T22:41:41.552908Z",
+        "dhuhr": "2026-09-23T04:45:04.584883Z",
+        "asr": "2026-09-23T07:55:34.458585Z",
+        "maghrib": "2026-09-23T11:03:12.909299Z",
+        "isha": "2026-09-23T11:41:26.812351Z"
+      }
+    },
+    {
+      "city": "Jakarta",
+      "latitude": -6.2088,
+      "longitude": 106.8456,
+      "utcOffsetHours": 7.0,
+      "date": "2026-12-21",
+      "method": "north_america",
+      "madhab": "jafari",
+      "highLatitudeRule": "twilight_angle",
+      "expected": {
+        "fajr": "2026-12-20T21:33:14.304117Z",
+        "sunrise": "2026-12-20T22:36:03.814184Z",
+        "dhuhr": "2026-12-21T04:50:31.970033Z",
+        "asr": "2026-12-21T08:17:50.091026Z",
+        "maghrib": "2026-12-21T11:18:56.356921Z",
+        "isha": "2026-12-21T12:07:49.635949Z"
+      }
+    },
+    {
+      "city": "Istanbul",
+      "latitude": 41.0082,
+      "longitude": 28.9784,
+      "utcOffsetHours": 3.0,
+      "date": "2026-01-15",
+      "method": "muslim_world_league",
+      "madhab": "shafi",
+      "highLatitudeRule": "middle_of_the_night",
+      "expected": {
+        "fajr": "2026-01-15T03:49:39.623668Z",
+        "sunrise": "2026-01-15T05:26:47.928273Z",
+        "dhuhr": "2026-01-15T10:13:27.917614Z",
+        "asr": "2026-01-15T12:40:58.498824Z",
+        "maghrib": "2026-01-15T15:00:07.906955Z",
+        "isha": "2026-01-15T16:31:49.748499Z"
+      }
+    },
+    {
+      "city": "Istanbul",
+      "latitude": 41.0082,
+      "longitude": 28.9784,
+      "utcOffsetHours": 3.0,
+      "date": "2026-03-20",
+      "method": "egyptian",
+      "madhab": "hanafi",
+      "highLatitudeRule": "seventh_of_the_night",
+      "expected": {
+        "fajr": "2026-03-20T02:26:51.094775Z",
+        "sunrise": "2026-03-20T04:07:25.345537Z",
+        "dhuhr": "2026-03-20T10:11:34.458832Z",
+        "asr": "2026-03-20T14:27:56.603822Z",
+        "maghrib": "2026-03-20T16:15:43.572127Z",
+        "isha": "2026-03-20T17:45:13.314916Z"
+      }
+    },
+    {
+      "city": "Istanbul",
+      "latitude": 41.0082,
+      "longitude": 28.9784,
+      "utcOffsetHours": 3.0,
+      "date": "2026-06-21",
+      "method": "karachi",
+      "madhab": "ahle_hadith",
+      "highLatitudeRule": "twilight_angle",
+      "expected": {
+        "fajr": "2026-06-21T00:24:15.158255Z",
+        "sunrise": "2026-06-21T02:32:06.160158Z",
+        "dhuhr": "2026-06-21T10:05:53.735044Z",
+        "asr": "2026-06-21T14:06:47.154708Z",
+        "maghrib": "2026-06-21T17:39:41.309930Z",
+        "isha": "2026-06-21T19:47:32.311833Z"
+      }
+    },
+    {
+      "city": "Istanbul",
+      "latitude": 41.0082,
+      "longitude": 28.9784,
+      "utcOffsetHours": 3.0,
+      "date": "2026-07-20",
+      "method": "umm_al_qura",
+      "madhab": "jafari",
+      "highLatitudeRule": "middle_of_the_night",
+      "expected": {
+        "fajr": "2026-07-20T00:46:47.215377Z",
+        "sunrise": "2026-07-20T02:49:06.631916Z",
+        "dhuhr": "2026-07-20T10:10:29.204882Z",
+        "asr": "2026-07-20T14:08:38.628240Z",
+        "maghrib": "2026-07-20T17:51:18.070330Z",
+        "isha": "2026-07-20T19:21:18.070330Z"
+      }
+    },
+    {
+      "city": "Istanbul",
+      "latitude": 41.0082,
+      "longitude": 28.9784,
+      "utcOffsetHours": 3.0,
+      "date": "2026-09-23",
+      "method": "dubai",
+      "madhab": "shafi",
+      "highLatitudeRule": "seventh_of_the_night",
+      "expected": {
+        "fajr": "2026-09-23T02:19:16.367681Z",
+        "sunrise": "2026-09-23T03:52:36.234040Z",
+        "dhuhr": "2026-09-23T09:56:28.156523Z",
+        "asr": "2026-09-23T13:21:23.773778Z",
+        "maghrib": "2026-09-23T16:00:20.079006Z",
+        "isha": "2026-09-23T17:33:39.945366Z"
+      }
+    },
+    {
+      "city": "Istanbul",
+      "latitude": 41.0082,
+      "longitude": 28.9784,
+      "utcOffsetHours": 3.0,
+      "date": "2026-12-21",
+      "method": "qatar",
+      "madhab": "hanafi",
+      "highLatitudeRule": "twilight_angle",
+      "expected": {
+        "fajr": "2026-12-21T03:46:11.318838Z",
+        "sunrise": "2026-12-21T05:25:30.353415Z",
+        "dhuhr": "2026-12-21T10:02:06.544131Z",
+        "asr": "2026-12-21T12:57:56.580970Z",
+        "maghrib": "2026-12-21T14:38:42.734846Z",
+        "isha": "2026-12-21T16:08:42.734846Z"
+      }
+    },
+    {
+      "city": "Sydney",
+      "latitude": -33.8688,
+      "longitude": 151.2093,
+      "utcOffsetHours": 11.0,
+      "date": "2026-01-15",
+      "method": "kuwait",
+      "madhab": "ahle_hadith",
+      "highLatitudeRule": "middle_of_the_night",
+      "expected": {
+        "fajr": "2026-01-14T17:19:38.914219Z",
+        "sunrise": "2026-01-14T18:59:46.573561Z",
+        "dhuhr": "2026-01-15T02:04:25.311482Z",
+        "asr": "2026-01-15T05:49:06.960960Z",
+        "maghrib": "2026-01-15T09:09:04.049404Z",
+        "isha": "2026-01-15T10:45:56.792461Z"
+      }
+    },
+    {
+      "city": "Sydney",
+      "latitude": -33.8688,
+      "longitude": 151.2093,
+      "utcOffsetHours": 11.0,
+      "date": "2026-03-20",
+      "method": "moonsighting_committee",
+      "madhab": "jafari",
+      "highLatitudeRule": "seventh_of_the_night",
+      "expected": {
+        "fajr": "2026-03-19T18:34:44.690980Z",
+        "sunrise": "2026-03-19T19:58:10.431111Z",
+        "dhuhr": "2026-03-20T02:02:45.049798Z",
+        "asr": "2026-03-20T05:30:14.719337Z",
+        "maghrib": "2026-03-20T08:22:35.623471Z",
+        "isha": "2026-03-20T09:30:45.408616Z"
+      }
+    },
+    {
+      "city": "Sydney",
+      "latitude": -33.8688,
+      "longitude": 151.2093,
+      "utcOffsetHours": 10.0,
+      "date": "2026-06-21",
+      "method": "singapore",
+      "madhab": "shafi",
+      "highLatitudeRule": "twilight_angle",
+      "expected": {
+        "fajr": "2026-06-20T19:20:31.909773Z",
+        "sunrise": "2026-06-20T20:59:59.788132Z",
+        "dhuhr": "2026-06-21T01:56:53.883449Z",
+        "asr": "2026-06-21T04:35:53.028491Z",
+        "maghrib": "2026-06-21T06:53:47.978767Z",
+        "isha": "2026-06-21T08:23:14.480079Z"
+      }
+    },
+    {
+      "city": "Sydney",
+      "latitude": -33.8688,
+      "longitude": 151.2093,
+      "utcOffsetHours": 10.0,
+      "date": "2026-07-20",
+      "method": "turkey",
+      "madhab": "hanafi",
+      "highLatitudeRule": "middle_of_the_night",
+      "expected": {
+        "fajr": "2026-07-19T19:28:18.939234Z",
+        "sunrise": "2026-07-19T20:55:48.957080Z",
+        "dhuhr": "2026-07-20T02:01:32.622622Z",
+        "asr": "2026-07-20T05:29:24.677892Z",
+        "maghrib": "2026-07-20T07:07:16.288163Z",
+        "isha": "2026-07-20T08:29:48.982944Z"
+      }
+    },
+    {
+      "city": "Sydney",
+      "latitude": -33.8688,
+      "longitude": 151.2093,
+      "utcOffsetHours": 10.0,
+      "date": "2026-09-23",
+      "method": "tehran",
+      "madhab": "ahle_hadith",
+      "highLatitudeRule": "seventh_of_the_night",
+      "expected": {
+        "fajr": "2026-09-22T18:21:40.348608Z",
+        "sunrise": "2026-09-22T19:43:34.921220Z",
+        "dhuhr": "2026-09-23T01:47:39.895412Z",
+        "asr": "2026-09-23T05:14:54.126076Z",
+        "maghrib": "2026-09-23T08:09:25.422768Z",
+        "isha": "2026-09-23T08:55:29.753247Z"
+      }
+    },
+    {
+      "city": "Sydney",
+      "latitude": -33.8688,
+      "longitude": 151.2093,
+      "utcOffsetHours": 11.0,
+      "date": "2026-12-21",
+      "method": "north_america",
+      "madhab": "jafari",
+      "highLatitudeRule": "twilight_angle",
+      "expected": {
+        "fajr": "2026-12-20T17:16:37.717996Z",
+        "sunrise": "2026-12-20T18:40:46.964836Z",
+        "dhuhr": "2026-12-21T01:53:01.010673Z",
+        "asr": "2026-12-21T05:37:54.179559Z",
+        "maghrib": "2026-12-21T09:22:57.818366Z",
+        "isha": "2026-12-21T10:29:24.303349Z"
+      }
+    },
+    {
+      "city": "Tromso",
+      "latitude": 69.6492,
+      "longitude": 18.9553,
+      "utcOffsetHours": 1.0,
+      "date": "2026-01-15",
+      "method": "muslim_world_league",
+      "madhab": "shafi",
+      "highLatitudeRule": "middle_of_the_night",
+      "expected": {
+        "fajr": "2026-01-15T05:13:27.904321Z",
+        "sunrise": "2026-01-15T10:28:50.469856Z",
+        "dhuhr": "2026-01-15T10:53:34.047782Z",
+        "asr": "2026-01-15T11:00:48.697347Z",
+        "maghrib": "2026-01-15T11:18:17.625708Z",
+        "isha": "2026-01-15T16:21:50.262833Z"
+      }
+    },
+    {
+      "city": "Tromso",
+      "latitude": 69.6492,
+      "longitude": 18.9553,
+      "utcOffsetHours": 1.0,
+      "date": "2026-03-20",
+      "method": "egyptian",
+      "madhab": "hanafi",
+      "highLatitudeRule": "seventh_of_the_night",
+      "expected": {
+        "fajr": "2026-03-20T03:02:27.331553Z",
+        "sunrise": "2026-03-20T04:42:46.460337Z",
+        "dhuhr": "2026-03-20T10:51:39.509592Z",
+        "asr": "2026-03-20T14:23:56.879676Z",
+        "maghrib": "2026-03-20T17:00:32.558848Z",
+        "isha": "2026-03-20T18:40:51.687632Z"
+      }
+    },
+    {
+      "city": "Tromso",
+      "latitude": 69.6492,
+      "longitude": 18.9553,
+      "utcOffsetHours": 2.0,
+      "date": "2026-06-21",
+      "method": "karachi",
+      "madhab": "ahle_hadith",
+      "highLatitudeRule": "twilight_angle",
+      "expected": {
+        "fajr": "2026-06-21T00:21:27.181976Z",
+        "sunrise": "2026-06-21T02:44:38.491029Z",
+        "dhuhr": "2026-06-21T10:45:59.642607Z",
+        "asr": "2026-06-21T15:01:30.570003Z",
+        "maghrib": "2026-06-21T18:47:20.794184Z",
+        "isha": "2026-06-21T21:10:32.103237Z"
+      }
+    },
+    {
+      "city": "Tromso",
+      "latitude": 69.6492,
+      "longitude": 18.9553,
+      "utcOffsetHours": 2.0,
+      "date": "2026-07-20",
+      "method": "umm_al_qura",
+      "madhab": "jafari",
+      "highLatitudeRule": "middle_of_the_night",
+      "expected": {
+        "fajr": "2026-07-20T00:20:21.141106Z",
+        "sunrise": "2026-07-20T03:05:56.914601Z",
+        "dhuhr": "2026-07-20T10:50:34.841654Z",
+        "asr": "2026-07-20T15:00:51.903856Z",
+        "maghrib": "2026-07-20T18:58:20.149171Z",
+        "isha": "2026-07-20T20:28:20.149171Z"
+      }
+    },
+    {
+      "city": "Tromso",
+      "latitude": 69.6492,
+      "longitude": 18.9553,
+      "utcOffsetHours": 2.0,
+      "date": "2026-09-23",
+      "method": "dubai",
+      "madhab": "shafi",
+      "highLatitudeRule": "seventh_of_the_night",
+      "expected": {
+        "fajr": "2026-09-23T02:48:09.128631Z",
+        "sunrise": "2026-09-23T04:28:47.534300Z",
+        "dhuhr": "2026-09-23T10:36:33.114459Z",
+        "asr": "2026-09-23T13:20:41.160815Z",
+        "maghrib": "2026-09-23T16:44:18.694619Z",
+        "isha": "2026-09-23T18:24:57.100288Z"
+      }
+    },
+    {
+      "city": "Tromso",
+      "latitude": 69.6492,
+      "longitude": 18.9553,
+      "utcOffsetHours": 1.0,
+      "date": "2026-12-21",
+      "method": "qatar",
+      "madhab": "hanafi",
+      "highLatitudeRule": "twilight_angle",
+      "expected": {
+        "fajr": "2026-12-21T04:37:11.302722Z",
+        "sunrise": "2026-12-21T06:31:10.609756Z",
+        "dhuhr": "2026-12-21T10:42:12.918057Z",
+        "asr": "2026-12-21T13:08:50.255559Z",
+        "maghrib": "2026-12-21T14:53:15.226359Z",
+        "isha": "2026-12-21T16:23:15.226359Z"
+      }
+    },
+    {
+      "city": "Reykjavik",
+      "latitude": 64.1466,
+      "longitude": -21.9426,
+      "utcOffsetHours": 0.0,
+      "date": "2026-01-15",
+      "method": "kuwait",
+      "madhab": "ahle_hadith",
+      "highLatitudeRule": "middle_of_the_night",
+      "expected": {
+        "fajr": "2026-01-15T07:45:14.646722Z",
+        "sunrise": "2026-01-15T10:54:36.035247Z",
+        "dhuhr": "2026-01-15T13:37:11.930142Z",
+        "asr": "2026-01-15T14:18:01.319781Z",
+        "maghrib": "2026-01-15T16:19:47.825038Z",
+        "isha": "2026-01-15T19:24:28.086776Z"
+      }
+    },
+    {
+      "city": "Reykjavik",
+      "latitude": 64.1466,
+      "longitude": -21.9426,
+      "utcOffsetHours": 0.0,
+      "date": "2026-03-20",
+      "method": "moonsighting_committee",
+      "madhab": "jafari",
+      "highLatitudeRule": "seventh_of_the_night",
+      "expected": {
+        "fajr": "2026-03-20T05:51:11.165752Z",
+        "sunrise": "2026-03-20T07:27:44.328311Z",
+        "dhuhr": "2026-03-20T13:35:12.991985Z",
+        "asr": "2026-03-20T16:33:39.455684Z",
+        "maghrib": "2026-03-20T20:11:52.190398Z",
+        "isha": "2026-03-20T21:48:25.352957Z"
+      }
+    },
+    {
+      "city": "Reykjavik",
+      "latitude": 64.1466,
+      "longitude": -21.9426,
+      "utcOffsetHours": 0.0,
+      "date": "2026-06-21",
+      "method": "singapore",
+      "madhab": "shafi",
+      "highLatitudeRule": "twilight_angle",
+      "expected": {
+        "fajr": "2026-06-21T01:58:10.741580Z",
+        "sunrise": "2026-06-21T02:55:18.981162Z",
+        "dhuhr": "2026-06-21T13:29:36.621789Z",
+        "asr": "2026-06-21T18:22:28.517854Z",
+        "maghrib": "2026-06-22T00:03:54.262416Z",
+        "isha": "2026-06-22T00:55:19.678040Z"
+      }
+    },
+    {
+      "city": "Reykjavik",
+      "latitude": 64.1466,
+      "longitude": -21.9426,
+      "utcOffsetHours": 0.0,
+      "date": "2026-07-20",
+      "method": "turkey",
+      "madhab": "hanafi",
+      "highLatitudeRule": "middle_of_the_night",
+      "expected": {
+        "fajr": "2026-07-20T01:34:10.711688Z",
+        "sunrise": "2026-07-20T03:57:29.799936Z",
+        "dhuhr": "2026-07-20T13:34:10.711688Z",
+        "asr": "2026-07-20T19:31:38.678594Z",
+        "maghrib": "2026-07-20T23:10:51.623440Z",
+        "isha": "2026-07-21T01:34:10.711688Z"
+      }
+    },
+    {
+      "city": "Reykjavik",
+      "latitude": 64.1466,
+      "longitude": -21.9426,
+      "utcOffsetHours": 0.0,
+      "date": "2026-09-23",
+      "method": "tehran",
+      "madhab": "ahle_hadith",
+      "highLatitudeRule": "seventh_of_the_night",
+      "expected": {
+        "fajr": "2026-09-23T05:37:52.385787Z",
+        "sunrise": "2026-09-23T07:14:13.347095Z",
+        "dhuhr": "2026-09-23T13:20:06.220147Z",
+        "asr": "2026-09-23T16:17:29.198237Z",
+        "maghrib": "2026-09-23T19:59:46.617943Z",
+        "isha": "2026-09-23T21:32:46.629281Z"
+      }
+    },
+    {
+      "city": "Reykjavik",
+      "latitude": 64.1466,
+      "longitude": -21.9426,
+      "utcOffsetHours": 0.0,
+      "date": "2026-12-21",
+      "method": "north_america",
+      "madhab": "jafari",
+      "highLatitudeRule": "twilight_angle",
+      "expected": {
+        "fajr": "2026-12-21T08:23:13.051801Z",
+        "sunrise": "2026-12-21T11:22:19.469461Z",
+        "dhuhr": "2026-12-21T13:25:51.800859Z",
+        "asr": "2026-12-21T13:47:02.463478Z",
+        "maghrib": "2026-12-21T16:21:34.957829Z",
+        "isha": "2026-12-21T18:28:30.549916Z"
+      }
+    }
+  ]
+}

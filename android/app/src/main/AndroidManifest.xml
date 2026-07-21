@@ -1,0 +1,153 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+      Special-access permissions required for prayer-time app restriction.
+
+      PACKAGE_USAGE_STATS and SYSTEM_ALERT_WINDOW cannot be granted by a
+      runtime dialog; the user must enable each in Settings. The app checks
+      all of them at startup and refuses to start a lock that cannot actually
+      enforce anything (see MainActivity.startLock).
+
+      Note on Play Store review: this app does NOT use AccessibilityService.
+      Play policy restricts that API to genuine accessibility use, and screen-
+      time apps are routinely rejected for relying on it. We poll
+      UsageStatsManager instead, which is the policy-compliant approach.
+    -->
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Android 14+ requires a typed foreground service declaration. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Exact alarms: a prayer reminder delivered ten minutes late is useless,
+         so inexact scheduling is not an acceptable substitute here. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
+    <application
+        android:label="Prayer Lock"
+        android:name="${applicationName}"
+        android:icon="@mipmap/ic_launcher">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:taskAffinity=""
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize">
+            <meta-data
+                android:name="io.flutter.embedding.android.NormalTheme"
+                android:resource="@style/NormalTheme" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!--
+          The prayer lock screen.
+
+          excludeFromRecents and noHistory prevent it lingering in the recents
+          list after dismissal. singleTask stops a stack of lock screens
+          accumulating if several blocked apps are opened in succession.
+          showWhenLocked/turnScreenOn matter for Fajr, when the phone is
+          typically asleep and locked.
+        -->
+        <activity
+            android:name=".blocking.LockScreenActivity"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:theme="@style/LaunchTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true" />
+
+        <!--
+          specialUse is the correct Android 14+ type: this service is neither
+          media, location, nor any other predefined category. The value of
+          PROPERTY_SPECIAL_USE_FGS_SUBTYPE is submitted to Play review as
+          justification, so keep it accurate and specific.
+        -->
+        <service
+            android:name=".blocking.AppBlockerService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Restricts user-selected apps during the user's scheduled prayer times and releases them after the user confirms completion." />
+        </service>
+
+        <!--
+          Restores scheduled prayer notifications after a reboot.
+
+          Android discards all pending alarms when the device restarts. Without
+          these receivers a user who reboots overnight silently receives no
+          reminders the following day — a failure that is invisible until a
+          prayer is missed. Provided by flutter_local_notifications, which
+          persists the schedule and replays it on boot.
+
+          QUICKBOOT_POWERON and the HTC variant are included because several
+          OEMs use a "fast boot" that does not emit the standard
+          BOOT_COMPLETED broadcast.
+        -->
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Delivers a notification whose exact alarm has fired. -->
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
+            android:exported="false" />
+
+        <!-- Handles the user's action buttons on a delivered notification. -->
+        <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver"
+            android:exported="false" />
+
+        <meta-data
+            android:name="flutterEmbedding"
+            android:value="2" />
+    </application>
+
+    <!--
+      Package visibility (Android 11+): without the LAUNCHER query the app
+      cannot enumerate installed apps for the blocked-app picker, and the list
+      silently comes back nearly empty rather than erroring.
+    -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.PROCESS_TEXT" />
+            <data android:mimeType="text/plain" />
+        </intent>
+    </queries>
+</manifest>

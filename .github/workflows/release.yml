@@ -1,0 +1,65 @@
+# Builds and tests the Android app, and on a version tag publishes a release
+# APK to the GitHub Releases page — the file users download to install.
+name: Release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Analyze and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+
+  build:
+    name: Build release APK
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+      - run: flutter pub get
+      # Split per ABI so each download is ~25 MB rather than a fat ~60 MB APK.
+      - run: flutter build apk --release --split-per-abi
+      - name: Rename the arm64 APK (the one nearly every phone needs)
+        run: cp build/app/outputs/flutter-apk/app-arm64-v8a-release.apk PrayerLock.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: PrayerLock-apk
+          path: PrayerLock.apk
+
+  release:
+    name: Publish APK to Releases
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: PrayerLock-apk
+      - name: Attach APK to the GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: PrayerLock.apk
+          body: |
+            Download **PrayerLock.apk** below and open it on your Android phone
+            to install. Allow installation from this source when prompted.

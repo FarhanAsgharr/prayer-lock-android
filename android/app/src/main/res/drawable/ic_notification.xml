@@ -1,0 +1,30 @@
+<!--
+  Status-bar notification icon.
+
+  Must be a single-colour silhouette on transparency: Android renders
+  notification icons as a mask and discards colour information. A full-colour
+  icon here appears as a solid white square on the status bar.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="#FFFFFF">
+    <!-- Mosque dome and minarets, simplified for 24dp legibility. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,3.5c-2.4,1.9 -4,4.2 -4,6.3c0,0.4 0.1,0.8 0.2,1.2h7.6c0.1,-0.4 0.2,-0.8 0.2,-1.2C16,7.7 14.4,5.4 12,3.5z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M7,12v7h2v-4.5c0,-0.8 0.7,-1.5 1.5,-1.5h3c0.8,0 1.5,0.7 1.5,1.5V19h2v-7H7z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M4,9.5C4.6,9.5 5,9.9 5,10.5V19H3v-8.5C3,9.9 3.4,9.5 4,9.5z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M20,9.5c0.6,0 1,0.4 1,1V19h-2v-8.5C19,9.9 19.4,9.5 20,9.5z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M2,20h20v1.5H2z" />
+</vector>
