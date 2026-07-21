@@ -104,12 +104,9 @@ final prayerDayProvider = Provider<PrayerDay?>((ref) {
   final schedule = scheduleFor(settings, date);
   if (schedule == null) return null;
 
-  // Isha's window runs until the following Fajr, so tomorrow's schedule is
-  // required to close today's final window correctly.
-  final tomorrow = scheduleFor(settings, date.add(const Duration(days: 1)));
-  if (tomorrow == null) return null;
-
-  final base = PrayerDay.fromSchedule(schedule, nextDayFajr: tomorrow.fajr);
+  // Windows are fixed 30/90-minute spans from each prayer's start, so a day is
+  // self-contained — no need for the following day's schedule.
+  final base = PrayerDay.fromSchedule(schedule);
 
   final tracked = ref.watch(trackedStatusesProvider(date)).valueOrNull;
   if (tracked == null) return base;
@@ -150,7 +147,6 @@ final nextPrayerProvider = Provider<({PrayerEntry entry, Duration until})?>((ref
   final fajrEntry = PrayerEntry(
     prayer: PrayerName.fajr,
     scheduledAt: tomorrow.fajr,
-    windowEndsAt: tomorrow.sunrise,
   );
   return (entry: fajrEntry, until: tomorrow.fajr.difference(now));
 });

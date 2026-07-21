@@ -75,13 +75,29 @@ void main() {
       );
     });
 
-    test('omits reminders when the lead time is zero', () {
+    test('omits pre-reminders when the lead time is zero', () {
       final planned = scheduler.plan(
         settings: settingsWith(reminderMinutes: 0),
         from: referenceNow,
       );
 
-      expect(planned.every((n) => n.isAdhan), isTrue);
+      // No pre-prayer reminder should be titled "in N minutes"; the adhan and
+      // the qaza-transition notices are unaffected by the reminder lead time.
+      expect(
+        planned.any((n) => n.title.contains('minutes')),
+        isFalse,
+      );
+    });
+
+    test('schedules a qaza-transition notice per prayer', () {
+      final planned =
+          scheduler.plan(settings: settingsWith(), from: referenceNow);
+
+      // A "on-time window ended" notice exists for each of the day's prayers.
+      final qazaNotices = planned.where(
+        (n) => n.title.contains('on-time window ended'),
+      );
+      expect(qazaNotices, isNotEmpty);
     });
 
     test('produces nothing without a location', () {

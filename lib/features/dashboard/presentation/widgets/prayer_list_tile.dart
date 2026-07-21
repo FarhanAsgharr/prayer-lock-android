@@ -1,4 +1,7 @@
 /// A single prayer row on the dashboard.
+///
+/// The badge and countdown reflect the prayer's live phase: the on-time
+/// window, the qaza window, or a settled outcome (verified / qaza / missed).
 library;
 
 import 'package:flutter/material.dart';
@@ -6,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../../../shared/theme/app_theme.dart';
+import '../../../../shared/widgets/countdown_text.dart';
 import '../../../prayer_times/domain/entities/prayer_day.dart';
 import '../../../prayer_times/domain/entities/prayer_enums.dart';
 
@@ -26,18 +30,18 @@ class PrayerListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final status = entry.statusAt(now);
-    final isActive = status == PrayerStatus.active;
+    final phase = entry.phaseAt(now);
+    final isActive = phase.isVerifiable;
+    final remaining = entry.remainingWindow(now);
 
     return Semantics(
-      // Screen readers get the full picture in one utterance rather than
-      // three disconnected labels.
       label: '${entry.prayer.displayName}, '
-          '${_formatTime(entry.scheduledAt)}, ${_statusLabel(status)}',
+          '${_formatTime(entry.scheduledAt)}, ${_phaseLabel(phase)}'
+          '${remaining != null ? ', ${formatCountdown(remaining)} left' : ''}',
       button: onTap != null,
       child: Material(
         color: isActive
-            ? theme.colorScheme.primary.withValues(alpha: 0.08)
+            ? _phaseColor(phase, theme).withValues(alpha: 0.08)
             : Colors.transparent,
         borderRadius: BorderRadius.circular(AppRadius.md),
         child: InkWell(
@@ -50,7 +54,7 @@ class PrayerListTile extends StatelessWidget {
             ),
             child: Row(
               children: [
-                _StatusIndicator(status: status),
+                _PhaseIndicator(phase: phase),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
@@ -63,14 +67,33 @@ class PrayerListTile extends StatelessWidget {
                               isActive ? FontWeight.w700 : FontWeight.w600,
                         ),
                       ),
-                      if (status != PrayerStatus.pending) ...[
+                      if (phase != PrayerPhase.upcoming) ...[
                         const SizedBox(height: 2),
-                        Text(
-                          _statusLabel(status),
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: _statusColor(status, theme),
-                            fontSize: 13,
-                          ),
+                        Row(
+                          children: [
+                            Text(
+                              _phaseLabel(phase),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: _phaseColor(phase, theme),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            // The countdown the spec requires: how long is left
+                            // in the current on-time or qaza window.
+                            if (remaining != null) ...[
+                              Text(
+                                ' · ${formatCountdown(remaining)} left',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: _phaseColor(phase, theme),
+                                  fontSize: 13,
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures(),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ],
                     ],
@@ -80,7 +103,7 @@ class PrayerListTile extends StatelessWidget {
                   _formatTime(entry.scheduledAt),
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontFeatures: const [FontFeature.tabularFigures()],
-                    color: status == PrayerStatus.missed
+                    color: phase == PrayerPhase.missed
                         ? theme.textTheme.bodyMedium?.color
                         : null,
                   ),
@@ -102,47 +125,53 @@ class PrayerListTile extends StatelessWidget {
     }
   }
 
-  String _statusLabel(PrayerStatus status) => switch (status) {
-        PrayerStatus.pending => 'Upcoming',
-        PrayerStatus.active => 'Now',
-        PrayerStatus.completed => 'Completed',
-        PrayerStatus.late => 'Completed late',
-        PrayerStatus.missed => 'Missed',
-        PrayerStatus.excused => 'Excused',
+  static String _phaseLabel(PrayerPhase phase) => switch (phase) {
+        PrayerPhase.upcoming => 'Upcoming',
+        PrayerPhase.verifyOnTime => 'Verify now',
+        PrayerPhase.qazaAvailable => 'Qaza available',
+        PrayerPhase.verifiedOnTime => 'Verified on time',
+        PrayerPhase.qazaCompleted => 'Qaza completed',
+        PrayerPhase.missed => 'Missed',
+        PrayerPhase.excused => 'Excused',
       };
 
-  Color _statusColor(PrayerStatus status, ThemeData theme) => switch (status) {
-        PrayerStatus.completed => AppColors.success,
-        PrayerStatus.late => AppColors.warning,
-        PrayerStatus.missed => AppColors.danger,
-        PrayerStatus.active => theme.colorScheme.primary,
-        _ => theme.textTheme.bodyMedium!.color!,
+  static Color _phaseColor(PrayerPhase phase, ThemeData theme) =>
+      switch (phase) {
+        PrayerPhase.verifyOnTime => theme.colorScheme.primary,
+        PrayerPhase.qazaAvailable => AppColors.warning,
+        PrayerPhase.verifiedOnTime => AppColors.success,
+        PrayerPhase.qazaCompleted => AppColors.warning,
+        PrayerPhase.missed => AppColors.danger,
+        PrayerPhase.excused => AppColors.warning,
+        PrayerPhase.upcoming => theme.textTheme.bodyMedium!.color!,
       };
 }
 
-class _StatusIndicator extends StatelessWidget {
-  const _StatusIndicator({required this.status});
+class _PhaseIndicator extends StatelessWidget {
+  const _PhaseIndicator({required this.phase});
 
-  final PrayerStatus status;
+  final PrayerPhase phase;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final (IconData icon, Color color) = switch (status) {
-      PrayerStatus.completed => (Icons.check_circle, AppColors.success),
-      PrayerStatus.late => (Icons.check_circle_outline, AppColors.warning),
-      PrayerStatus.missed => (Icons.remove_circle_outline, AppColors.danger),
-      PrayerStatus.excused => (Icons.pause_circle_outline, AppColors.warning),
-      PrayerStatus.active => (Icons.radio_button_checked, theme.colorScheme.primary),
-      PrayerStatus.pending => (
+    final (IconData icon, Color color) = switch (phase) {
+      PrayerPhase.verifiedOnTime => (Icons.check_circle, AppColors.success),
+      PrayerPhase.qazaCompleted => (Icons.history, AppColors.warning),
+      PrayerPhase.missed => (Icons.remove_circle_outline, AppColors.danger),
+      PrayerPhase.excused => (Icons.pause_circle_outline, AppColors.warning),
+      PrayerPhase.verifyOnTime => (
+          Icons.radio_button_checked,
+          theme.colorScheme.primary,
+        ),
+      PrayerPhase.qazaAvailable => (Icons.timelapse, AppColors.warning),
+      PrayerPhase.upcoming => (
           Icons.radio_button_unchecked,
           theme.dividerColor,
         ),
     };
 
-    // Excluded from semantics: the parent Semantics already conveys status in
-    // words, and a screen reader announcing an icon name adds nothing.
     return ExcludeSemantics(child: Icon(icon, color: color, size: 26));
   }
 }

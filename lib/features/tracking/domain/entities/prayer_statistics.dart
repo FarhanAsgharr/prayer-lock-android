@@ -10,47 +10,50 @@ import '../../../prayer_times/domain/entities/prayer_enums.dart';
 class PrayerCounts {
   const PrayerCounts({
     this.completed = 0,
-    this.late = 0,
+    this.qaza = 0,
     this.missed = 0,
     this.excused = 0,
   });
 
+  /// Verified within the on-time window.
   final int completed;
-  final int late;
+
+  /// Verified within the qaza (make-up) window. Counted separately from
+  /// on-time, as the spec requires, so a make-up is visible as such.
+  final int qaza;
+
   final int missed;
   final int excused;
 
-  /// Prayers whose window has closed and which therefore count towards a rate.
-  ///
-  /// Excludes excused prayers entirely rather than counting them as successes:
-  /// inflating someone's rate because they were ill or travelling would make
-  /// the number meaningless.
-  int get assessed => completed + late + missed;
+  /// Prayers whose windows have closed and which therefore count towards a
+  /// rate. Excludes excused prayers entirely — inflating the rate because
+  /// someone was ill or travelling would make the number meaningless.
+  int get assessed => completed + qaza + missed;
 
-  int get fulfilled => completed + late;
+  /// Performed at all, on time or as qaza.
+  int get fulfilled => completed + qaza;
 
   int get total => assessed + excused;
 
   /// Fraction of assessed prayers that were performed, 0.0–1.0.
   ///
   /// Returns 1.0 when nothing has been assessed yet. A new user should not be
-  /// shown 0% before they have had the chance to pray anything — that reads as
-  /// an accusation on first launch.
+  /// shown 0% before they have had the chance to pray anything.
   double get successRate => assessed == 0 ? 1.0 : fulfilled / assessed;
 
-  /// Fraction performed within the prayer's own window.
+  /// Fraction performed within the on-time window.
   double get onTimeRate => assessed == 0 ? 1.0 : completed / assessed;
 
   PrayerCounts operator +(PrayerCounts other) => PrayerCounts(
         completed: completed + other.completed,
-        late: late + other.late,
+        qaza: qaza + other.qaza,
         missed: missed + other.missed,
         excused: excused + other.excused,
       );
 
   static PrayerCounts fromStatuses(Iterable<PrayerStatus> statuses) {
     var completed = 0;
-    var late = 0;
+    var qaza = 0;
     var missed = 0;
     var excused = 0;
 
@@ -58,8 +61,9 @@ class PrayerCounts {
       switch (status) {
         case PrayerStatus.completed:
           completed++;
-        case PrayerStatus.late:
-          late++;
+        case PrayerStatus.qazaCompleted:
+        case PrayerStatus.late: // legacy — fold into qaza
+          qaza++;
         case PrayerStatus.missed:
           missed++;
         case PrayerStatus.excused:
@@ -73,7 +77,7 @@ class PrayerCounts {
 
     return PrayerCounts(
       completed: completed,
-      late: late,
+      qaza: qaza,
       missed: missed,
       excused: excused,
     );

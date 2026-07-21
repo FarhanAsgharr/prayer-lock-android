@@ -99,11 +99,14 @@ class DashboardScreen extends ConsumerWidget {
     PrayerEntry entry,
     DateTime now,
   ) {
-    final status = entry.statusAt(now);
+    final phase = entry.phaseAt(now);
 
-    // Nothing useful to offer for a prayer that has not started or is already
-    // recorded — an empty sheet would be worse than no sheet.
-    if (status == PrayerStatus.pending || status.isFulfilled) return;
+    // Verification is only offered while a window is open. Upcoming, verified,
+    // qaza-completed and missed prayers have no action — once the qaza window
+    // closes, no photo can be submitted, ever.
+    if (!phase.isVerifiable) return;
+
+    final isQaza = phase == PrayerPhase.qazaAvailable;
 
     showModalBottomSheet<void>(
       context: context,
@@ -125,10 +128,21 @@ class DashboardScreen extends ConsumerWidget {
                 style: Theme.of(sheetContext).textTheme.titleLarge,
                 textAlign: TextAlign.center,
               ),
+              if (isQaza) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  'The on-time window has passed. Verifying now records this '
+                  'as a qaza (make-up) prayer.',
+                  style: Theme.of(sheetContext).textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+              ],
               const SizedBox(height: AppSpacing.lg),
               FilledButton.icon(
                 icon: const Icon(Icons.camera_alt_outlined),
-                label: const Text('I completed this prayer'),
+                label: Text(
+                  isQaza ? 'Verify qaza prayer' : 'I completed this prayer',
+                ),
                 onPressed: () {
                   Navigator.of(sheetContext).pop();
                   context.push('/verify/${entry.prayer.wireValue}');

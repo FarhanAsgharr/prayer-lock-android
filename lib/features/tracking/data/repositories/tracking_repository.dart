@@ -40,16 +40,19 @@ class TrackingRepository {
     required PrayerEntry entry,
     required PrayerStatus status,
     DateTime? completedAt,
+    DateTime? qazaCompletedAt,
     DateTime? startedAt,
     String? excuseReason,
   }) async {
     final id = prayerId(date, entry.prayer);
     final now = DateTime.now().toUtc();
 
+    final verifiedAt = completedAt ?? qazaCompletedAt;
+
     // Clamped at zero: a prayer performed before its scheduled instant would
     // otherwise record a negative delay, which the statistics treat as time
     // travel rather than as on time.
-    final delayMinutes = completedAt
+    final delayMinutes = verifiedAt
         ?.difference(entry.scheduledAt)
         .inMinutes
         .clamp(0, 1 << 30);
@@ -61,8 +64,12 @@ class TrackingRepository {
       'status': status.wireValue,
       'scheduled_at': entry.scheduledAt.millisecondsSinceEpoch,
       'window_ends_at': entry.windowEndsAt.millisecondsSinceEpoch,
+      'verification_deadline':
+          entry.verificationDeadline.millisecondsSinceEpoch,
+      'qaza_deadline': entry.qazaDeadline.millisecondsSinceEpoch,
       'started_at': startedAt?.millisecondsSinceEpoch,
       'completed_at': completedAt?.millisecondsSinceEpoch,
+      'qaza_completed_at': qazaCompletedAt?.millisecondsSinceEpoch,
       'delay_minutes': delayMinutes,
       'excuse_reason': excuseReason,
       'synced': 0,
@@ -85,7 +92,10 @@ class TrackingRepository {
         'status': row['status'],
         'scheduled_at': entry.scheduledAt.toIso8601String(),
         'window_ends_at': entry.windowEndsAt.toIso8601String(),
+        'verification_deadline': entry.verificationDeadline.toIso8601String(),
+        'qaza_deadline': entry.qazaDeadline.toIso8601String(),
         'completed_at': completedAt?.toIso8601String(),
+        'qaza_completed_at': qazaCompletedAt?.toIso8601String(),
         'delay_minutes': delayMinutes,
         'excuse_reason': excuseReason,
       },

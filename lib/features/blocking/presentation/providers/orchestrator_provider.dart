@@ -226,14 +226,12 @@ class LockOrchestrator extends Notifier<LockState> {
   /// Today's schedule with recorded outcomes merged in.
   Future<PrayerDay?> _currentDay(AppSettings settings, DateTime date) async {
     final schedule = scheduleFor(settings, date);
-    final tomorrow =
-        scheduleFor(settings, date.add(const Duration(days: 1)));
-    if (schedule == null || tomorrow == null) return null;
+    if (schedule == null) return null;
 
     final statuses =
         await ref.read(trackingRepositoryProvider).statusesForDate(date);
 
-    final base = PrayerDay.fromSchedule(schedule, nextDayFajr: tomorrow.fajr);
+    final base = PrayerDay.fromSchedule(schedule);
 
     return statuses.entries.fold<PrayerDay>(
       base,

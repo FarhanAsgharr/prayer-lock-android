@@ -301,6 +301,11 @@ class NotificationService {
     }
   }
 
+  /// Cancel the "qaza now available" notice for a prayer once it has been
+  /// verified, so it never fires for a prayer already completed on time.
+  Future<void> cancelQazaNotice(DateTime date, PrayerName prayer) =>
+      _plugin.cancel(NotificationIds.qazaTransition(date, prayer));
+
   Future<List<PendingNotificationRequest>> pending() =>
       _plugin.pendingNotificationRequests();
 
@@ -334,12 +339,17 @@ abstract final class NotificationIds {
   static int reminder(DateTime date, PrayerName prayer) =>
       _base(date, prayer) + 1;
 
+  /// Stable id for the "on-time window ended, qaza now available" notice.
+  static int qazaTransition(DateTime date, PrayerName prayer) =>
+      _base(date, prayer) + 2;
+
   static int _base(DateTime date, PrayerName prayer) {
     // day-of-year (1-366) and prayer index pack into a small, collision-free
-    // space that stays inside the reserved band for a whole year.
+    // space. Three notification types per prayer (adhan, reminder, qaza) mean
+    // 15 slots per day; 366 * 15 stays well inside the reserved band.
     final dayOfYear = date.difference(DateTime(date.year, 1, 1)).inDays + 1;
     final prayerIndex = PrayerName.values.indexOf(prayer);
-    return _prayerBandStart + (dayOfYear * 10) + (prayerIndex * 2);
+    return _prayerBandStart + (dayOfYear * 15) + (prayerIndex * 3);
   }
 }
 

@@ -23,6 +23,8 @@ import '../../../../shared/theme/app_theme.dart';
 import '../../../prayer_times/domain/entities/prayer_enums.dart';
 import '../../../blocking/presentation/providers/orchestrator_provider.dart';
 import '../../../prayer_times/presentation/providers/prayer_times_provider.dart';
+import '../../../../core/notifications/notification_providers.dart';
+import '../../../tracking/data/repositories/tracking_repository.dart';
 import '../../../tracking/presentation/providers/tracking_providers.dart';
 import '../../../../core/storage/storage_providers.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
@@ -188,12 +190,14 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
 
     final entry = day.entryFor(widget.prayer);
 
-    String? prayerHistoryId;
+    VerificationOutcome outcome;
+    String prayerHistoryId;
     try {
-      prayerHistoryId = await ref.read(prayerTrackerProvider).markCompleted(
+      outcome = await ref.read(prayerTrackerProvider).markVerified(
             date: date,
             entry: entry,
           );
+      prayerHistoryId = TrackingRepository.prayerId(date, widget.prayer);
     } catch (error, stack) {
       // The single most important write. If it fails, surface it and stop,
       // rather than releasing the lock for a prayer that was not recorded.
@@ -204,6 +208,26 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
             content: Text('Could not save your prayer. Please try again.'),
           ),
         );
+      }
+      return;
+    }
+
+    // The qaza window closed before the photo was submitted. The prayer is now
+    // permanently missed and no verification is possible — tell the user
+    // plainly rather than pretending it was recorded.
+    if (outcome == VerificationOutcome.expired) {
+      // Release the lock anyway — nothing more can be done here.
+      await ref.read(lockStateProvider.notifier).onPrayerCompleted();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'The prayer and qaza windows have both passed. This prayer is '
+              'now recorded as missed.',
+            ),
+          ),
+        );
+        context.go('/');
       }
       return;
     }
@@ -223,6 +247,15 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
       } catch (error) {
         debugPrint('Failed to record verification (non-fatal): $error');
       }
+    }
+
+    // The prayer is verified, so its "qaza now available" notice must not fire.
+    try {
+      await ref
+          .read(notificationServiceProvider)
+          .cancelQazaNotice(date, widget.prayer);
+    } catch (error) {
+      debugPrint('Failed to cancel qaza notice (non-fatal): $error');
     }
 
     // Release immediately rather than waiting up to thirty seconds for the

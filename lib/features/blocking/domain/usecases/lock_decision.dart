@@ -86,8 +86,8 @@ abstract final class LockDecisionMaker {
       return const LockDecision.unlocked(LockReason.noPrayerDue);
     }
 
-    // Morning protection takes precedence: after Fajr begins, the gate applies
-    // until Fajr is prayed, even though Fajr is also the "current" prayer.
+    // Morning protection takes precedence: while Fajr is still owed and
+    // verifiable, the gate applies.
     final fajr = day.entryFor(PrayerName.fajr);
     final morningGateApplies = settings.morningProtectionEnabled &&
         day.requiresMorningProtection(now) &&
@@ -107,24 +107,30 @@ abstract final class LockDecisionMaker {
       );
     }
 
-    // Uses entryInWindow rather than currentPrayer so a fulfilled prayer can
-    // be reported as "already prayed" instead of "nothing due" — the same
-    // unlocked outcome, but a message the user can actually act on.
-    final current = day.entryInWindow(now);
+    // The prayer currently owed: one whose on-time or qaza window is open and
+    // which has not been verified. Apps stay locked through both windows —
+    // start to qaza deadline — until the prayer is verified or missed.
+    final current = day.lockablePrayer(now);
     if (current == null) {
+      // Nothing is owed. This covers both "no prayer active right now" and
+      // "the active window belongs to a prayer already verified or missed".
       return const LockDecision.unlocked(LockReason.noPrayerDue);
     }
 
-    if (current.status.isFulfilled) {
-      return const LockDecision.unlocked(LockReason.prayerFulfilled);
-    }
-
     if (emergencyUnlockedPrayers.contains(current.prayer)) {
-      return const LockDecision.unlocked(LockReason.emergencyUnlocked);
+      return LockDecision(
+        shouldLock: false,
+        reason: LockReason.emergencyUnlocked,
+        prayer: current.prayer,
+      );
     }
 
     if (_isWithinGrace(current, now, settings)) {
-      return const LockDecision.unlocked(LockReason.withinGracePeriod);
+      return LockDecision(
+        shouldLock: false,
+        reason: LockReason.withinGracePeriod,
+        prayer: current.prayer,
+      );
     }
 
     return LockDecision(

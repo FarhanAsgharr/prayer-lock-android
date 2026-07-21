@@ -12,6 +12,8 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:timezone/timezone.dart' as tz;
 
+import '../../features/prayer_times/domain/entities/prayer_day.dart'
+    show kVerificationWindow;
 import '../../features/prayer_times/domain/entities/prayer_enums.dart';
 import '../../features/prayer_times/domain/usecases/prayer_time_calculator.dart';
 import '../../features/settings/domain/entities/app_settings.dart';
@@ -149,13 +151,33 @@ class PrayerNotificationScheduler {
             instant: instant,
             title: "It's time for ${prayer.displayName}",
             body: settings.blockingEnabled
-                ? 'Your selected apps will lock shortly.'
+                ? 'Apps are locked. Verify within 30 minutes to unlock.'
                 : 'May Allah accept your prayer.',
             isAdhan: true,
             prayer: prayer,
             date: date,
           ),
         );
+
+        // A notice at the moment the on-time window closes and qaza begins, so
+        // a user who has not yet verified knows they have slipped to qaza. It
+        // is cancelled on verification (see NotificationSync) so it never fires
+        // for a prayer already completed on time.
+        final qazaStart = instant.add(kVerificationWindow);
+        if (qazaStart.isAfter(now)) {
+          planned.add(
+            PlannedNotification(
+              id: NotificationIds.qazaTransition(date, prayer),
+              instant: qazaStart,
+              title: '${prayer.displayName} on-time window ended',
+              body: 'You can still pray ${prayer.displayName} as qaza for the '
+                  'next hour.',
+              isAdhan: false,
+              prayer: prayer,
+              date: date,
+            ),
+          );
+        }
 
         if (!wantsReminder) continue;
 

@@ -24,7 +24,9 @@ class AppDatabase {
   Database get raw => _database;
 
   static const String _fileName = 'prayer_lock.db';
-  static const int _schemaVersion = 1;
+  // v2 added the qaza columns (verification_deadline, qaza_deadline,
+  // qaza_completed_at) for the on-time / qaza / missed model.
+  static const int _schemaVersion = 2;
 
   static AppDatabase? _instance;
 
@@ -79,8 +81,16 @@ class AppDatabase {
         status TEXT NOT NULL,
         scheduled_at INTEGER NOT NULL,
         window_ends_at INTEGER NOT NULL,
+        -- End of the on-time window (scheduled_at + 30m) and of the qaza
+        -- window (scheduled_at + 90m). Stored so history stays interpretable
+        -- even if the window durations change in a later version.
+        verification_deadline INTEGER,
+        qaza_deadline INTEGER,
         started_at INTEGER,
         completed_at INTEGER,
+        -- When the prayer was verified as qaza (make-up), distinct from the
+        -- on-time completed_at.
+        qaza_completed_at INTEGER,
         delay_minutes INTEGER,
         excuse_reason TEXT,
         synced INTEGER NOT NULL DEFAULT 0,
@@ -195,8 +205,8 @@ class AppDatabase {
 
   /// Migrations.
   ///
-  /// Empty at version 1 by definition. Kept as an explicit switch so the next
-  /// schema change has an obvious home and cannot be bolted on ad hoc.
+  /// A fresh install runs `_createSchema` at the current version and never
+  /// enters this. This upgrades a database created by an earlier app version.
   static Future<void> _upgradeSchema(
     Database db,
     int oldVersion,
@@ -204,8 +214,19 @@ class AppDatabase {
   ) async {
     for (var version = oldVersion + 1; version <= newVersion; version++) {
       switch (version) {
-        case 1:
-          await _createSchema(db, version);
+        case 2:
+          // Add the qaza columns to an existing v1 prayer_history table. They
+          // are nullable, so rows written before this migration remain valid;
+          // their windows are recomputed on read from scheduled_at when needed.
+          await db.execute(
+            'ALTER TABLE prayer_history ADD COLUMN verification_deadline INTEGER',
+          );
+          await db.execute(
+            'ALTER TABLE prayer_history ADD COLUMN qaza_deadline INTEGER',
+          );
+          await db.execute(
+            'ALTER TABLE prayer_history ADD COLUMN qaza_completed_at INTEGER',
+          );
         default:
           throw StateError(
             'No migration defined from schema v${version - 1} to v$version',

@@ -59,6 +59,15 @@ final remainingEmergencyUnlocksProvider =
   return (args.maxPerDay - used).clamp(0, args.maxPerDay);
 });
 
+/// Which window a verification landed in, or that it was too late.
+enum VerificationOutcome {
+  onTime,
+  qaza,
+  expired;
+
+  bool get succeeded => this == onTime || this == qaza;
+}
+
 final prayerTrackerProvider = Provider<PrayerTracker>(
   (ref) => PrayerTracker(ref),
 );
@@ -76,25 +85,52 @@ class PrayerTracker {
   /// Whether it counts as on time or late is decided here, from the window,
   /// rather than trusted from the caller — a screen passing the wrong status
   /// would silently corrupt the user's history.
-  Future<String> markCompleted({
+  /// Result of attempting to verify a prayer.
+  ///
+  /// Distinguishes the three outcomes the UI must present differently: verified
+  /// on time, verified as qaza, or refused because the qaza window has closed.
+  Future<VerificationOutcome> markVerified({
     required DateTime date,
     required PrayerEntry entry,
     DateTime? at,
   }) async {
-    final completedAt = at ?? DateTime.now().toUtc();
-    final status = completedAt.isBefore(entry.windowEndsAt)
-        ? PrayerStatus.completed
-        : PrayerStatus.late;
+    final verifiedAt = at ?? DateTime.now().toUtc();
 
-    final id = await _repository.recordPrayer(
-      date: date,
-      entry: entry,
-      status: status,
-      completedAt: completedAt,
-    );
+    // Decide on-time vs qaza vs expired from the deadlines, never from the
+    // caller — a screen passing the wrong kind would corrupt the history.
+    if (entry.isInVerificationWindow(verifiedAt)) {
+      await _repository.recordPrayer(
+        date: date,
+        entry: entry,
+        status: PrayerStatus.completed,
+        completedAt: verifiedAt,
+      );
+      _invalidate(date);
+      return VerificationOutcome.onTime;
+    }
 
-    _invalidate(date);
-    return id;
+    if (entry.isInQazaWindow(verifiedAt)) {
+      await _repository.recordPrayer(
+        date: date,
+        entry: entry,
+        status: PrayerStatus.qazaCompleted,
+        qazaCompletedAt: verifiedAt,
+      );
+      _invalidate(date);
+      return VerificationOutcome.qaza;
+    }
+
+    // Past the qaza deadline: no verification is possible. The prayer is
+    // recorded missed if it was not already, and no photo can change it.
+    if (entry.status == PrayerStatus.pending) {
+      await _repository.recordPrayer(
+        date: date,
+        entry: entry,
+        status: PrayerStatus.missed,
+      );
+      _invalidate(date);
+    }
+    return VerificationOutcome.expired;
   }
 
   Future<String> markExcused({

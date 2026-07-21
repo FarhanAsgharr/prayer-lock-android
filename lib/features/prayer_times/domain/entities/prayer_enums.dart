@@ -30,13 +30,23 @@ enum PrayerName {
       };
 }
 
+/// The stored, persistent outcome of a prayer.
+///
+/// This is *what happened*, recorded once and immutable thereafter. The
+/// time-derived "what can the user do now" state is [PrayerPhase], computed
+/// from the clock — the two are deliberately separate so a recorded outcome
+/// never silently changes as time passes.
+///
+/// `active` and `late` are legacy values kept only so rows written by earlier
+/// versions still deserialise; the current model never produces them.
 enum PrayerStatus {
   pending('pending'),
-  active('active'),
-  completed('completed'),
-  late('late'),
-  missed('missed'),
-  excused('excused');
+  completed('completed'), // verified within the 30-minute on-time window
+  qazaCompleted('qaza_completed'), // verified within the 1-hour qaza window
+  missed('missed'), // both windows expired without verification
+  excused('excused'),
+  active('active'), // legacy
+  late('late'); // legacy
 
   const PrayerStatus(this.wireValue);
   final String wireValue;
@@ -46,11 +56,53 @@ enum PrayerStatus {
         orElse: () => throw ArgumentError('Unknown prayer status: $value'),
       );
 
-  /// Whether this status means the obligation was discharged, on time or not.
+  /// Whether this status means the obligation was discharged — on time, as
+  /// qaza, or excused. A fulfilled prayer keeps the streak and releases the
+  /// lock; a missed one does neither.
   bool get isFulfilled =>
       this == PrayerStatus.completed ||
-      this == PrayerStatus.late ||
+      this == PrayerStatus.qazaCompleted ||
+      this == PrayerStatus.late || // legacy fulfilled
       this == PrayerStatus.excused;
+}
+
+/// The time-derived state of a prayer: what the user can do about it right now.
+///
+/// Computed from the clock against the prayer's on-time and qaza deadlines, so
+/// it advances automatically as those windows open and close. The dashboard
+/// badges and the lock logic both read this.
+enum PrayerPhase {
+  /// Before the prayer has begun.
+  upcoming,
+
+  /// Within the 30-minute on-time window — verifying now counts as on time.
+  verifyOnTime,
+
+  /// The on-time window has passed but the 1-hour qaza window is open —
+  /// verifying now counts as qaza.
+  qazaAvailable,
+
+  /// Verified within the on-time window.
+  verifiedOnTime,
+
+  /// Verified within the qaza window.
+  qazaCompleted,
+
+  /// Both windows expired without verification — permanently missed.
+  missed,
+
+  /// Marked exempt (travel, illness, menstruation).
+  excused;
+
+  /// Whether the user can still submit a verification photo in this phase.
+  bool get isVerifiable =>
+      this == PrayerPhase.verifyOnTime || this == PrayerPhase.qazaAvailable;
+
+  /// Whether apps should be locked for a prayer in this phase.
+  ///
+  /// True only while a prayer is owed and still verifiable. Once verified,
+  /// missed or excused, nothing more can be done, so the lock lifts.
+  bool get requiresLock => isVerifiable;
 }
 
 /// School of jurisprudence, as it affects prayer-time calculation.

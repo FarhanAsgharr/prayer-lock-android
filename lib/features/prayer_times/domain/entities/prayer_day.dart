@@ -1,8 +1,13 @@
-/// A day's prayers with their tracked completion state.
+/// A day's prayers with their verification/qaza windows and tracked state.
 ///
-/// The calculator produces raw instants; this layer attaches status, window
-/// boundaries and the derived "what should the user do right now" answer that
-/// the entire UI is built from.
+/// The calculator produces raw prayer instants; this layer attaches the
+/// on-time and qaza windows, the recorded outcome, and the derived "what can
+/// the user do now" phase that the entire UI and the lock logic read from.
+///
+/// The window model (uniform across all five prayers):
+///   [start, start+30m)      on-time  — verify -> Verified On Time
+///   [start+30m, start+90m)  qaza     — verify -> Qaza Completed
+///   >= start+90m            missed   — no action remains
 library;
 
 import 'package:flutter/foundation.dart';
@@ -10,59 +15,118 @@ import 'package:flutter/foundation.dart';
 import '../usecases/prayer_time_calculator.dart';
 import 'prayer_enums.dart';
 
-/// One prayer on one day, with its window and current status.
+/// How long after a prayer starts it can still be verified as on time.
+const Duration kVerificationWindow = Duration(minutes: 30);
+
+/// How long the qaza window lasts, beginning when the on-time window ends.
+const Duration kQazaWindow = Duration(minutes: 60);
+
+/// One prayer on one day: its start, its windows, and its recorded outcome.
 @immutable
 class PrayerEntry {
   const PrayerEntry({
     required this.prayer,
     required this.scheduledAt,
-    required this.windowEndsAt,
     this.status = PrayerStatus.pending,
     this.completedAt,
+    this.qazaCompletedAt,
   });
 
   final PrayerName prayer;
 
-  /// When the prayer becomes due, as a UTC instant.
+  /// When the prayer becomes due — a UTC instant. All windows derive from this.
   final DateTime scheduledAt;
 
-  /// When the window closes. For Fajr this is sunrise, not Dhuhr.
-  final DateTime windowEndsAt;
-
   final PrayerStatus status;
+
+  /// When the prayer was verified on time (null unless [PrayerStatus.completed]).
   final DateTime? completedAt;
 
-  /// How late the prayer was performed, or null if not yet performed.
-  Duration? get delay => completedAt?.difference(scheduledAt);
+  /// When the prayer was verified as qaza (null unless
+  /// [PrayerStatus.qazaCompleted]).
+  final DateTime? qazaCompletedAt;
 
-  bool isDue(DateTime now) =>
-      !now.isBefore(scheduledAt) && now.isBefore(windowEndsAt);
+  /// End of the on-time window. Verifying at or after this is qaza, not on time.
+  DateTime get verificationDeadline => scheduledAt.add(kVerificationWindow);
 
-  bool hasExpired(DateTime now) => !now.isBefore(windowEndsAt);
+  /// End of the qaza window. At or after this the prayer is permanently missed.
+  DateTime get qazaDeadline =>
+      scheduledAt.add(kVerificationWindow + kQazaWindow);
 
-  /// Status recomputed against the clock.
+  /// Kept for the tracking/DB layer's `window_ends_at` column: the effective
+  /// end of everything actionable is the qaza deadline.
+  DateTime get windowEndsAt => qazaDeadline;
+
+  bool isBeforeStart(DateTime now) => now.isBefore(scheduledAt);
+
+  bool isInVerificationWindow(DateTime now) =>
+      !now.isBefore(scheduledAt) && now.isBefore(verificationDeadline);
+
+  bool isInQazaWindow(DateTime now) =>
+      !now.isBefore(verificationDeadline) && now.isBefore(qazaDeadline);
+
+  bool hasExpired(DateTime now) => !now.isBefore(qazaDeadline);
+
+  /// The verification timestamp, whichever kind, or null if not verified.
+  DateTime? get verifiedAt => completedAt ?? qazaCompletedAt;
+
+  /// Minutes between the scheduled instant and verification, or null.
+  int? get delayMinutes =>
+      verifiedAt?.difference(scheduledAt).inMinutes.clamp(0, 1 << 30);
+
+  /// The time-derived phase at [now].
   ///
-  /// Stored status is authoritative once a prayer is fulfilled; before that,
-  /// the correct status is a function of time and must be derived rather than
-  /// cached, or a prayer would stay "pending" forever after its window closed.
-  PrayerStatus statusAt(DateTime now) {
-    if (status.isFulfilled) return status;
-    if (isDue(now)) return PrayerStatus.active;
-    if (hasExpired(now)) return PrayerStatus.missed;
-    return PrayerStatus.pending;
+  /// A recorded outcome (verified, missed, excused) is authoritative and never
+  /// re-derived; only a still-pending prayer's phase is a function of the clock.
+  PrayerPhase phaseAt(DateTime now) {
+    switch (status) {
+      case PrayerStatus.completed:
+        return PrayerPhase.verifiedOnTime;
+      case PrayerStatus.qazaCompleted:
+        return PrayerPhase.qazaCompleted;
+      case PrayerStatus.late: // legacy fulfilled — treat as qaza
+        return PrayerPhase.qazaCompleted;
+      case PrayerStatus.excused:
+        return PrayerPhase.excused;
+      case PrayerStatus.missed:
+        return PrayerPhase.missed;
+      case PrayerStatus.pending:
+      case PrayerStatus.active: // legacy pending
+        if (isBeforeStart(now)) return PrayerPhase.upcoming;
+        if (isInVerificationWindow(now)) return PrayerPhase.verifyOnTime;
+        if (isInQazaWindow(now)) return PrayerPhase.qazaAvailable;
+        return PrayerPhase.missed;
+    }
   }
 
-  PrayerEntry copyWith({PrayerStatus? status, DateTime? completedAt}) =>
+  /// Time left in whichever window is currently open, or null if none is.
+  Duration? remainingWindow(DateTime now) {
+    final phase = phaseAt(now);
+    if (phase == PrayerPhase.verifyOnTime) {
+      return verificationDeadline.difference(now);
+    }
+    if (phase == PrayerPhase.qazaAvailable) {
+      return qazaDeadline.difference(now);
+    }
+    return null;
+  }
+
+  PrayerEntry copyWith({
+    PrayerStatus? status,
+    DateTime? completedAt,
+    DateTime? qazaCompletedAt,
+  }) =>
       PrayerEntry(
         prayer: prayer,
         scheduledAt: scheduledAt,
-        windowEndsAt: windowEndsAt,
         status: status ?? this.status,
         completedAt: completedAt ?? this.completedAt,
+        qazaCompletedAt: qazaCompletedAt ?? this.qazaCompletedAt,
       );
 }
 
-/// A full day: five prayers, sunrise, and the queries the UI needs.
+/// A full day: five prayers with their windows, plus the queries the UI and
+/// the lock orchestrator need.
 @immutable
 class PrayerDay {
   const PrayerDay({
@@ -73,33 +137,27 @@ class PrayerDay {
 
   final DateTime date;
   final List<PrayerEntry> entries;
+
+  /// Sunrise, retained for display ("Fajr is best prayed before sunrise") even
+  /// though the on-time/qaza windows are now uniform 30/90-minute windows.
   final DateTime sunrise;
 
-  /// Build from a calculated schedule.
-  ///
-  /// [nextDayFajr] is required because Isha's window runs until the following
-  /// Fajr, which is not part of this day's schedule. Passing it explicitly
-  /// avoids the common bug of ending Isha at midnight, which is wrong.
   factory PrayerDay.fromSchedule(
     PrayerSchedule schedule, {
-    required DateTime nextDayFajr,
     Map<PrayerName, PrayerEntry> existing = const {},
   }) {
     final entries = PrayerName.values.map((prayer) {
       final scheduledAt = schedule.prayers[prayer]!;
-      final windowEndsAt =
-          schedule.windowEndFor(prayer, nextDayFajr: nextDayFajr);
-
-      // Preserve any tracked completion state across recalculation, so
-      // changing a setting never erases a prayer the user already performed.
+      // Preserve any recorded outcome across recalculation, so changing a
+      // setting never erases a prayer the user already verified.
       final tracked = existing[prayer];
 
       return PrayerEntry(
         prayer: prayer,
         scheduledAt: scheduledAt,
-        windowEndsAt: windowEndsAt,
         status: tracked?.status ?? PrayerStatus.pending,
         completedAt: tracked?.completedAt,
+        qazaCompletedAt: tracked?.qazaCompletedAt,
       );
     }).toList(growable: false);
 
@@ -113,31 +171,33 @@ class PrayerDay {
   PrayerEntry entryFor(PrayerName prayer) =>
       entries.firstWhere((entry) => entry.prayer == prayer);
 
-  /// The prayer currently *owed*, if any.
+  /// The prayer that should currently govern the lock, or null if none.
   ///
-  /// Excludes prayers already fulfilled, because the dashboard uses this to
-  /// answer "what should I do now" and showing a completed prayer as current
-  /// would be wrong.
-  ///
-  /// Returns null between Fajr's expiry at sunrise and Dhuhr — a genuine gap
-  /// during which no prayer is owed, which the UI must represent honestly
-  /// rather than pretending Dhuhr is already active.
-  PrayerEntry? currentPrayer(DateTime now) {
-    final entry = entryInWindow(now);
-    return entry != null && !entry.status.isFulfilled ? entry : null;
+  /// With 90-minute qaza windows a previous prayer's qaza can overlap the next
+  /// prayer's on-time window, so precedence matters: an on-time window (more
+  /// urgent — it is about to expire into qaza) wins over a qaza window, and
+  /// within each, the earliest prayer is resolved first.
+  PrayerEntry? lockablePrayer(DateTime now) {
+    PrayerEntry? onTime;
+    PrayerEntry? qaza;
+
+    for (final entry in entries) {
+      switch (entry.phaseAt(now)) {
+        case PrayerPhase.verifyOnTime:
+          onTime ??= entry;
+        case PrayerPhase.qazaAvailable:
+          qaza ??= entry;
+        default:
+          break;
+      }
+    }
+
+    return onTime ?? qaza;
   }
 
-  /// The prayer whose window contains [now], fulfilled or not.
-  ///
-  /// Distinct from [currentPrayer]: enforcement needs to tell "you have
-  /// already prayed this one" apart from "nothing is owed right now", and
-  /// those are different messages to show the user.
-  PrayerEntry? entryInWindow(DateTime now) {
-    for (final entry in entries) {
-      if (entry.isDue(now)) return entry;
-    }
-    return null;
-  }
+  /// The prayer the user should act on now — the same as [lockablePrayer]. Kept
+  /// as a distinct name for the dashboard's "what do I do now" card.
+  PrayerEntry? currentPrayer(DateTime now) => lockablePrayer(now);
 
   /// The next prayer that has not yet begun.
   PrayerEntry? nextPrayer(DateTime now) {
@@ -147,20 +207,20 @@ class PrayerDay {
     return null;
   }
 
-  /// Time until the next prayer begins, or null if the day's prayers have all
-  /// started.
-  Duration? timeUntilNextPrayer(DateTime now) =>
-      nextPrayer(now)?.scheduledAt.difference(now);
-
   int get completedCount =>
       entries.where((entry) => entry.status.isFulfilled).length;
 
   int get remainingCount => entries.length - completedCount;
 
-  /// Whether every prayer whose window has closed was fulfilled.
+  /// Prayers verified specifically as qaza, for the dashboard summary.
+  int get qazaCount => entries
+      .where((entry) => entry.status == PrayerStatus.qazaCompleted)
+      .length;
+
+  /// Whether every prayer whose qaza window has closed was fulfilled.
   ///
-  /// Used for streak calculation: a day counts only when nothing was missed,
-  /// and a day still in progress cannot yet be judged.
+  /// The streak spine: a day counts only when nothing was missed. A prayer
+  /// still within its windows is not yet judged.
   bool isCleanSoFar(DateTime now) => !entries.any(
         (entry) => entry.hasExpired(now) && !entry.status.isFulfilled,
       );
@@ -168,14 +228,10 @@ class PrayerDay {
   bool isComplete(DateTime now) =>
       entries.every((entry) => entry.status.isFulfilled);
 
-  /// Whether Fajr is due or missed and unfulfilled — the morning-protection
-  /// gate condition.
+  /// Whether Fajr is still owed and verifiable — the morning-protection gate.
   bool requiresMorningProtection(DateTime now) {
     final fajr = entryFor(PrayerName.fajr);
-    if (fajr.status.isFulfilled) return false;
-    // Only between Fajr and its expiry at sunrise; after sunrise the gate
-    // lifts, because holding someone's phone hostage all day is punitive.
-    return fajr.isDue(now);
+    return fajr.phaseAt(now).isVerifiable;
   }
 
   PrayerDay withEntry(PrayerEntry updated) => PrayerDay(

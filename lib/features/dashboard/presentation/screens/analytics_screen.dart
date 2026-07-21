@@ -106,6 +106,37 @@ class _AnalyticsBody extends ConsumerWidget {
             ),
           ],
         ),
+        const SizedBox(height: AppSpacing.sm),
+        Row(
+          children: [
+            Expanded(
+              child: StatTile(
+                value: '${stats.allTime.completed}',
+                label: 'on time',
+                icon: Icons.schedule,
+                accent: AppColors.primary,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: StatTile(
+                value: '${stats.allTime.qaza}',
+                label: 'qaza (make-up)',
+                icon: Icons.history,
+                accent: AppColors.warning,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: StatTile(
+                value: '${stats.allTime.missed}',
+                label: 'missed',
+                icon: Icons.remove_circle_outline,
+                accent: AppColors.danger,
+              ),
+            ),
+          ],
+        ),
 
         const SizedBox(height: AppSpacing.lg),
 
@@ -333,7 +364,7 @@ class _ChartLegend extends StatelessWidget {
       children: [
         _LegendDot(color: AppColors.primary, label: 'On time'),
         SizedBox(width: AppSpacing.md),
-        _LegendDot(color: AppColors.warning, label: 'Late'),
+        _LegendDot(color: AppColors.warning, label: 'Qaza'),
         SizedBox(width: AppSpacing.md),
         _LegendDot(color: AppColors.danger, label: 'Missed'),
       ],
