@@ -73,6 +73,35 @@ object PermissionHelper {
             Uri.parse("package:${context.packageName}"),
         ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
+    /**
+     * SCHEDULE_EXACT_ALARM — required for a lock that engages *at* the adhan.
+     *
+     * From Android 12 this is revocable, and from Android 13 apps that are not
+     * alarm clocks or calendars are not granted it by default. Without it,
+     * alarms are deferred by Doze and a prayer lock can engage twenty minutes
+     * late — by which time the moment it existed for has passed.
+     */
+    fun canScheduleExactAlarms(context: Context): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return true
+
+        val alarmManager =
+            context.getSystemService(Context.ALARM_SERVICE) as android.app.AlarmManager
+        return alarmManager.canScheduleExactAlarms()
+    }
+
+    /**
+     * The settings screen for granting exact-alarm access, or null on versions
+     * where the permission does not exist and the request would open nothing.
+     */
+    fun exactAlarmSettingsIntent(context: Context): Intent? {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return null
+
+        return Intent(
+            Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
+            Uri.parse("package:${context.packageName}"),
+        ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    }
+
     @Suppress("BatteryLife") // Justified: enforcement must survive Doze.
     fun batteryOptimizationIntent(context: Context): Intent =
         Intent(
@@ -85,5 +114,6 @@ object PermissionHelper {
         "usageStats" to hasUsageStatsPermission(context),
         "overlay" to hasOverlayPermission(context),
         "batteryOptimizationDisabled" to isIgnoringBatteryOptimizations(context),
+        "exactAlarms" to canScheduleExactAlarms(context),
     )
 }

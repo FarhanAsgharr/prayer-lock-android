@@ -11,6 +11,13 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # Localisation delegates for Material, Cupertino and Widgets. Required for
+  # Arabic and Urdu: without these the framework's own strings (date pickers,
+  # dialog buttons, semantics labels) stay English and text direction is not
+  # resolved from the locale.
+  flutter_localizations:
+    sdk: flutter
+
   cupertino_icons: ^1.0.8
 
   # State management. Riverpod over Provider/Bloc because prayer state is
@@ -71,6 +78,9 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  # Generates AppLocalizations from lib/l10n/*.arb. See l10n.yaml.
+  generate: true
 
   assets:
     - assets/audio/

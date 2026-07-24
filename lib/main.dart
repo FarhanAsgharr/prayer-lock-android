@@ -14,8 +14,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 
 import 'core/config/app_router.dart';
+import 'core/config/locale_config.dart';
 import 'core/config/deep_link_handler.dart';
 import 'core/notifications/notification_providers.dart';
+import 'core/scheduling/daily_schedule_refresher.dart';
 import 'core/storage/app_database.dart';
 import 'core/storage/storage_providers.dart';
 import 'features/blocking/presentation/providers/orchestrator_provider.dart';
@@ -97,6 +99,9 @@ class _PrayerLockAppState extends ConsumerState<PrayerLockApp>
     // not blocked on writing alarms.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(notificationSyncProvider);
+      // Keeps the prayer schedule current across midnight, travel, DST and
+      // settings changes, and keeps the offline cache filled ahead of today.
+      unawaited(ref.read(dailyScheduleRefresherProvider).start());
       // Drains anything queued while offline, and begins watching for
       // connectivity so a restored connection triggers an upload.
       unawaited(ref.read(syncEngineProvider).start());
@@ -130,9 +135,15 @@ class _PrayerLockAppState extends ConsumerState<PrayerLockApp>
           ),
     );
 
-    // The process may have been killed while a lock was active, so re-derive
-    // enforcement rather than trusting remembered state.
-    unawaited(ref.read(lockStateProvider.notifier).evaluate());
+    // The date may have rolled over, or the device may have travelled, while
+    // the app was backgrounded. Checked before enforcement is re-evaluated so
+    // the lock decision runs against the correct day's windows.
+    unawaited(
+      ref
+          .read(dailyScheduleRefresherProvider)
+          .refreshIfNeeded()
+          .then((_) => ref.read(lockStateProvider.notifier).evaluate()),
+    );
 
     // Upload anything recorded while the app was in the background.
     unawaited(ref.read(syncEngineProvider).drain());
@@ -148,6 +159,13 @@ class _PrayerLockAppState extends ConsumerState<PrayerLockApp>
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: ThemeMode.system,
+      // Null follows the device. Arabic and Urdu flip the whole layout to
+      // right-to-left through Directionality, which the framework resolves
+      // from the locale once the delegates below are installed.
+      locale: ref.watch(appLocaleProvider),
+      supportedLocales: LocaleConfig.supportedLocales,
+      localizationsDelegates: LocaleConfig.delegates,
+      localeListResolutionCallback: LocaleConfig.resolve,
       routerConfig: router,
     );
   }
@@ -171,6 +189,11 @@ class PrayerLockScreenApp extends StatelessWidget {
       title: 'Prayer Lock',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.dark,
+      // The lock screen runs in its own engine with no settings provider, so
+      // it follows the device rather than the in-app language choice.
+      supportedLocales: LocaleConfig.supportedLocales,
+      localizationsDelegates: LocaleConfig.delegates,
+      localeListResolutionCallback: LocaleConfig.resolve,
       home: const LockScreen(),
     );
   }

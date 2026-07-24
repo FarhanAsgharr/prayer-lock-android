@@ -9,6 +9,7 @@ import '../../../../shared/theme/app_theme.dart';
 import '../../../../shared/widgets/countdown_text.dart';
 import '../../../prayer_times/domain/entities/prayer_day.dart';
 import '../../../prayer_times/domain/entities/prayer_enums.dart';
+import '../../../prayer_times/domain/entities/prayer_slot.dart';
 import '../../../prayer_times/presentation/providers/prayer_times_provider.dart';
 import '../../../blocking/presentation/providers/orchestrator_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
@@ -22,6 +23,7 @@ class DashboardScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final settings = ref.watch(settingsProvider);
     final day = ref.watch(prayerDayProvider);
+    final slots = ref.watch(prayerSlotsProvider);
     final now = ref.watch(nowProvider);
 
     if (!settings.isReady || day == null) {
@@ -62,19 +64,22 @@ class DashboardScreen extends ConsumerWidget {
                   ),
                 ),
               ),
+              // Slots, not prayers: three or four rows under a combined
+              // grouping, five otherwise. Switching modes re-renders here with
+              // no restart, because the projection is computed on every build.
               SliverList.builder(
-                itemCount: day.entries.length,
+                itemCount: slots.length,
                 itemBuilder: (context, index) {
-                  final entry = day.entries[index];
+                  final slot = slots[index];
                   return Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.sm,
                     ),
                     child: PrayerListTile(
-                      entry: entry,
+                      slot: slot,
                       now: now,
                       timezoneName: settings.location!.timezone,
-                      onTap: () => _showPrayerActions(context, ref, entry, now),
+                      onTap: () => _showPrayerActions(context, ref, slot, now),
                     ),
                   );
                 },
@@ -96,10 +101,10 @@ class DashboardScreen extends ConsumerWidget {
   void _showPrayerActions(
     BuildContext context,
     WidgetRef ref,
-    PrayerEntry entry,
+    PrayerSlot slot,
     DateTime now,
   ) {
-    final phase = entry.phaseAt(now);
+    final phase = slot.phaseAt(now);
 
     // Verification is only offered while a window is open. Upcoming, verified,
     // qaza-completed and missed prayers have no action — once the qaza window
@@ -124,10 +129,18 @@ class DashboardScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                entry.prayer.displayName,
+                slot.displayName,
                 style: Theme.of(sheetContext).textTheme.titleLarge,
                 textAlign: TextAlign.center,
               ),
+              if (slot.isCombined) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  'Both prayers are recorded when you confirm.',
+                  style: Theme.of(sheetContext).textTheme.bodySmall,
+                  textAlign: TextAlign.center,
+                ),
+              ],
               if (isQaza) ...[
                 const SizedBox(height: AppSpacing.sm),
                 Text(
@@ -145,17 +158,25 @@ class DashboardScreen extends ConsumerWidget {
                 ),
                 onPressed: () {
                   Navigator.of(sheetContext).pop();
-                  context.push('/verify/${entry.prayer.wireValue}');
+                  // Routed by the slot's first prayer; the verification screen
+                  // resolves the whole slot from the current grouping.
+                  context.push('/verify/${slot.first.prayer.wireValue}');
                 },
               ),
               const SizedBox(height: AppSpacing.sm),
               OutlinedButton(
                 onPressed: () async {
                   final navigator = Navigator.of(sheetContext);
-                  await ref.read(prayerTrackerProvider).markExcused(
-                        date: ref.read(localDateProvider),
-                        entry: entry,
-                      );
+                  final date = ref.read(localDateProvider);
+                  // Every prayer in the slot is excused: leaving one owed
+                  // would keep the window locked for a slot the user has just
+                  // marked exempt.
+                  for (final entry in slot.prayers) {
+                    await ref.read(prayerTrackerProvider).markExcused(
+                          date: date,
+                          entry: entry,
+                        );
+                  }
                   // Release any active lock immediately rather than waiting
                   // for the next orchestrator tick.
                   await ref.read(lockStateProvider.notifier).onPrayerCompleted();

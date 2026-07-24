@@ -130,6 +130,48 @@
             android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver"
             android:exported="false" />
 
+        <!--
+          Applies the blocking decision when a prayer-window transition alarm
+          fires. Not exported: only our own AlarmManager PendingIntents target
+          it, and an exported receiver would let any app on the device start or
+          stop a prayer lock.
+        -->
+        <receiver
+            android:name=".scheduling.PrayerAlarmReceiver"
+            android:exported="false"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="com.prayerlock.action.EVALUATE_SCHEDULE" />
+            </intent-filter>
+        </receiver>
+
+        <!--
+          Restores the alarm chain after events that destroy it.
+
+          Exported must be true here: BOOT_COMPLETED, TIME_SET and
+          TIMEZONE_CHANGED are broadcast by the system, and a non-exported
+          receiver never receives them. The intent-filter restricts what it
+          responds to, and the receiver re-checks the action before acting.
+
+          directBootAware so alarms are restored before the user unlocks the
+          device for the first time after a restart — otherwise a phone
+          rebooted overnight has no Fajr lock until it is unlocked.
+        -->
+        <receiver
+            android:name=".scheduling.BootReceiver"
+            android:exported="true"
+            android:directBootAware="true"
+            android:enabled="true">
+            <intent-filter android:priority="1000">
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />

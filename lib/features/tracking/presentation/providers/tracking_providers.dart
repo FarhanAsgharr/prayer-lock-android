@@ -11,8 +11,31 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/storage/storage_providers.dart';
 import '../../../prayer_times/domain/entities/prayer_day.dart';
 import '../../../prayer_times/domain/entities/prayer_enums.dart';
+import '../../../prayer_times/domain/entities/prayer_slot.dart';
+import '../../data/repositories/qaza_repository.dart';
 import '../../data/repositories/tracking_repository.dart';
 import '../../domain/entities/prayer_statistics.dart';
+
+/// The ledger of make-up prayers still owed.
+final qazaRepositoryProvider = Provider<QazaRepository>(
+  (ref) => QazaRepository(ref.watch(appDatabaseProvider).raw),
+);
+
+/// Outstanding make-up prayers, oldest first.
+final qazaLedgerProvider = FutureProvider<List<QazaRecord>>((ref) async {
+  return ref.watch(qazaRepositoryProvider).outstanding();
+});
+
+/// How many prayers are still owed, for the dashboard badge.
+final qazaOutstandingCountProvider = FutureProvider<int>((ref) async {
+  return ref.watch(qazaRepositoryProvider).outstandingCount();
+});
+
+/// Outstanding debts grouped by prayer, for the qaza screen's summary.
+final qazaByPrayerProvider =
+    FutureProvider<Map<PrayerName, int>>((ref) async {
+  return ref.watch(qazaRepositoryProvider).outstandingByPrayer();
+});
 
 /// Statuses recorded for a given local date.
 ///
@@ -80,6 +103,8 @@ class PrayerTracker {
 
   TrackingRepository get _repository => _ref.read(trackingRepositoryProvider);
 
+  QazaRepository get _qaza => _ref.read(qazaRepositoryProvider);
+
   /// Record a completed prayer.
   ///
   /// Whether it counts as on time or late is decided here, from the window,
@@ -93,6 +118,7 @@ class PrayerTracker {
     required DateTime date,
     required PrayerEntry entry,
     DateTime? at,
+    bool wasCombined = false,
   }) async {
     final verifiedAt = at ?? DateTime.now().toUtc();
 
@@ -104,6 +130,7 @@ class PrayerTracker {
         entry: entry,
         status: PrayerStatus.completed,
         completedAt: verifiedAt,
+        wasCombined: wasCombined,
       );
       _invalidate(date);
       return VerificationOutcome.onTime;
@@ -115,7 +142,12 @@ class PrayerTracker {
         entry: entry,
         status: PrayerStatus.qazaCompleted,
         qazaCompletedAt: verifiedAt,
+        wasCombined: wasCombined,
       );
+      // The window closed before this, so a debt may already have been booked
+      // by the reconciliation pass. Clearing it here keeps the ledger and the
+      // history from disagreeing about whether the prayer is still owed.
+      await _qaza.markCompleted(date: date, prayer: entry.prayer, at: verifiedAt);
       _invalidate(date);
       return VerificationOutcome.qaza;
     }
@@ -128,9 +160,111 @@ class PrayerTracker {
         entry: entry,
         status: PrayerStatus.missed,
       );
+      await _qaza.recordMissed(date: date, entry: entry);
       _invalidate(date);
     }
     return VerificationOutcome.expired;
+  }
+
+  /// Verify a whole slot: one prayer, or a combined pair.
+  ///
+  /// Under a combined grouping a single confirmation discharges both prayers,
+  /// because the user prayed both. They are recorded as **two separate history
+  /// rows**, not one — the obligation was two prayers, and collapsing them
+  /// would make a combining user's statistics incomparable with everyone
+  /// else's and would break the streak arithmetic.
+  ///
+  /// Each prayer's on-time/qaza classification is decided against *its own*
+  /// window, not the slot's. Praying Dhuhr and Asr together at 15:00 is on time
+  /// for Asr and late for Dhuhr, and recording both as on time would be a
+  /// flattering fiction.
+  ///
+  /// Returns the outcome for the slot as a whole: the weakest of the
+  /// constituent outcomes, since a slot is only as discharged as its
+  /// least-discharged prayer.
+  Future<VerificationOutcome> markSlotVerified({
+    required DateTime date,
+    required PrayerSlot slot,
+    required bool combinedVerification,
+    DateTime? at,
+  }) async {
+    final verifiedAt = at ?? DateTime.now().toUtc();
+
+    // With combined verification off, only the prayer whose window is open is
+    // discharged; the other is left for its own confirmation.
+    final targets = combinedVerification
+        ? slot.prayers
+        : slot.prayers
+            .where((entry) => entry.phaseAt(verifiedAt).isVerifiable)
+            .toList();
+
+    if (targets.isEmpty) return VerificationOutcome.expired;
+
+    final outcomes = <VerificationOutcome>[];
+    for (final entry in targets) {
+      // Skip anything already settled rather than overwriting it: a prayer
+      // verified on time an hour ago must not be downgraded to qaza because
+      // its partner is being confirmed now.
+      if (entry.status.isFulfilled) continue;
+
+      outcomes.add(
+        await markVerified(
+          date: date,
+          entry: entry,
+          at: verifiedAt,
+          // Recorded from the slot's shape, not from the current setting: a
+          // prayer logged today as combined must still read as combined after
+          // the user switches back to five separate prayers.
+          wasCombined: slot.isCombined,
+        ),
+      );
+    }
+
+    if (outcomes.isEmpty) return VerificationOutcome.onTime;
+
+    // Weakest wins: expired beats qaza beats on time.
+    if (outcomes.contains(VerificationOutcome.expired)) {
+      return VerificationOutcome.expired;
+    }
+    if (outcomes.contains(VerificationOutcome.qaza)) {
+      return VerificationOutcome.qaza;
+    }
+    return VerificationOutcome.onTime;
+  }
+
+  /// Discharge an outstanding make-up prayer from the qaza screen.
+  ///
+  /// Distinct from [markVerified]: that records a prayer within its own day's
+  /// windows, whereas this clears a debt carried forward from an earlier day,
+  /// whose windows are long closed.
+  ///
+  /// Returns false when the debt was already cleared, so the UI does not report
+  /// success twice for one prayer.
+  Future<bool> completeQaza({
+    required DateTime date,
+    required PrayerName prayer,
+    DateTime? at,
+  }) async {
+    final performedAt = at ?? DateTime.now().toUtc();
+
+    final cleared = await _qaza.markCompleted(
+      date: date,
+      prayer: prayer,
+      at: performedAt,
+    );
+    if (!cleared) return false;
+
+    // Promote the history row from missed to qaza-completed, so statistics and
+    // streaks reflect that the obligation was ultimately discharged.
+    await _repository.updateStatus(
+      date: date,
+      prayer: prayer,
+      status: PrayerStatus.qazaCompleted,
+      qazaCompletedAt: performedAt,
+    );
+
+    _invalidate(date);
+    return true;
   }
 
   Future<String> markExcused({
@@ -163,6 +297,7 @@ class PrayerTracker {
       entry: entry,
       status: PrayerStatus.missed,
     );
+    await _qaza.recordMissed(date: date, entry: entry);
 
     _invalidate(date);
   }
@@ -212,6 +347,9 @@ class PrayerTracker {
         entry: entry,
         status: PrayerStatus.missed,
       );
+      // Book the debt at the same time. A missed prayer that never reaches the
+      // ledger is one the user is never offered the chance to make up.
+      await _qaza.recordMissed(date: date, entry: entry);
       written++;
     }
 
@@ -222,5 +360,8 @@ class PrayerTracker {
   void _invalidate(DateTime date) {
     _ref.invalidate(trackedStatusesProvider(date));
     _ref.invalidate(prayerStatisticsProvider);
+    _ref.invalidate(qazaLedgerProvider);
+    _ref.invalidate(qazaOutstandingCountProvider);
+    _ref.invalidate(qazaByPrayerProvider);
   }
 }

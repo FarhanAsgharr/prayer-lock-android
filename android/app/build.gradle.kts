@@ -59,6 +59,12 @@ dependencies {
     // Back-ports java.time for flutter_local_notifications on older Android.
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 
+    // WorkManager runs the periodic repair job that re-arms the prayer alarm
+    // chain. It is the only scheduling primitive Android persists across
+    // reboots, app updates and force-stops, which is exactly the set of events
+    // that would otherwise leave blocking silently dead.
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
+
     // JVM unit tests for the blocking logic. These run without an emulator,
     // so the emergency-allowlist safety checks execute on every build rather
     // than only during instrumented test runs.

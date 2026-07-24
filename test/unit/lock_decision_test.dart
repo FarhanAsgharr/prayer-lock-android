@@ -1,60 +1,27 @@
-/// Tests for lock enforcement under the verification / qaza / missed model.
+/// Tests for lock enforcement under dynamic prayer durations.
 ///
 /// These decide when someone's phone becomes unusable. Apps lock from a
-/// prayer's start and stay locked through both windows — up to 90 minutes —
-/// until the prayer is verified or permanently missed. A wrong answer here is
-/// not cosmetic: locking when nothing is owed, or failing to release after
-/// verification, makes the app harmful.
+/// prayer's start and stay locked until the prayer is verified or its window
+/// closes — and a window is now as long as the interval to the next prayer,
+/// which can be over three hours. A wrong answer here is not cosmetic: locking
+/// when nothing is owed, or failing to release at the end of a window, makes
+/// the app actively harmful.
 library;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prayer_lock/features/blocking/domain/usecases/lock_decision.dart';
-import 'package:prayer_lock/features/prayer_times/domain/entities/prayer_day.dart';
 import 'package:prayer_lock/features/prayer_times/domain/entities/prayer_enums.dart';
-import 'package:prayer_lock/features/prayer_times/domain/usecases/prayer_time_calculator.dart';
-import 'package:prayer_lock/features/settings/domain/entities/app_settings.dart';
+import 'package:timezone/data/latest_all.dart' as tz_data;
 
-const makkah = PrayerLocation(
-  latitude: 21.4225,
-  longitude: 39.8262,
-  timezone: 'Asia/Riyadh',
-  label: 'Makkah',
-);
-
-PrayerDay buildDay({Map<PrayerName, PrayerStatus> statuses = const {}}) {
-  final schedule = prayerTimeCalculator.calculate(
-    CalculationRequest(
-      latitude: makkah.latitude,
-      longitude: makkah.longitude,
-      utcOffsetHours: 3,
-      prayerDate: DateTime(2026, 7, 20),
-    ),
-  );
-  var day = PrayerDay.fromSchedule(schedule);
-  for (final entry in statuses.entries) {
-    day = day.withEntry(day.entryFor(entry.key).copyWith(status: entry.value));
-  }
-  return day;
-}
-
-AppSettings settingsWith({
-  bool blockingEnabled = true,
-  bool morningProtection = true,
-  int gracePeriodMinutes = 0,
-  Set<String> blockedPackages = const {'com.instagram.android'},
-}) =>
-    AppSettings(
-      location: makkah,
-      blockingEnabled: blockingEnabled,
-      morningProtectionEnabled: morningProtection,
-      lockGracePeriodMinutes: gracePeriodMinutes,
-      blockedPackages: blockedPackages,
-    );
+import '../support/prayer_fixtures.dart';
 
 void main() {
+  tz_data.initializeTimeZones();
+
   final day = buildDay();
-  final dhuhr = day.entryFor(PrayerName.dhuhr);
   final fajr = day.entryFor(PrayerName.fajr);
+  final dhuhr = day.entryFor(PrayerName.dhuhr);
+  final asr = day.entryFor(PrayerName.asr);
 
   group('preconditions', () {
     test('never locks when blocking is disabled', () {
@@ -76,82 +43,172 @@ void main() {
       expect(d.shouldLock, isFalse);
       expect(d.reason, LockReason.noAppsSelected);
     });
-  });
 
-  group('locking through the windows', () {
-    test('locks from the prayer start (on-time window)', () {
+    test('never locks without a schedule', () {
       final d = LockDecisionMaker.decide(
-        settings: settingsWith(morningProtection: false),
-        day: day,
-        now: dhuhr.scheduledAt.add(const Duration(minutes: 5)),
-      );
-      expect(d.shouldLock, isTrue);
-      expect(d.prayer, PrayerName.dhuhr);
-    });
-
-    test('stays locked through the qaza window', () {
-      // Apps remain locked until verification or the qaza deadline.
-      final d = LockDecisionMaker.decide(
-        settings: settingsWith(morningProtection: false),
-        day: day,
-        now: dhuhr.scheduledAt.add(const Duration(minutes: 60)),
-      );
-      expect(d.shouldLock, isTrue);
-      expect(d.prayer, PrayerName.dhuhr);
-    });
-
-    test('unlocks once the qaza window closes (permanently missed)', () {
-      // "Follow the existing missed-prayer lock policy": nothing more can be
-      // done, so the lock lifts rather than trapping the user forever.
-      final d = LockDecisionMaker.decide(
-        settings: settingsWith(morningProtection: false),
-        day: day,
-        now: dhuhr.qazaDeadline.add(const Duration(minutes: 1)),
+        settings: settingsWith(),
+        day: null,
+        now: DateTime.utc(2026, 7, 20, 12),
       );
       expect(d.shouldLock, isFalse);
       expect(d.reason, LockReason.noPrayerDue);
     });
+  });
 
-    test('does not lock before the prayer starts', () {
+  group('locking through a dynamic window', () {
+    test('locks from the prayer start', () {
       final d = LockDecisionMaker.decide(
-        settings: settingsWith(morningProtection: false),
+        settings: settingsWith(),
         day: day,
-        now: dhuhr.scheduledAt.subtract(const Duration(minutes: 1)),
+        now: dhuhr.scheduledAt,
+      );
+      expect(d.shouldLock, isTrue);
+      expect(d.reason, LockReason.prayerActive);
+      expect(d.prayer, PrayerName.dhuhr);
+    });
+
+    test('reports the window end as the release instant', () {
+      final d = LockDecisionMaker.decide(
+        settings: settingsWith(),
+        day: day,
+        now: dhuhr.scheduledAt.add(const Duration(minutes: 5)),
+      );
+      expect(d.lockUntil, dhuhr.windowEndsAt);
+      expect(d.windowDuration, dhuhr.duration);
+    });
+
+    test('the release instant is not a fixed offset from the start', () {
+      final dhuhrDecision = LockDecisionMaker.decide(
+        settings: settingsWith(),
+        day: day,
+        now: dhuhr.scheduledAt,
+      );
+      final maghrib = day.entryFor(PrayerName.maghrib);
+      final maghribDecision = LockDecisionMaker.decide(
+        settings: settingsWith(),
+        day: day,
+        now: maghrib.scheduledAt,
+      );
+
+      expect(
+        dhuhrDecision.windowDuration,
+        isNot(maghribDecision.windowDuration),
+      );
+    });
+
+    test('remaining time counts down to the window end', () {
+      final at = dhuhr.scheduledAt.add(const Duration(minutes: 20));
+      final d = LockDecisionMaker.decide(
+        settings: settingsWith(),
+        day: day,
+        now: at,
+      );
+      expect(d.remainingAt(at), dhuhr.windowEndsAt.difference(at));
+    });
+
+    test('stays locked deep into a long window', () {
+      // Dhuhr runs to Asr — hours later. The lock must not quietly lapse.
+      final lateInWindow =
+          dhuhr.windowEndsAt.subtract(const Duration(minutes: 1));
+      final d = LockDecisionMaker.decide(
+        settings: settingsWith(),
+        day: day,
+        now: lateInWindow,
+      );
+      expect(d.shouldLock, isTrue);
+      expect(d.prayer, PrayerName.dhuhr);
+    });
+
+    test('hands over to the next prayer at the boundary', () {
+      final d = LockDecisionMaker.decide(
+        settings: settingsWith(),
+        day: day,
+        now: asr.scheduledAt,
+      );
+      expect(d.prayer, PrayerName.asr);
+      expect(d.lockUntil, asr.windowEndsAt);
+    });
+  });
+
+  group('Mode A — unlock on verification', () {
+    test('releases as soon as the prayer is verified', () {
+      final verified = buildDay(
+        statuses: {PrayerName.dhuhr: PrayerStatus.completed},
+      );
+      final d = LockDecisionMaker.decide(
+        settings: settingsWith(unlockPolicy: UnlockPolicy.onVerification),
+        day: verified,
+        now: dhuhr.scheduledAt.add(const Duration(minutes: 5)),
+      );
+      expect(d.shouldLock, isFalse);
+    });
+
+    test('an excused prayer also releases', () {
+      final excused = buildDay(
+        statuses: {PrayerName.dhuhr: PrayerStatus.excused},
+      );
+      final d = LockDecisionMaker.decide(
+        settings: settingsWith(),
+        day: excused,
+        now: dhuhr.scheduledAt.add(const Duration(minutes: 5)),
       );
       expect(d.shouldLock, isFalse);
     });
   });
 
-  group('verification releases the lock', () {
-    test('unlocks immediately when verified on time', () {
-      final verified =
-          buildDay(statuses: {PrayerName.dhuhr: PrayerStatus.completed});
+  group('Mode B — block for the full duration', () {
+    test('stays locked after verification until the window ends', () {
+      final verified = buildDay(
+        statuses: {PrayerName.dhuhr: PrayerStatus.completed},
+      );
       final d = LockDecisionMaker.decide(
-        settings: settingsWith(morningProtection: false),
+        settings: settingsWith(unlockPolicy: UnlockPolicy.fullDuration),
         day: verified,
         now: dhuhr.scheduledAt.add(const Duration(minutes: 5)),
       );
-      expect(d.shouldLock, isFalse);
+
+      expect(d.shouldLock, isTrue);
+      expect(d.reason, LockReason.durationRemaining);
+      expect(d.lockUntil, dhuhr.windowEndsAt);
     });
 
-    test('unlocks immediately when verified as qaza', () {
-      final verified =
-          buildDay(statuses: {PrayerName.dhuhr: PrayerStatus.qazaCompleted});
-      final d = LockDecisionMaker.decide(
-        settings: settingsWith(morningProtection: false),
-        day: verified,
-        now: dhuhr.scheduledAt.add(const Duration(minutes: 45)),
+    test('releases exactly when the window ends', () {
+      final verified = buildDay(
+        statuses: {PrayerName.dhuhr: PrayerStatus.completed},
       );
-      expect(d.shouldLock, isFalse);
+      final d = LockDecisionMaker.decide(
+        settings: settingsWith(unlockPolicy: UnlockPolicy.fullDuration),
+        day: verified,
+        // Asr's window opens here, and Asr is unverified, so the lock passes to
+        // Asr rather than lifting — but no longer on Dhuhr's account.
+        now: dhuhr.windowEndsAt,
+      );
+      expect(d.prayer, PrayerName.asr);
     });
 
-    test('unlocks for an excused prayer', () {
-      final excused =
-          buildDay(statuses: {PrayerName.dhuhr: PrayerStatus.excused});
+    test('an excused prayer is not held for the full duration', () {
+      // Someone exempt from praying should not be locked out for three hours
+      // on account of a prayer they are not required to perform.
+      final excused = buildDay(
+        statuses: {PrayerName.dhuhr: PrayerStatus.excused},
+      );
       final d = LockDecisionMaker.decide(
-        settings: settingsWith(morningProtection: false),
+        settings: settingsWith(unlockPolicy: UnlockPolicy.fullDuration),
         day: excused,
         now: dhuhr.scheduledAt.add(const Duration(minutes: 5)),
+      );
+      expect(d.shouldLock, isFalse);
+    });
+
+    test('an emergency unlock still wins', () {
+      final verified = buildDay(
+        statuses: {PrayerName.dhuhr: PrayerStatus.completed},
+      );
+      final d = LockDecisionMaker.decide(
+        settings: settingsWith(unlockPolicy: UnlockPolicy.fullDuration),
+        day: verified,
+        now: dhuhr.scheduledAt.add(const Duration(minutes: 5)),
+        emergencyUnlockedPrayers: {PrayerName.dhuhr},
       );
       expect(d.shouldLock, isFalse);
     });
@@ -160,99 +217,245 @@ void main() {
   group('grace period', () {
     test('does not lock during the grace period', () {
       final d = LockDecisionMaker.decide(
-        settings: settingsWith(morningProtection: false, gracePeriodMinutes: 5),
+        settings: settingsWith(gracePeriodMinutes: 5),
         day: day,
         now: dhuhr.scheduledAt.add(const Duration(minutes: 2)),
       );
       expect(d.shouldLock, isFalse);
       expect(d.reason, LockReason.withinGracePeriod);
+      expect(d.lockUntil, dhuhr.scheduledAt.add(const Duration(minutes: 5)));
     });
 
-    test('locks once the grace period elapses', () {
+    test('locks the moment the grace period ends', () {
       final d = LockDecisionMaker.decide(
-        settings: settingsWith(morningProtection: false, gracePeriodMinutes: 5),
+        settings: settingsWith(gracePeriodMinutes: 5),
         day: day,
-        now: dhuhr.scheduledAt.add(const Duration(minutes: 6)),
+        now: dhuhr.scheduledAt.add(const Duration(minutes: 5)),
       );
+      expect(d.shouldLock, isTrue);
+    });
+
+    test('a grace period longer than the window never suppresses the lock '
+        'beyond the window itself', () {
+      // A 10-hour grace period would otherwise mean the lock never engages at
+      // all, silently disabling the feature.
+      final d = LockDecisionMaker.decide(
+        settings: settingsWith(gracePeriodMinutes: 600),
+        day: day,
+        now: dhuhr.windowEndsAt.subtract(const Duration(minutes: 1)),
+      );
+      expect(d.reason, LockReason.withinGracePeriod);
+      expect(d.lockUntil, dhuhr.windowEndsAt);
+    });
+
+    test('does not apply to a qaza debt', () {
+      // The prayer has already had its whole window; a second grace period on
+      // top would delay enforcement twice for the same prayer.
+      //
+      // Checked in the morning gap, where Fajr is owed as qaza and no other
+      // window is open — anywhere else, a newly opened window's own grace
+      // period would be the thing being observed.
+      final gap = day.sunrise.add(const Duration(minutes: 1));
+      final d = LockDecisionMaker.decide(
+        settings: settingsWith(gracePeriodMinutes: 30, blockUntilQaza: true),
+        day: day,
+        now: gap,
+      );
+
+      expect(d.reason, LockReason.qazaOutstanding);
       expect(d.shouldLock, isTrue);
     });
   });
 
-  group('emergency unlock', () {
-    test('does not re-lock a prayer the user unlocked out of', () {
+  group('qaza enforcement', () {
+    test('is off by default, so a closed window releases the lock', () {
+      // The default must not be "miss Fajr, lose your phone until midnight".
+      final gap = day.sunrise.add(const Duration(hours: 1));
       final d = LockDecisionMaker.decide(
-        settings: settingsWith(morningProtection: false),
+        settings: settingsWith(),
         day: day,
-        now: dhuhr.scheduledAt.add(const Duration(minutes: 10)),
-        emergencyUnlockedPrayers: const {PrayerName.dhuhr},
+        now: gap,
       );
       expect(d.shouldLock, isFalse);
-      expect(d.reason, LockReason.emergencyUnlocked);
+      expect(d.reason, LockReason.noPrayerDue);
+    });
+
+    test('when enabled, keeps apps locked through the qaza period', () {
+      final gap = day.sunrise.add(const Duration(hours: 1));
+      final d = LockDecisionMaker.decide(
+        settings: settingsWith(blockUntilQaza: true),
+        day: day,
+        now: gap,
+      );
+      expect(d.shouldLock, isTrue);
+      expect(d.reason, LockReason.qazaOutstanding);
+      expect(d.prayer, PrayerName.fajr);
+      expect(d.lockUntil, fajr.qazaDeadline);
+    });
+
+    test('releases once the qaza is made', () {
+      final made = buildDay(
+        statuses: {PrayerName.fajr: PrayerStatus.qazaCompleted},
+      );
+      final gap = day.sunrise.add(const Duration(hours: 1));
+      final d = LockDecisionMaker.decide(
+        settings: settingsWith(blockUntilQaza: true),
+        day: made,
+        now: gap,
+      );
+      expect(d.shouldLock, isFalse);
     });
   });
 
   group('morning protection', () {
-    test('locks while Fajr is verifiable', () {
+    test('locks while Fajr is owed', () {
       final d = LockDecisionMaker.decide(
-        settings: settingsWith(),
+        settings: settingsWith(morningProtection: true),
         day: day,
-        now: fajr.scheduledAt.add(const Duration(minutes: 20)),
+        now: fajr.scheduledAt.add(const Duration(minutes: 10)),
       );
       expect(d.shouldLock, isTrue);
       expect(d.reason, LockReason.morningProtection);
       expect(d.isMorningProtection, isTrue);
     });
 
-    test('stays through Fajr qaza', () {
-      final d = LockDecisionMaker.decide(
-        settings: settingsWith(),
-        day: day,
-        now: fajr.scheduledAt.add(const Duration(minutes: 45)),
-      );
-      expect(d.shouldLock, isTrue);
-      expect(d.reason, LockReason.morningProtection);
-    });
-
     test('lifts once Fajr is verified', () {
-      final prayed =
+      final verified =
           buildDay(statuses: {PrayerName.fajr: PrayerStatus.completed});
       final d = LockDecisionMaker.decide(
-        settings: settingsWith(),
-        day: prayed,
-        now: fajr.scheduledAt.add(const Duration(minutes: 20)),
+        settings: settingsWith(morningProtection: true),
+        day: verified,
+        now: fajr.scheduledAt.add(const Duration(minutes: 10)),
       );
-      expect(d.shouldLock, isFalse);
+      expect(d.isMorningProtection, isFalse);
     });
 
-    test('lifts once the Fajr qaza window closes', () {
+    test('respects the grace period', () {
       final d = LockDecisionMaker.decide(
-        settings: settingsWith(),
+        settings: settingsWith(morningProtection: true, gracePeriodMinutes: 10),
         day: day,
-        now: fajr.qazaDeadline.add(const Duration(minutes: 1)),
+        now: fajr.scheduledAt.add(const Duration(minutes: 3)),
       );
       expect(d.shouldLock, isFalse);
+      expect(d.reason, LockReason.withinGracePeriod);
+    });
+
+    test('is bypassed by an emergency unlock', () {
+      final d = LockDecisionMaker.decide(
+        settings: settingsWith(morningProtection: true),
+        day: day,
+        now: fajr.scheduledAt.add(const Duration(minutes: 10)),
+        emergencyUnlockedPrayers: {PrayerName.fajr},
+      );
+      expect(d.isMorningProtection, isFalse);
     });
   });
 
-  group('full day sweep', () {
-    test('only ever locks for a prayer that is genuinely verifiable', () {
-      final settings = settingsWith(morningProtection: false);
-      final start = fajr.scheduledAt;
+  group('transition instants', () {
+    test('are all in the future and ascending', () {
+      final now = day.entries.first.scheduledAt
+          .subtract(const Duration(hours: 1));
+      final instants = LockDecisionMaker.transitionInstants(
+        settings: settingsWith(gracePeriodMinutes: 5),
+        day: day,
+        now: now,
+      );
 
-      for (var minute = 0; minute < 24 * 60; minute += 3) {
-        final now = start.add(Duration(minutes: minute));
-        final d =
-            LockDecisionMaker.decide(settings: settings, day: day, now: now);
-        if (!d.shouldLock) continue;
-
-        // If it locked, the named prayer must be in a verifiable phase.
-        final entry = day.entryFor(d.prayer!);
-        expect(
-          entry.phaseAt(now).isVerifiable,
-          isTrue,
-          reason: 'locked at $now for a non-verifiable ${d.prayer}',
-        );
+      expect(instants, isNotEmpty);
+      for (final instant in instants) {
+        expect(instant.isAfter(now), isTrue);
       }
+      for (var i = 1; i < instants.length; i++) {
+        expect(instants[i].isAfter(instants[i - 1]), isTrue);
+      }
+    });
+
+    test('include every window start and end', () {
+      final now = day.entries.first.scheduledAt
+          .subtract(const Duration(hours: 1));
+      final instants = LockDecisionMaker.transitionInstants(
+        settings: settingsWith(gracePeriodMinutes: 0),
+        day: day,
+        now: now,
+      );
+
+      for (final entry in day.entries) {
+        expect(instants, contains(entry.scheduledAt));
+        expect(instants, contains(entry.windowEndsAt));
+      }
+    });
+
+    test('omit the qaza deadline when qaza enforcement is off', () {
+      final now = day.dayEndsAt.subtract(const Duration(hours: 12));
+
+      final without = LockDecisionMaker.transitionInstants(
+        settings: settingsWith(blockUntilQaza: false),
+        day: day,
+        now: now,
+      );
+      final with_ = LockDecisionMaker.transitionInstants(
+        settings: settingsWith(blockUntilQaza: true),
+        day: day,
+        now: now,
+      );
+
+      // Nothing changes at a qaza deadline when qaza is not enforced, so
+      // arming an alarm for it would be a wakeup that does nothing.
+      expect(with_.length, greaterThanOrEqualTo(without.length));
+      expect(with_, contains(day.dayEndsAt));
+    });
+
+    test('are empty when blocking is disabled', () {
+      expect(
+        LockDecisionMaker.transitionInstants(
+          settings: settingsWith(blockingEnabled: false),
+          day: day,
+          now: day.entries.first.scheduledAt,
+        ),
+        isEmpty,
+      );
+    });
+
+    test('nextLockTransition is the earliest of them', () {
+      final now =
+          day.entries.first.scheduledAt.subtract(const Duration(hours: 1));
+      final settings = settingsWith(gracePeriodMinutes: 5);
+
+      expect(
+        LockDecisionMaker.nextLockTransition(
+          settings: settings,
+          day: day,
+          now: now,
+        ),
+        LockDecisionMaker.transitionInstants(
+          settings: settings,
+          day: day,
+          now: now,
+        ).first,
+      );
+    });
+  });
+
+  group('emergency unlock', () {
+    test('suppresses the lock for that prayer only', () {
+      final d = LockDecisionMaker.decide(
+        settings: settingsWith(),
+        day: day,
+        now: dhuhr.scheduledAt.add(const Duration(minutes: 5)),
+        emergencyUnlockedPrayers: {PrayerName.dhuhr},
+      );
+      expect(d.shouldLock, isFalse);
+      expect(d.reason, LockReason.emergencyUnlocked);
+
+      // The next prayer is unaffected.
+      final next = LockDecisionMaker.decide(
+        settings: settingsWith(),
+        day: day,
+        now: asr.scheduledAt.add(const Duration(minutes: 5)),
+        emergencyUnlockedPrayers: {PrayerName.dhuhr},
+      );
+      expect(next.shouldLock, isTrue);
+      expect(next.prayer, PrayerName.asr);
     });
   });
 }

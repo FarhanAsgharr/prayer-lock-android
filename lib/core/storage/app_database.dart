@@ -26,7 +26,12 @@ class AppDatabase {
   static const String _fileName = 'prayer_lock.db';
   // v2 added the qaza columns (verification_deadline, qaza_deadline,
   // qaza_completed_at) for the on-time / qaza / missed model.
-  static const int _schemaVersion = 2;
+  // v3 added prayer_schedules (the offline cache of fetched/computed days) and
+  // qaza_records (the ledger of outstanding make-up prayers) for dynamic
+  // prayer-duration blocking.
+  // v4 added prayer_history.was_combined, so a prayer logged while Dhuhr and
+  // Asr were joined stays identifiable as such after the user changes mode.
+  static const int _schemaVersion = 4;
 
   static AppDatabase? _instance;
 
@@ -93,6 +98,11 @@ class AppDatabase {
         qaza_completed_at INTEGER,
         delay_minutes INTEGER,
         excuse_reason TEXT,
+        -- Whether this prayer was joined with its neighbour when it was
+        -- recorded. Stored rather than derived from the current setting, so a
+        -- user who switches modes does not retroactively rewrite their own
+        -- history into something that never happened.
+        was_combined INTEGER NOT NULL DEFAULT 0,
         synced INTEGER NOT NULL DEFAULT 0,
         updated_at INTEGER NOT NULL,
         UNIQUE (prayer_date, prayer)
@@ -201,6 +211,97 @@ class AppDatabase {
     await db.execute(
       'CREATE INDEX idx_queue_due ON sync_queue (next_attempt_at)',
     );
+
+    await _createScheduleTables(db);
+  }
+
+  /// Tables introduced in v3 for dynamic prayer-duration blocking.
+  ///
+  /// Factored out because a fresh install creates them from here and an
+  /// upgrading install creates them from the migration; two hand-kept copies of
+  /// the same DDL is how the schema of a new install drifts from an upgraded one.
+  static Future<void> _createScheduleTables(Database db) async {
+    // --- Cached prayer schedules ------------------------------------------
+    //
+    // The offline spine. One row per (date, location, method): a user who
+    // travels or changes method gets a distinct row rather than a silently
+    // wrong one served from cache.
+    //
+    // Instants are stored as epoch milliseconds in UTC. Storing local wall
+    // clock would make every DST transition a data-migration problem.
+    //
+    // Coordinates are rounded into the key rather than stored raw, because a
+    // few metres of GPS jitter must not miss the cache and force a refetch —
+    // prayer times do not measurably change over such distances.
+    await db.execute('''
+      CREATE TABLE prayer_schedules (
+        id TEXT PRIMARY KEY,
+        prayer_date TEXT NOT NULL,
+        latitude REAL NOT NULL,
+        longitude REAL NOT NULL,
+        location_key TEXT NOT NULL,
+        timezone TEXT NOT NULL,
+        method TEXT NOT NULL,
+        madhab TEXT NOT NULL,
+        high_latitude_rule TEXT NOT NULL,
+        city TEXT,
+        country TEXT,
+        fajr INTEGER NOT NULL,
+        sunrise INTEGER NOT NULL,
+        dhuhr INTEGER NOT NULL,
+        asr INTEGER NOT NULL,
+        maghrib INTEGER NOT NULL,
+        isha INTEGER NOT NULL,
+        -- Denormalised durations in minutes. Derivable from the instants
+        -- above, but stored so the native scheduler and the widget layer can
+        -- read a schedule without linking the calculator.
+        fajr_duration_minutes INTEGER,
+        dhuhr_duration_minutes INTEGER,
+        asr_duration_minutes INTEGER,
+        maghrib_duration_minutes INTEGER,
+        isha_duration_minutes INTEGER,
+        -- The following day's Fajr, which closes the Isha window.
+        next_day_fajr INTEGER,
+        source TEXT NOT NULL,
+        fetched_at INTEGER NOT NULL,
+        UNIQUE (prayer_date, location_key, method, madhab, high_latitude_rule)
+      )
+    ''');
+
+    await db.execute(
+      'CREATE INDEX idx_schedules_date ON prayer_schedules (prayer_date)',
+    );
+    // The eviction sweep orders by age.
+    await db.execute(
+      'CREATE INDEX idx_schedules_fetched ON prayer_schedules (fetched_at)',
+    );
+
+    // --- Qaza ledger -------------------------------------------------------
+    //
+    // A prayer whose window closed unfulfilled becomes a debt that outlives the
+    // day it was incurred. Kept separate from prayer_history because history
+    // records what happened on a date, whereas this records what is still owed
+    // — the same prayer appears in both, with different lifetimes.
+    await db.execute('''
+      CREATE TABLE qaza_records (
+        id TEXT PRIMARY KEY,
+        prayer_date TEXT NOT NULL,
+        prayer TEXT NOT NULL,
+        scheduled_at INTEGER NOT NULL,
+        window_ended_at INTEGER NOT NULL,
+        completed_at INTEGER,
+        created_at INTEGER NOT NULL,
+        synced INTEGER NOT NULL DEFAULT 0,
+        UNIQUE (prayer_date, prayer)
+      )
+    ''');
+
+    // The qaza screen asks only for outstanding debts, which are a small
+    // fraction of all rows once the app has been used for a while.
+    await db.execute(
+      'CREATE INDEX idx_qaza_outstanding ON qaza_records (completed_at) '
+      'WHERE completed_at IS NULL',
+    );
   }
 
   /// Migrations.
@@ -227,6 +328,32 @@ class AppDatabase {
           await db.execute(
             'ALTER TABLE prayer_history ADD COLUMN qaza_completed_at INTEGER',
           );
+        case 3:
+          // Two new tables only — nothing existing is rewritten, so an upgrade
+          // cannot lose prayer history. The cache starts empty and refills on
+          // the next refresh; the qaza ledger backfills from prayer_history so
+          // prayers already recorded as missed appear as outstanding debts
+          // rather than vanishing.
+          await _createScheduleTables(db);
+          await db.execute('''
+            INSERT OR IGNORE INTO qaza_records (
+              id, prayer_date, prayer, scheduled_at, window_ended_at,
+              completed_at, created_at, synced
+            )
+            SELECT
+              id, prayer_date, prayer, scheduled_at, window_ends_at,
+              NULL, updated_at, 0
+            FROM prayer_history
+            WHERE status = 'missed'
+          ''');
+        case 4:
+          // Defaults to 0: every prayer recorded before this column existed
+          // was recorded under the five-separate-prayers model, which is
+          // exactly what 0 means.
+          await db.execute(
+            'ALTER TABLE prayer_history '
+            'ADD COLUMN was_combined INTEGER NOT NULL DEFAULT 0',
+          );
         default:
           throw StateError(
             'No migration defined from schema v${version - 1} to v$version',
@@ -249,6 +376,8 @@ class AppDatabase {
         'lock_sessions',
         'verifications',
         'prayer_history',
+        'qaza_records',
+        'prayer_schedules',
       ]) {
         await txn.delete(table);
       }

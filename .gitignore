@@ -35,3 +35,8 @@ ios/Runner.xcodeproj.bak/
 .DS_Store
 .idea/
 .vscode/
+
+# Generated localisations. Regenerated from lib/l10n/*.arb during `flutter
+# build` (pubspec has generate: true); committing them lets a stale copy drift
+# from the ARB files that are the actual source.
+lib/l10n/app_localizations*.dart

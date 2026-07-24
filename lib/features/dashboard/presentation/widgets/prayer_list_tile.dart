@@ -1,7 +1,12 @@
-/// A single prayer row on the dashboard.
+/// A single row on the dashboard: one prayer, or a combined pair.
 ///
-/// The badge and countdown reflect the prayer's live phase: the on-time
-/// window, the qaza window, or a settled outcome (verified / qaza / missed).
+/// Renders a [PrayerSlot] rather than a [PrayerEntry], so the same widget
+/// covers both modes. Under the default grouping every slot holds one prayer
+/// and this is exactly a prayer row; under a combined grouping the Dhuhr+Asr
+/// slot is one row with one window and one action.
+///
+/// The badge and countdown reflect the slot's live phase: its window, the
+/// make-up period, or a settled outcome (verified / qaza / missed).
 library;
 
 import 'package:flutter/material.dart';
@@ -10,19 +15,20 @@ import 'package:timezone/timezone.dart' as tz;
 
 import '../../../../shared/theme/app_theme.dart';
 import '../../../../shared/widgets/countdown_text.dart';
-import '../../../prayer_times/domain/entities/prayer_day.dart';
 import '../../../prayer_times/domain/entities/prayer_enums.dart';
+import '../../../prayer_times/domain/entities/prayer_slot.dart';
+import '../../../prayer_times/domain/usecases/dynamic_duration_calculator.dart';
 
 class PrayerListTile extends StatelessWidget {
   const PrayerListTile({
     super.key,
-    required this.entry,
+    required this.slot,
     required this.now,
     required this.timezoneName,
     this.onTap,
   });
 
-  final PrayerEntry entry;
+  final PrayerSlot slot;
   final DateTime now;
   final String timezoneName;
   final VoidCallback? onTap;
@@ -30,13 +36,13 @@ class PrayerListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final phase = entry.phaseAt(now);
+    final phase = slot.phaseAt(now);
     final isActive = phase.isVerifiable;
-    final remaining = entry.remainingWindow(now);
+    final remaining = slot.remainingWindow(now);
 
     return Semantics(
-      label: '${entry.prayer.displayName}, '
-          '${_formatTime(entry.scheduledAt)}, ${_phaseLabel(phase)}'
+      label: '${slot.displayName}, '
+          '${_formatTime(slot.scheduledAt)}, ${_phaseLabel(phase)}'
           '${remaining != null ? ', ${formatCountdown(remaining)} left' : ''}',
       button: onTap != null,
       child: Material(
@@ -61,10 +67,22 @@ class PrayerListTile extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        entry.prayer.displayName,
+                        slot.displayName,
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight:
                               isActive ? FontWeight.w700 : FontWeight.w600,
+                        ),
+                      ),
+                      // The window this prayer occupies. Shown for an upcoming
+                      // prayer too, because the useful thing to know before
+                      // Dhuhr begins is that it runs until Asr — over three
+                      // hours — not merely that it is next.
+                      const SizedBox(height: 2),
+                      Text(
+                        'Until ${slot.window.boundary.displayName} · '
+                        '${formatPrayerDurationShort(slot.duration)}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontSize: 12,
                         ),
                       ),
                       if (phase != PrayerPhase.upcoming) ...[
@@ -100,7 +118,7 @@ class PrayerListTile extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  _formatTime(entry.scheduledAt),
+                  _formatTime(slot.scheduledAt),
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontFeatures: const [FontFeature.tabularFigures()],
                     color: phase == PrayerPhase.missed

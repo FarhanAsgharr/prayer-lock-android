@@ -36,12 +36,14 @@ class BlockingPermissions {
     required this.hasUsageStats,
     required this.hasOverlay,
     required this.batteryOptimizationDisabled,
+    this.canScheduleExactAlarms = true,
   });
 
   const BlockingPermissions.none()
       : hasUsageStats = false,
         hasOverlay = false,
-        batteryOptimizationDisabled = false;
+        batteryOptimizationDisabled = false,
+        canScheduleExactAlarms = true;
 
   /// Required to detect which app is in the foreground.
   final bool hasUsageStats;
@@ -53,12 +55,20 @@ class BlockingPermissions {
   /// and enforcement stops with no visible error.
   final bool batteryOptimizationDisabled;
 
+  /// Whether exact alarms are permitted.
+  ///
+  /// Without them the lock still engages, but late — Doze may defer the alarm
+  /// by many minutes. Defaults to true so platforms without the concept are not
+  /// reported as missing something that does not exist there.
+  final bool canScheduleExactAlarms;
+
   factory BlockingPermissions.fromPlatform(Map<Object?, Object?> data) =>
       BlockingPermissions(
         hasUsageStats: data['usageStats'] as bool? ?? false,
         hasOverlay: data['overlay'] as bool? ?? false,
         batteryOptimizationDisabled:
             data['batteryOptimizationDisabled'] as bool? ?? false,
+        canScheduleExactAlarms: data['exactAlarms'] as bool? ?? true,
       );
 
   /// Whether a lock can actually be enforced right now.
@@ -73,8 +83,52 @@ class BlockingPermissions {
   List<String> get missing => [
         if (!hasUsageStats) 'usageStats',
         if (!hasOverlay) 'overlay',
+        if (!canScheduleExactAlarms) 'exactAlarms',
         if (!batteryOptimizationDisabled) 'batteryOptimization',
       ];
+}
+
+/// One prayer window as the native scheduler needs it.
+///
+/// A deliberately flat, primitive-only projection: it crosses a method channel
+/// and is stored by native code that has no access to the domain model. Keeping
+/// it separate from [PrayerWindow] means the domain type can change shape
+/// without silently altering what the platform receives.
+@immutable
+class NativePrayerWindow {
+  const NativePrayerWindow({
+    required this.prayer,
+    required this.startsAt,
+    required this.engagesAt,
+    required this.endsAt,
+    required this.qazaEndsAt,
+    required this.fulfilled,
+  });
+
+  /// Wire value of the prayer name, e.g. "dhuhr".
+  final String prayer;
+
+  final DateTime startsAt;
+
+  /// When the lock engages — the start plus the grace period.
+  final DateTime engagesAt;
+
+  final DateTime endsAt;
+
+  /// End of the same-day qaza opportunity.
+  final DateTime qazaEndsAt;
+
+  /// Whether the prayer has already been verified or excused.
+  final bool fulfilled;
+
+  Map<String, dynamic> toPlatform() => {
+        'prayer': prayer,
+        'startsAt': startsAt.millisecondsSinceEpoch,
+        'engagesAt': engagesAt.millisecondsSinceEpoch,
+        'endsAt': endsAt.millisecondsSinceEpoch,
+        'qazaEndsAt': qazaEndsAt.millisecondsSinceEpoch,
+        'fulfilled': fulfilled,
+      };
 }
 
 /// Why a lock ended. Recorded for the history screen and for analytics.

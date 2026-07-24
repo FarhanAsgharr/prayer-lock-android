@@ -188,14 +188,19 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
       return;
     }
 
-    final entry = day.entryFor(widget.prayer);
+    final settings = ref.read(settingsProvider);
+    // Resolved as a slot, so confirming a combined Dhuhr+Asr discharges both
+    // prayers from one photo. Under the default grouping the slot holds only
+    // the prayer that was routed to, and this is unchanged behaviour.
+    final slot = day.slotFor(widget.prayer, settings.prayerGrouping);
 
     VerificationOutcome outcome;
     String prayerHistoryId;
     try {
-      outcome = await ref.read(prayerTrackerProvider).markVerified(
+      outcome = await ref.read(prayerTrackerProvider).markSlotVerified(
             date: date,
-            entry: entry,
+            slot: slot,
+            combinedVerification: settings.combinedVerification,
           );
       prayerHistoryId = TrackingRepository.prayerId(date, widget.prayer);
     } catch (error, stack) {

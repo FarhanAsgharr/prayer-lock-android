@@ -45,6 +45,22 @@ class AppBlockerService : Service() {
     private var isLockActive = false
 
     /**
+     * When the current prayer window closes, as epoch milliseconds, or 0 when
+     * the lock has no scheduled end.
+     *
+     * The alarm chain is the primary mechanism for releasing the lock. This is
+     * a second, independent one: the poll loop is already running every 700ms,
+     * so checking an integer comparison costs nothing, and it means a dropped
+     * or deferred alarm cannot leave a user locked out past the end of a window.
+     * Two mechanisms for *releasing* is the right asymmetry — the failure mode
+     * of an over-eager release is mild, and of a stuck lock is severe.
+     */
+    private var lockEndsAtMillis = 0L
+
+    /** The prayer this lock belongs to, for the notification text. */
+    private var currentPrayerName = "prayer"
+
+    /**
      * Timestamp of the last usage event we have already examined.
      *
      * Tracked so each poll queries only the new window of events rather than
@@ -60,6 +76,12 @@ class AppBlockerService : Service() {
     private val pollRunnable = object : Runnable {
         override fun run() {
             if (isLockActive) {
+                if (hasWindowExpired()) {
+                    Log.i(TAG, "Window ended; releasing lock without waiting for the alarm")
+                    stopLock()
+                    return
+                }
+
                 try {
                     checkForegroundApp()
                 } catch (error: Exception) {
@@ -71,6 +93,18 @@ class AppBlockerService : Service() {
             handler.postDelayed(this, POLL_INTERVAL_MS)
         }
     }
+
+    /**
+     * Whether the prayer window this lock belongs to has closed.
+     *
+     * Deliberately one-directional: this can end a lock early relative to the
+     * alarm, but never extend one. Extending on the strength of the wall clock
+     * would hand a user who moves their clock forward a way to skip a window;
+     * releasing on it only risks unblocking slightly early if the clock is
+     * wrong, which the next alarm evaluation corrects.
+     */
+    private fun hasWindowExpired(): Boolean =
+        lockEndsAtMillis > 0L && System.currentTimeMillis() >= lockEndsAtMillis
 
     override fun onCreate() {
         super.onCreate()
@@ -103,20 +137,38 @@ class AppBlockerService : Service() {
             ?.toSet()
             ?: emptySet()
         val prayerName = intent.getStringExtra(EXTRA_PRAYER_NAME) ?: "prayer"
+        val endsAt = intent.getLongExtra(EXTRA_ENDS_AT, 0L)
+
+        // A window that has already closed by the time the intent is delivered
+        // — a deferred alarm, a slow boot — must not start a lock that would
+        // then need its own release. Refusing here is simpler and cannot get
+        // stuck.
+        if (endsAt > 0L && System.currentTimeMillis() >= endsAt) {
+            Log.i(TAG, "Ignoring start for $prayerName: window already closed")
+            stopLock()
+            return
+        }
 
         policy = BlockingPolicy(blocked, packageName)
         isLockActive = true
+        lockEndsAtMillis = endsAt
+        currentPrayerName = prayerName
         lastEventTimestamp = System.currentTimeMillis()
 
-        startForeground(NOTIFICATION_ID, buildNotification(prayerName))
+        startForeground(NOTIFICATION_ID, buildNotification(prayerName, endsAt))
         handler.removeCallbacks(pollRunnable)
         handler.post(pollRunnable)
 
-        Log.i(TAG, "Lock started for $prayerName with ${blocked.size} blocked apps")
+        Log.i(
+            TAG,
+            "Lock started for $prayerName with ${blocked.size} blocked apps" +
+                if (endsAt > 0L) ", ending at $endsAt" else ", no scheduled end",
+        )
     }
 
     private fun stopLock() {
         isLockActive = false
+        lockEndsAtMillis = 0L
         handler.removeCallbacks(pollRunnable)
         lastInterceptedPackage = null
 
@@ -209,7 +261,7 @@ class AppBlockerService : Service() {
         manager.createNotificationChannel(channel)
     }
 
-    private fun buildNotification(prayerName: String): Notification {
+    private fun buildNotification(prayerName: String, endsAt: Long): Notification {
         val openApp = PendingIntent.getActivity(
             this,
             0,
@@ -217,13 +269,43 @@ class AppBlockerService : Service() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
 
-        return Notification.Builder(this, CHANNEL_ID)
+        val builder = Notification.Builder(this, CHANNEL_ID)
             .setContentTitle("It's time for $prayerName")
-            .setContentText("Apps are restricted until you verify your prayer.")
+            .setContentText(notificationBody(endsAt))
             .setSmallIcon(R.drawable.ic_notification)
             .setContentIntent(openApp)
             .setOngoing(true)
-            .build()
+
+        // A live countdown to the end of the window. Far more reassuring than a
+        // static "apps are restricted": under dynamic durations the wait can be
+        // hours, and a user who cannot see when it ends assumes it is broken.
+        if (endsAt > 0L) {
+            builder
+                .setWhen(endsAt)
+                .setUsesChronometer(true)
+                .setChronometerCountDown(true)
+        }
+
+        return builder.build()
+    }
+
+    private fun notificationBody(endsAt: Long): String {
+        if (endsAt <= 0L) return "Apps are restricted until you verify your prayer."
+
+        val remaining = endsAt - System.currentTimeMillis()
+        if (remaining <= 0L) return "This prayer's window has ended."
+
+        val totalMinutes = remaining / 60_000L
+        val hours = totalMinutes / 60
+        val minutes = totalMinutes % 60
+
+        val window = when {
+            hours > 0 && minutes > 0 -> "${hours}h ${minutes}m"
+            hours > 0 -> "${hours}h"
+            else -> "${minutes}m"
+        }
+
+        return "Apps are restricted. $window left in this window."
     }
 
     override fun onDestroy() {
@@ -243,6 +325,9 @@ class AppBlockerService : Service() {
 
         const val EXTRA_BLOCKED_PACKAGES = "blocked_packages"
         const val EXTRA_PRAYER_NAME = "prayer_name"
+
+        /** Epoch millis at which the prayer window closes. 0 means unbounded. */
+        const val EXTRA_ENDS_AT = "ends_at"
 
         private const val CHANNEL_ID = "prayer_lock_service"
         private const val NOTIFICATION_ID = 4711

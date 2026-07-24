@@ -99,12 +99,16 @@ class BlockingPlatformChannel {
   Future<bool> startLock({
     required List<String> packages,
     required String prayerName,
+    DateTime? endsAt,
   }) async {
     if (!isSupported) return false;
 
     final result = await _invoke<bool>('startLock', {
       'packages': packages,
       'prayerName': prayerName,
+      // The native service releases itself at this instant even if the alarm
+      // that should have released it never arrives.
+      'endsAtEpochMs': endsAt?.millisecondsSinceEpoch,
     });
     return result ?? false;
   }
@@ -147,6 +151,62 @@ class BlockingPlatformChannel {
   Future<void> cancelSchedule() async {
     if (!usesSystemPicker) return;
     await _invoke<bool>('cancelSchedule');
+  }
+
+  /// Whether the platform will honour exact alarms.
+  ///
+  /// Android 12 made this revocable and Android 13 stopped granting it by
+  /// default to apps that are not alarm clocks. Without it, a prayer lock can
+  /// engage well after the adhan, which the user experiences as the feature
+  /// simply not working.
+  Future<bool> canScheduleExactAlarms() async {
+    if (!Platform.isAndroid) return true;
+    return await _invoke<bool>('canScheduleExactAlarms') ?? true;
+  }
+
+  Future<void> requestExactAlarmPermission() async {
+    if (!Platform.isAndroid) return;
+    await _invoke<void>('requestExactAlarmPermission');
+  }
+
+  /// Mirror the computed prayer windows and blocking policy to the native side.
+  ///
+  /// This is what keeps enforcement alive when the Dart isolate is not: after a
+  /// reboot, a force-stop, or Android reclaiming the process, native code reads
+  /// this mirror and continues locking and releasing on schedule with no
+  /// Flutter engine at all.
+  ///
+  /// Returns the number of windows the platform stored, or 0 where there is no
+  /// native scheduler (iOS, tests).
+  Future<int> syncSchedule({
+    required List<NativePrayerWindow> windows,
+    required List<String> packages,
+    required bool blockingEnabled,
+    required String unlockPolicy,
+    required bool blockUntilQaza,
+    required bool morningProtection,
+  }) async {
+    if (!Platform.isAndroid) return 0;
+
+    final result = await _invoke<int>('syncSchedule', {
+      'windows': [for (final window in windows) window.toPlatform()],
+      'packages': packages,
+      'blockingEnabled': blockingEnabled,
+      'unlockPolicy': unlockPolicy,
+      'blockUntilQaza': blockUntilQaza,
+      'morningProtection': morningProtection,
+    });
+    return result ?? 0;
+  }
+
+  /// Erase the native mirror and cancel every armed alarm.
+  ///
+  /// Called when blocking is switched off or the user's data is deleted —
+  /// leaving a mirror behind would let alarms keep firing for a feature the
+  /// user has turned off.
+  Future<void> clearSchedule() async {
+    if (!Platform.isAndroid) return;
+    await _invoke<bool>('clearSchedule');
   }
 
   // -- internals ---------------------------------------------------------

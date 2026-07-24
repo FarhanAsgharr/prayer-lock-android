@@ -5,6 +5,39 @@ import 'package:flutter/foundation.dart';
 
 import '../../../prayer_times/domain/entities/prayer_enums.dart';
 
+/// How many recorded prayers were prayed joined, and how many alone.
+///
+/// Reported separately from [PrayerCounts] rather than folded into it, because
+/// combining is orthogonal to the outcome: a combined prayer can be on time,
+/// late or missed exactly like any other. Mixing the two would make "completed"
+/// ambiguous about whether it meant a prayer or a pair.
+@immutable
+class CombinedPrayerCounts {
+  const CombinedPrayerCounts({this.combined = 0, this.separate = 0});
+
+  /// Prayers recorded while joined with their neighbour.
+  final int combined;
+
+  /// Prayers recorded on their own.
+  final int separate;
+
+  int get total => combined + separate;
+
+  /// Fraction prayed joined, 0.0–1.0. Zero when nothing is recorded, rather
+  /// than dividing by zero.
+  double get combinedRate => total == 0 ? 0.0 : combined / total;
+
+  /// Whether the user has ever combined. Drives whether the breakdown is worth
+  /// showing at all — it is noise for someone who never combines.
+  bool get hasCombined => combined > 0;
+
+  CombinedPrayerCounts operator +(CombinedPrayerCounts other) =>
+      CombinedPrayerCounts(
+        combined: combined + other.combined,
+        separate: separate + other.separate,
+      );
+}
+
 /// Counts for one period.
 @immutable
 class PrayerCounts {
