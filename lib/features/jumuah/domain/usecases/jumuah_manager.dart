@@ -13,7 +13,8 @@ library;
 
 import '../../../prayer_times/domain/entities/prayer_window.dart';
 import '../../data/repositories/jumuah_preference_repository.dart';
-import '../entities/jumuah_profile.dart';
+import '../entities/jumuah_settings.dart';
+import '../entities/mosque_profile.dart';
 import 'friday_detector.dart';
 import 'jumuah_scheduler.dart';
 
@@ -23,7 +24,7 @@ class JumuahStatus {
     required this.isFriday,
     required this.isActive,
     required this.needsLocationChoice,
-    this.profile,
+    this.mosque,
   });
 
   /// Whether the local date is a Friday.
@@ -36,11 +37,11 @@ class JumuahStatus {
   /// Whether to ask the user where they are praying.
   final bool needsLocationChoice;
 
-  /// The profile in force today, if any.
-  final JumuahProfile? profile;
+  /// The mosque in force today, if any.
+  final MosqueProfile? mosque;
 
-  /// Where the user prays, for the dashboard subtitle.
-  JumuahLocation? get location => profile?.location;
+  /// What to show under the Jumu'ah card.
+  String? get mosqueName => mosque?.displayName;
 }
 
 class JumuahManager {
@@ -66,8 +67,8 @@ class JumuahManager {
       isActive: friday && current.isActive,
       // Asked only on the day it matters. Prompting on a Tuesday for a
       // decision that takes effect on Friday is noise.
-      needsLocationChoice: friday && current.needsLocationChoice,
-      profile: friday ? current.activeProfile : null,
+      needsLocationChoice: friday && current.needsMosqueChoice,
+      mosque: friday ? current.activeMosque : null,
     );
   }
 
@@ -101,25 +102,46 @@ class JumuahManager {
 
   /// Record where the user prays. This is the answer to the first-Friday
   /// prompt, and it is remembered for every Friday after.
-  Future<void> chooseLocation(JumuahLocation location) =>
-      _repository.write(settings.copyWith(selectedLocation: location));
+  Future<void> chooseMosque(String mosqueId) =>
+      _repository.write(settings.selecting(mosqueId));
+
+  /// Use a mosque for today only, leaving the standing preference alone.
+  ///
+  /// What the "you appear to be in a different city" prompt does — the user is
+  /// elsewhere this week, not permanently.
+  Future<void> useMosqueForToday(String mosqueId) =>
+      _repository.write(settings.usingForToday(mosqueId));
+
+  /// Add or update a mosque.
+  Future<void> saveMosque(MosqueProfile mosque) =>
+      _repository.write(settings.withMosque(mosque));
+
+  /// Remove a mosque. The last one cannot be removed.
+  Future<void> deleteMosque(String mosqueId) =>
+      _repository.write(settings.withoutMosque(mosqueId));
+
+  Future<void> setSilenceDuringJumuah(bool enabled) =>
+      _repository.write(settings.copyWith(silenceDuringJumuah: enabled));
+
+  Future<void> setSmartLocationPrompts(bool enabled) =>
+      _repository.write(settings.copyWith(smartLocationPrompts: enabled));
 
   Future<void> setEnabled(bool enabled) =>
       _repository.write(settings.copyWith(enabled: enabled));
-
-  /// Change one mosque's times without disturbing the other.
-  Future<void> updateProfile(JumuahProfile profile) =>
-      _repository.write(settings.withProfile(profile));
 
   /// Forget the chosen location so the prompt appears again next Friday.
   Future<void> resetSelection() =>
       _repository.write(settings.clearSelection());
 
-  /// Restore both mosques to their shipped times, keeping the selection.
-  Future<void> resetProfiles() => _repository.write(
-        settings.copyWith(
-          homeMosque: JumuahProfile.homeMosqueDefault,
-          universityMosque: JumuahProfile.universityMosqueDefault,
-        ),
-      );
+  /// Restore the seeded mosques and their shipped times.
+  ///
+  /// Mosques the user added themselves are kept — resetting times should not
+  /// silently delete a mosque they created.
+  Future<void> resetSeededMosques() {
+    var next = settings;
+    for (final seeded in MosqueProfile.defaults()) {
+      if (next.mosqueById(seeded.id) != null) next = next.withMosque(seeded);
+    }
+    return _repository.write(next);
+  }
 }

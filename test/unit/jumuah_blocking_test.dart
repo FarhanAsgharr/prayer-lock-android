@@ -7,7 +7,8 @@ library;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prayer_lock/features/blocking/domain/usecases/lock_decision.dart';
-import 'package:prayer_lock/features/jumuah/domain/entities/jumuah_profile.dart';
+import 'package:prayer_lock/features/jumuah/domain/entities/jumuah_settings.dart';
+import 'package:prayer_lock/features/jumuah/domain/entities/mosque_profile.dart';
 import 'package:prayer_lock/features/jumuah/domain/usecases/jumuah_scheduler.dart';
 import 'package:prayer_lock/features/prayer_times/domain/entities/prayer_day.dart';
 import 'package:prayer_lock/features/prayer_times/domain/entities/prayer_enums.dart';
@@ -23,14 +24,12 @@ const _timezone = 'Asia/Riyadh';
 void main() {
   tz_data.initializeTimeZones();
 
-  AppSettings settingsFor({
-    JumuahLocation location = JumuahLocation.homeMosque,
-    bool enabled = true,
-  }) =>
+  AppSettings settingsFor({String mosqueId = 'home', bool enabled = true}) =>
       settingsWith(gracePeriodMinutes: 0).copyWith(
         jumuah: JumuahSettings(
           enabled: enabled,
-          selectedLocation: location,
+          selectedMosqueId: mosqueId,
+          mosques: MosqueProfile.defaults(),
         ),
       );
 
@@ -117,7 +116,7 @@ void main() {
     });
 
     test('the University profile locks at its own time', () {
-      final settings = settingsFor(location: JumuahLocation.universityMosque);
+      final settings = settingsFor(mosqueId: 'university');
       final day = dayFor(_friday, settings);
       final jumuah = day.entryFor(PrayerName.dhuhr);
 

@@ -39,6 +39,7 @@ import 'package:timezone/timezone.dart' as tz;
 import '../../../prayer_times/domain/entities/prayer_enums.dart';
 import '../../../prayer_times/domain/entities/prayer_window.dart';
 import '../entities/jumuah_profile.dart';
+import '../entities/jumuah_settings.dart';
 import 'friday_detector.dart';
 
 /// The outcome of applying Jumu'ah to a day, for logging and for the UI.
@@ -93,11 +94,11 @@ abstract final class JumuahScheduler {
       );
     }
 
-    final profile = settings.activeProfile!;
+    final mosque = settings.activeMosque!;
     final dhuhr = windows.windowFor(PrayerName.dhuhr);
 
-    final start = _resolve(windows.date, profile.startsAt, timezone);
-    final end = _resolve(windows.date, profile.endsAt, timezone);
+    final start = _resolve(windows.date, mosque.startsAt, timezone);
+    final end = _resolve(windows.date, mosque.endsAt, timezone);
 
     if (start == null || end == null) {
       return JumuahScheduleResult(

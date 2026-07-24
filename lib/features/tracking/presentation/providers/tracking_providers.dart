@@ -11,11 +11,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/storage/storage_providers.dart';
 import '../../../prayer_times/domain/entities/prayer_day.dart';
 import '../../../prayer_times/domain/entities/prayer_enums.dart';
-import '../../../jumuah/domain/entities/jumuah_profile.dart';
+import '../../../jumuah/domain/entities/mosque_profile.dart';
 import '../../../jumuah/domain/usecases/jumuah_verification_controller.dart';
 import '../../../prayer_times/domain/entities/prayer_slot.dart';
 import '../../data/repositories/qaza_repository.dart';
 import '../../data/repositories/tracking_repository.dart';
+import '../../domain/entities/friday_analytics.dart';
 import '../../domain/entities/prayer_statistics.dart';
 
 /// The ledger of make-up prayers still owed.
@@ -48,6 +49,29 @@ final trackedStatusesProvider = FutureProvider.family<
     Map<PrayerName, PrayerStatus>, DateTime>((ref, date) async {
   final repository = ref.watch(trackingRepositoryProvider);
   return repository.statusesForDate(date);
+});
+
+/// Every recorded Friday, most recent first.
+final fridayHistoryProvider = FutureProvider<List<FridayRecord>>((ref) async {
+  return ref.watch(trackingRepositoryProvider).fridayHistory();
+});
+
+/// Friday streaks, completion rate and averages.
+final fridayAnalyticsProvider = FutureProvider<FridayAnalytics>((ref) async {
+  final records = await ref.watch(fridayHistoryProvider.future);
+  return FridayAnalytics.from(records);
+});
+
+/// Most-missed prayer, best prayer, consistency and verification averages.
+final extendedAnalyticsProvider =
+    FutureProvider<ExtendedPrayerAnalytics>((ref) async {
+  final repository = ref.watch(trackingRepositoryProvider);
+
+  return ExtendedPrayerAnalytics(
+    byPrayer: await repository.prayerPerformance(),
+    averageVerificationTime: await repository.averageVerificationTime(),
+    friday: await ref.watch(fridayAnalyticsProvider.future),
+  );
 });
 
 /// Full statistics bundle for the dashboard.
@@ -192,18 +216,18 @@ class PrayerTracker {
     required PrayerSlot slot,
     required bool combinedVerification,
     DateTime? at,
-    JumuahProfile? jumuahProfile,
+    MosqueProfile? jumuahMosque,
   }) async {
     final verifiedAt = at ?? DateTime.now().toUtc();
 
     // A Jumu'ah slot writes the same Dhuhr row as any other day, plus the
     // congregation details. Built here rather than by the caller so the record
     // and the prayer write cannot disagree about which mosque or how long.
-    final jumuahRecord = slot.isJumuah && jumuahProfile != null
+    final jumuahRecord = slot.isJumuah && jumuahMosque != null
         ? const JumuahVerificationController().recordFor(
             slot: slot,
             date: date,
-            profile: jumuahProfile,
+            mosque: jumuahMosque,
             verifiedAt: verifiedAt,
           )
         : null;
@@ -382,5 +406,8 @@ class PrayerTracker {
     _ref.invalidate(qazaLedgerProvider);
     _ref.invalidate(qazaOutstandingCountProvider);
     _ref.invalidate(qazaByPrayerProvider);
+    _ref.invalidate(fridayHistoryProvider);
+    _ref.invalidate(fridayAnalyticsProvider);
+    _ref.invalidate(extendedAnalyticsProvider);
   }
 }

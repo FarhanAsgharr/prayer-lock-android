@@ -27,6 +27,7 @@ import '../../../../core/notifications/notification_providers.dart';
 import '../../../tracking/data/repositories/tracking_repository.dart';
 import '../../../tracking/presentation/providers/tracking_providers.dart';
 import '../../../../core/storage/storage_providers.dart';
+import '../../../dhikr/presentation/widgets/post_prayer_sheet.dart';
 import '../../../jumuah/presentation/providers/jumuah_providers.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../domain/entities/verification_result.dart';
@@ -204,7 +205,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
             combinedVerification: settings.combinedVerification,
             // Null on any day that is not a Friday, so the ordinary path is
             // untouched.
-            jumuahProfile: ref.read(activeJumuahProfileProvider),
+            jumuahMosque: ref.read(activeJumuahMosqueProvider),
           );
       prayerHistoryId = TrackingRepository.prayerId(date, widget.prayer);
     } catch (error, stack) {
@@ -280,6 +281,10 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
 
     // Upload opportunistically; the queue retries if this fails.
     unawaited(ref.read(syncEngineProvider).drain());
+
+    // Offered only when the user has asked for it; returns immediately
+    // otherwise, so this is called unconditionally.
+    if (mounted) await showPostPrayerSheet(context, ref);
 
     if (mounted) context.go('/');
   }

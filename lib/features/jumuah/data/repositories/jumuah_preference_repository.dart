@@ -14,7 +14,7 @@
 library;
 
 import '../../../settings/domain/entities/app_settings.dart';
-import '../../domain/entities/jumuah_profile.dart';
+import '../../domain/entities/jumuah_settings.dart';
 
 /// Reads and writes the Jumu'ah preference.
 abstract interface class JumuahPreferenceRepository {
@@ -47,9 +47,8 @@ class SettingsJumuahPreferenceRepository
 /// In-memory implementation for tests and previews.
 class InMemoryJumuahPreferenceRepository
     implements JumuahPreferenceRepository {
-  InMemoryJumuahPreferenceRepository([
-    JumuahSettings initial = const JumuahSettings(),
-  ]) : _settings = initial;
+  InMemoryJumuahPreferenceRepository([JumuahSettings? initial])
+      : _settings = initial ?? const JumuahSettings();
 
   JumuahSettings _settings;
 

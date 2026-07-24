@@ -14,6 +14,9 @@ import '../../../prayer_times/presentation/providers/prayer_times_provider.dart'
 import '../../../blocking/presentation/providers/orchestrator_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../tracking/presentation/providers/tracking_providers.dart';
+import '../../../islamic_calendar/presentation/widgets/islamic_day_banner.dart';
+import '../../../jumuah/presentation/providers/jumuah_providers.dart';
+import '../../../jumuah/presentation/widgets/jumuah_card.dart';
 import '../../../jumuah/presentation/widgets/jumuah_location_prompt.dart';
 import '../widgets/prayer_list_tile.dart';
 
@@ -51,11 +54,20 @@ class DashboardScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _Header(locationLabel: settings.location?.label),
-                      const SizedBox(height: AppSpacing.lg),
+                      const SizedBox(height: AppSpacing.xs),
+                      const HijriDateLine(),
+                      const SizedBox(height: AppSpacing.md),
+                      // Ramadan, Eid, and any other occasion worth noting.
+                      // Renders nothing on an ordinary day.
+                      const IslamicDayBanner(),
+                      const SizedBox(height: AppSpacing.sm),
                       // Only renders on a Friday when no mosque has been
                       // chosen yet. Placed under the header so it reads as
                       // part of the dashboard rather than as a system dialog.
                       const JumuahLocationPrompt(),
+                      // Replaces the ordinary next-prayer card on Fridays;
+                      // renders nothing on any other day.
+                      const JumuahCard(),
                       const _NextPrayerCard(),
                       const SizedBox(height: AppSpacing.md),
                       _TodayProgress(day: day, now: now),
@@ -251,6 +263,11 @@ class _NextPrayerCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
+
+    // The Jumu'ah card already answers "what is next" on a Friday, and two
+    // cards competing to say it would be worse than either alone.
+    if (ref.watch(isJumuahTodayProvider)) return const SizedBox.shrink();
+
     final current = ref.watch(currentPrayerProvider);
     final next = ref.watch(nextPrayerProvider);
 

@@ -8,7 +8,7 @@ library;
 import 'package:flutter/foundation.dart';
 
 import '../../../../core/config/locale_config.dart';
-import '../../../jumuah/domain/entities/jumuah_profile.dart';
+import '../../../jumuah/domain/entities/jumuah_settings.dart';
 import '../../../prayer_times/domain/entities/prayer_enums.dart';
 import '../../../sections/domain/entities/islamic_section.dart';
 import '../../../sections/domain/entities/prayer_grouping.dart';
@@ -94,8 +94,11 @@ class AppSettings {
     this.preferRemotePrayerTimes = true,
     this.notifyOnWindowEnd = true,
     this.language = AppLanguage.system,
-    this.jumuah = const JumuahSettings(),
-  });
+    JumuahSettings? jumuah,
+    this.hijriAdjustmentDays = 0,
+    this.dhikrRemindersEnabled = false,
+    this.quranRemindersEnabled = false,
+  }) : jumuah = jumuah ?? const JumuahSettings();
 
   final PrayerLocation? location;
 
@@ -183,8 +186,22 @@ class AppSettings {
   final AppLanguage language;
 
   /// Friday Jumu'ah configuration: whether it replaces Dhuhr, where the user
-  /// prays, and each mosque's schedule.
+  /// prays, and every mosque they have.
   final JumuahSettings jumuah;
+
+  /// Days to shift the computed Hijri date by, from -2 to +2.
+  ///
+  /// The tabular calendar the app computes can differ from a local moon
+  /// sighting by a day or so. Rather than pretend otherwise, the user can
+  /// align it with whatever their community announced. Purely cosmetic — it
+  /// never moves a prayer time, which is astronomical and exact.
+  final int hijriAdjustmentDays;
+
+  /// Whether to offer the tasbih after a completed prayer.
+  final bool dhikrRemindersEnabled;
+
+  /// Whether to offer a short Quran reading after a completed prayer.
+  final bool quranRemindersEnabled;
 
   /// Whether enough is configured to compute a schedule.
   bool get isReady => location != null;
@@ -276,6 +293,9 @@ class AppSettings {
     bool? notifyOnWindowEnd,
     AppLanguage? language,
     JumuahSettings? jumuah,
+    int? hijriAdjustmentDays,
+    bool? dhikrRemindersEnabled,
+    bool? quranRemindersEnabled,
   }) =>
       AppSettings(
         location: location ?? this.location,
@@ -309,6 +329,11 @@ class AppSettings {
         notifyOnWindowEnd: notifyOnWindowEnd ?? this.notifyOnWindowEnd,
         language: language ?? this.language,
         jumuah: jumuah ?? this.jumuah,
+        hijriAdjustmentDays: hijriAdjustmentDays ?? this.hijriAdjustmentDays,
+        dhikrRemindersEnabled:
+            dhikrRemindersEnabled ?? this.dhikrRemindersEnabled,
+        quranRemindersEnabled:
+            quranRemindersEnabled ?? this.quranRemindersEnabled,
       );
 
   /// Adopt [next] and take its suggested defaults.
@@ -349,6 +374,9 @@ class AppSettings {
       notifyOnWindowEnd: notifyOnWindowEnd,
       language: language,
       jumuah: jumuah,
+      hijriAdjustmentDays: hijriAdjustmentDays,
+      dhikrRemindersEnabled: dhikrRemindersEnabled,
+      quranRemindersEnabled: quranRemindersEnabled,
     );
   }
 
@@ -385,6 +413,9 @@ class AppSettings {
         'notifyOnWindowEnd': notifyOnWindowEnd,
         'language': language.wireValue,
         'jumuah': jumuah.toJson(),
+        'hijriAdjustmentDays': hijriAdjustmentDays,
+        'dhikrRemindersEnabled': dhikrRemindersEnabled,
+        'quranRemindersEnabled': quranRemindersEnabled,
       };
 
   factory AppSettings.fromJson(Map<String, dynamic> json) {
@@ -441,8 +472,15 @@ class AppSettings {
       notifyOnWindowEnd: json['notifyOnWindowEnd'] as bool? ?? true,
       language: AppLanguage.fromWire(json['language'] as String? ?? 'system'),
       jumuah: json['jumuah'] is Map
-          ? JumuahSettings.fromJson((json['jumuah'] as Map).cast<String, dynamic>())
-          : const JumuahSettings(),
+          ? JumuahSettings.fromJson(
+              (json['jumuah'] as Map).cast<String, dynamic>())
+          : null,
+      // Clamped on read: a corrupted or hand-edited value must not shift the
+      // calendar by a month.
+      hijriAdjustmentDays:
+          ((json['hijriAdjustmentDays'] as num?)?.toInt() ?? 0).clamp(-2, 2),
+      dhikrRemindersEnabled: json['dhikrRemindersEnabled'] as bool? ?? false,
+      quranRemindersEnabled: json['quranRemindersEnabled'] as bool? ?? false,
     );
   }
 

@@ -33,7 +33,10 @@ class AppDatabase {
   // Asr were joined stays identifiable as such after the user changes mode.
   // v5 added the Jumu'ah columns, so a Friday Dhuhr row records that it was a
   // congregation, which mosque, and how long apps were blocked for it.
-  static const int _schemaVersion = 5;
+  // v6 added jumuah_mosque_name. jumuah_location holds a mosque id, and a
+  // mosque can be renamed or deleted; storing the name as it was keeps the
+  // history readable afterwards.
+  static const int _schemaVersion = 6;
 
   static AppDatabase? _instance;
 
@@ -112,7 +115,11 @@ class AppDatabase {
         -- user can switch mosques or disable the feature and history must keep
         -- describing what actually happened.
         was_jumuah INTEGER NOT NULL DEFAULT 0,
+        -- The mosque's id, and its name as it was at the time. The name is
+        -- denormalised deliberately: mosques can be renamed or deleted, and
+        -- history must keep describing what actually happened.
         jumuah_location TEXT,
+        jumuah_mosque_name TEXT,
         jumuah_block_seconds INTEGER,
         synced INTEGER NOT NULL DEFAULT 0,
         updated_at INTEGER NOT NULL,
@@ -378,6 +385,10 @@ class AppDatabase {
           );
           await db.execute(
             'ALTER TABLE prayer_history ADD COLUMN jumuah_block_seconds INTEGER',
+          );
+        case 6:
+          await db.execute(
+            'ALTER TABLE prayer_history ADD COLUMN jumuah_mosque_name TEXT',
           );
         default:
           throw StateError(

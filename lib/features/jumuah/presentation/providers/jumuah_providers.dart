@@ -11,7 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../prayer_times/presentation/providers/prayer_times_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../data/repositories/jumuah_preference_repository.dart';
-import '../../domain/entities/jumuah_profile.dart';
+import '../../domain/entities/mosque_profile.dart';
 import '../../domain/usecases/jumuah_manager.dart';
 
 /// Persistence for the Jumu'ah preference, on the app's settings store.
@@ -54,7 +54,12 @@ final needsJumuahLocationProvider = Provider<bool>(
   (ref) => ref.watch(jumuahStatusProvider).needsLocationChoice,
 );
 
-/// The profile governing today, or null when Jumu'ah is not in force.
-final activeJumuahProfileProvider = Provider<JumuahProfile?>(
-  (ref) => ref.watch(jumuahStatusProvider).profile,
+/// The mosque governing today, or null when Jumu'ah is not in force.
+final activeJumuahMosqueProvider = Provider<MosqueProfile?>(
+  (ref) => ref.watch(jumuahStatusProvider).mosque,
+);
+
+/// Every mosque the user has, for the pickers.
+final mosquesProvider = Provider<List<MosqueProfile>>(
+  (ref) => ref.watch(jumuahManagerProvider).settings.mosques,
 );

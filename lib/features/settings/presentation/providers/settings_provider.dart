@@ -9,7 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/config/locale_config.dart';
-import '../../../jumuah/domain/entities/jumuah_profile.dart';
+import '../../../jumuah/domain/entities/jumuah_settings.dart';
 import '../../../prayer_times/domain/entities/prayer_enums.dart';
 import '../../../sections/domain/entities/islamic_section.dart';
 import '../../../sections/domain/entities/prayer_grouping.dart';
@@ -154,6 +154,16 @@ class SettingsNotifier extends Notifier<AppSettings> {
   /// else" live in one place instead of being spread across setters.
   Future<void> setJumuahSettings(JumuahSettings jumuah) =>
       _update(state.copyWith(jumuah: jumuah));
+
+  /// Nudge the Hijri date to match a local sighting announcement.
+  Future<void> setHijriAdjustment(int days) =>
+      _update(state.copyWith(hijriAdjustmentDays: days.clamp(-2, 2)));
+
+  Future<void> setDhikrReminders(bool enabled) =>
+      _update(state.copyWith(dhikrRemindersEnabled: enabled));
+
+  Future<void> setQuranReminders(bool enabled) =>
+      _update(state.copyWith(quranRemindersEnabled: enabled));
 
   Future<void> setRequireAiVerification(bool enabled) =>
       _update(state.copyWith(requireAiVerification: enabled));
