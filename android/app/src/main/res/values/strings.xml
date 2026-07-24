@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Shown in the launcher's widget picker, so it has to say what the widget
+      is for before anyone has placed one.
+    -->
+    <string name="widget_description">Your next prayer, and Jumu\'ah on Fridays</string>
+
+    <!--
+      What the widget shows before the app has ever synced. Chosen so a freshly
+      placed widget looks deliberate rather than broken while it waits.
+    -->
+    <string name="widget_placeholder_prayer">Prayer Lock</string>
+    <string name="widget_placeholder_time"></string>
+    <string name="widget_placeholder_detail">Open the app to set up</string>
+</resources>

@@ -64,6 +64,7 @@ class LockDecision {
     this.windowDuration,
     this.prayers = const [],
     this.slotName,
+    this.isJumuah = false,
   });
 
   /// A decision derived from a slot, so the two can never disagree about which
@@ -84,6 +85,7 @@ class LockDecision {
         lockUntil: lockUntil,
         windowDuration: slot.duration,
         isMorningProtection: isMorningProtection,
+        isJumuah: slot.isJumuah,
       );
 
   final bool shouldLock;
@@ -108,6 +110,13 @@ class LockDecision {
   /// The slot's display name — "Dhuhr + Asr" or "Asr".
   final String? slotName;
 
+  /// Whether the governing slot is the Friday congregation.
+  ///
+  /// Carried on the decision rather than re-derived by each consumer, so the
+  /// lock, the notification and the silence behaviour all agree about whether
+  /// this is Jumu'ah.
+  final bool isJumuah;
+
   /// The instant the lock is expected to release on its own, if any.
   ///
   /// Drives the exact alarm that ends the block, and the countdown the lock
@@ -126,7 +135,8 @@ class LockDecision {
         lockUntil = null,
         windowDuration = null,
         prayers = const [],
-        slotName = null;
+        slotName = null,
+        isJumuah = false;
 
   /// Whether the governing slot joins two prayers.
   bool get isCombined => prayers.length > 1;

@@ -42,6 +42,16 @@ class PrayerScheduleStore(context: Context) {
         val qazaEndsAt: Long,
         /** Whether the user has already discharged this prayer. */
         val fulfilled: Boolean,
+        /** Whether to quieten the phone for this window. */
+        val silence: Boolean = false,
+        /**
+         * What to call it in the notification — "Jumu'ah", "Dhuhr + Asr".
+         *
+         * Carried rather than derived from [prayer]: capitalising the wire id
+         * gives "Dhuhr" during Jumu'ah, which tells the user the app has not
+         * noticed it is Friday.
+         */
+        val label: String? = null,
     ) {
         val durationMillis: Long get() = (endsAt - startsAt).coerceAtLeast(0)
 
@@ -52,6 +62,8 @@ class PrayerScheduleStore(context: Context) {
             put(KEY_ENDS_AT, endsAt)
             put(KEY_QAZA_ENDS_AT, qazaEndsAt)
             put(KEY_FULFILLED, fulfilled)
+            put(KEY_SILENCE, silence)
+            label?.let { put(KEY_LABEL, it) }
         }
 
         companion object {
@@ -62,6 +74,8 @@ class PrayerScheduleStore(context: Context) {
                 endsAt = json.optLong(KEY_ENDS_AT),
                 qazaEndsAt = json.optLong(KEY_QAZA_ENDS_AT, json.optLong(KEY_ENDS_AT)),
                 fulfilled = json.optBoolean(KEY_FULFILLED, false),
+                silence = json.optBoolean(KEY_SILENCE, false),
+                label = json.optString(KEY_LABEL).takeIf { it.isNotEmpty() },
             )
         }
     }
@@ -247,6 +261,8 @@ class PrayerScheduleStore(context: Context) {
         private const val KEY_ENDS_AT = "endsAt"
         private const val KEY_QAZA_ENDS_AT = "qazaEndsAt"
         private const val KEY_FULFILLED = "fulfilled"
+        private const val KEY_SILENCE = "silence"
+        private const val KEY_LABEL = "label"
 
         private const val KEY_WALL_CLOCK = "lastWallClock"
         private const val KEY_ELAPSED_REALTIME = "lastElapsedRealtime"

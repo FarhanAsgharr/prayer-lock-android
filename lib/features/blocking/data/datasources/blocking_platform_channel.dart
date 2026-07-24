@@ -100,6 +100,7 @@ class BlockingPlatformChannel {
     required List<String> packages,
     required String prayerName,
     DateTime? endsAt,
+    bool silence = false,
   }) async {
     if (!isSupported) return false;
 
@@ -109,6 +110,7 @@ class BlockingPlatformChannel {
       // The native service releases itself at this instant even if the alarm
       // that should have released it never arrives.
       'endsAtEpochMs': endsAt?.millisecondsSinceEpoch,
+      'silence': silence,
     });
     return result ?? false;
   }
@@ -167,6 +169,45 @@ class BlockingPlatformChannel {
   Future<void> requestExactAlarmPermission() async {
     if (!Platform.isAndroid) return;
     await _invoke<void>('requestExactAlarmPermission');
+  }
+
+  /// Store what the home-screen widget should display, and redraw it.
+  ///
+  /// Display-only: names the user reads, not the policy that enforces them.
+  /// Pushed alongside [syncSchedule] so the widget and the blocking service
+  /// can never show different times for the same prayer.
+  Future<int> updateWidget(List<WidgetWindow> windows) async {
+    if (!Platform.isAndroid) return 0;
+    return await _invoke<int>('updateWidget', {
+          'windows': [for (final window in windows) window.toPlatform()],
+        }) ??
+        0;
+  }
+
+  /// Redraw the home-screen widget without rewriting its data.
+  ///
+  /// Cheap enough to call on every tick: the native side returns immediately
+  /// when no widget is placed.
+  Future<void> refreshWidget() async {
+    if (!Platform.isAndroid) return;
+    await _invoke<bool>('refreshWidget');
+  }
+
+  /// Whether the app is allowed to change Do Not Disturb.
+  ///
+  /// Notification-policy access cannot be requested with a runtime dialog — the
+  /// user has to grant it in Settings — so silencing stays inert until they do.
+  /// The settings screen asks this so it can explain itself rather than showing
+  /// a switch that quietly does nothing.
+  Future<bool> canSilence() async {
+    if (!Platform.isAndroid) return false;
+    return await _invoke<bool>('canSilence') ?? false;
+  }
+
+  /// Open the system screen where notification-policy access is granted.
+  Future<void> requestSilencePermission() async {
+    if (!Platform.isAndroid) return;
+    await _invoke<void>('requestSilencePermission');
   }
 
   /// Mirror the computed prayer windows and blocking policy to the native side.

@@ -8,6 +8,7 @@ import android.os.SystemClock
 import android.util.Log
 import com.prayerlock.prayer_lock.blocking.AppBlockerService
 import com.prayerlock.prayer_lock.blocking.PermissionHelper
+import com.prayerlock.prayer_lock.widget.PrayerWidgetProvider
 
 /**
  * Restores enforcement after events that silently destroy it.
@@ -68,6 +69,7 @@ class BootReceiver : BroadcastReceiver() {
         // a background-start restriction — the alarms still carry enforcement
         // forward to the next transition.
         PrayerAlarmScheduler(context).rearm(schedule, now)
+        PrayerWidgetProvider.refresh(context)
 
         val active = schedule.activeWindowAt(now)
         if (active == null) {
@@ -88,9 +90,10 @@ class BootReceiver : BroadcastReceiver() {
             )
             .putExtra(
                 AppBlockerService.EXTRA_PRAYER_NAME,
-                active.prayer.replaceFirstChar { it.uppercase() },
+                active.label ?: active.prayer.replaceFirstChar { it.uppercase() },
             )
             .putExtra(AppBlockerService.EXTRA_ENDS_AT, active.endsAt)
+            .putExtra(AppBlockerService.EXTRA_SILENCE, active.silence)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(serviceIntent)

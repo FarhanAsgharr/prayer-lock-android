@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../shared/theme/app_theme.dart';
+import '../../../blocking/data/datasources/blocking_platform_channel.dart';
 import '../../../prayer_times/presentation/providers/prayer_times_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../domain/entities/jumuah_profile.dart' show LocalTimeOfDay;
@@ -100,15 +101,7 @@ class JumuahSettingsScreen extends ConsumerWidget {
 
             const _SectionHeader('Friday behaviour'),
 
-            SwitchListTile(
-              secondary: const Icon(Icons.volume_off_outlined),
-              title: const Text('Silence during Jumu\'ah'),
-              subtitle: const Text(
-                'Mute the phone for the congregation, and restore it after',
-              ),
-              value: jumuah.silenceDuringJumuah,
-              onChanged: manager.setSilenceDuringJumuah,
-            ),
+            const _SilenceTile(),
 
             SwitchListTile(
               secondary: const Icon(Icons.travel_explore_outlined),
@@ -293,4 +286,111 @@ Future<LocalTimeOfDay?> pickLocalTime(
   );
   if (picked == null) return null;
   return LocalTimeOfDay(picked.hour, picked.minute);
+}
+
+/// The silence toggle, plus the permission it depends on.
+///
+/// Changing Do Not Disturb needs notification-policy access, which Android
+/// only grants from a system Settings screen. The toggle is shown either way —
+/// the user's intent is worth recording before the permission exists — but
+/// when access is missing it says so and offers the way to fix it, rather than
+/// sitting on and doing nothing.
+class _SilenceTile extends ConsumerStatefulWidget {
+  const _SilenceTile();
+
+  @override
+  ConsumerState<_SilenceTile> createState() => _SilenceTileState();
+}
+
+class _SilenceTileState extends ConsumerState<_SilenceTile>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // The user grants access in system Settings, so the answer can only have
+    // changed while we were backgrounded. Re-asking on resume is what makes
+    // the warning disappear by itself once they come back.
+    if (state == AppLifecycleState.resumed) {
+      ref.invalidate(silencePermissionProvider);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final manager = ref.watch(jumuahManagerProvider);
+    final enabled = ref.watch(settingsProvider).jumuah.silenceDuringJumuah;
+    final granted = ref.watch(silencePermissionProvider).valueOrNull ?? true;
+    final theme = Theme.of(context);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SwitchListTile(
+          secondary: const Icon(Icons.volume_off_outlined),
+          title: const Text("Silence during Jumu'ah"),
+          subtitle: const Text(
+            'Mute the phone for the congregation, and restore it after',
+          ),
+          value: enabled,
+          onChanged: manager.setSilenceDuringJumuah,
+        ),
+        if (enabled && !granted)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.xl,
+              0,
+              AppSpacing.lg,
+              AppSpacing.md,
+            ),
+            // The action sits on its own line, left-aligned. Beside the text it
+            // ends up under the "Add mosque" FAB, which is bottom-right — a
+            // button the user cannot reach is worse than no button.
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      size: 18,
+                      color: theme.colorScheme.error,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Text(
+                        'Prayer Lock needs Do Not Disturb access before it '
+                        'can mute anything.',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.error,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: AppSpacing.lg),
+                  child: TextButton(
+                    onPressed: () =>
+                        BlockingPlatformChannel().requestSilencePermission(),
+                    child: const Text('Grant access'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
 }

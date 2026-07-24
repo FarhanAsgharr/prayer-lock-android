@@ -24,6 +24,7 @@ import '../../../../core/storage/storage_providers.dart';
 import '../../../prayer_times/domain/entities/prayer_day.dart';
 import '../../../prayer_times/domain/entities/prayer_enums.dart';
 import '../../../prayer_times/presentation/providers/prayer_times_provider.dart';
+import '../../../jumuah/presentation/providers/jumuah_providers.dart';
 import '../../../settings/domain/entities/app_settings.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../tracking/presentation/providers/tracking_providers.dart';
@@ -177,6 +178,11 @@ class LockOrchestrator extends Notifier<LockState> {
         // re-arm the alarm chain. This is what keeps blocking working after a
         // reboot or a process kill, when no Dart code is running at all.
         await _syncNativeSchedule(settings, date);
+
+        // Not inside the blocking gate: the widget is a prayer-times display,
+        // and a user who has blocking switched off still wants it to show the
+        // right prayer.
+        await _syncWidget(settings, day, date);
       }
 
       final decision = LockDecisionMaker.decide(
@@ -193,6 +199,59 @@ class LockOrchestrator extends Notifier<LockState> {
       }
     } finally {
       _isEvaluating = false;
+    }
+  }
+
+  /// Key of the widget payload last pushed, so an unchanged day does not
+  /// rewrite SharedPreferences and rebroadcast to the launcher every tick.
+  String? _lastWidgetKey;
+
+  /// Push today's windows to the home-screen widget.
+  ///
+  /// Only today: a widget shows the next prayer, and beyond the end of the day
+  /// the answer is tomorrow's Fajr, which the next sync supplies. Mirroring a
+  /// week would be data the widget never reads.
+  Future<void> _syncWidget(
+    AppSettings settings,
+    PrayerDay day,
+    DateTime date,
+  ) async {
+    if (!Platform.isAndroid) return;
+
+    final mosque = ref.read(activeJumuahMosqueProvider);
+
+    final windows = [
+      for (final slot in day.slots(settings.prayerGrouping))
+        WidgetWindow(
+          name: slot.displayName,
+          startsAt: slot.scheduledAt,
+          endsAt: slot.windowEndsAt,
+          isJumuah: slot.isJumuah,
+          // The mosque is the one detail a Friday widget carries that nothing
+          // else on the home screen does.
+          detail: slot.isJumuah ? mosque?.displayName : null,
+        ),
+    ];
+
+    final key = [
+      for (final window in windows)
+        '${window.name}:${window.startsAt.millisecondsSinceEpoch}'
+            ':${window.endsAt.millisecondsSinceEpoch}:${window.detail}',
+    ].join('|');
+
+    try {
+      if (key == _lastWidgetKey) {
+        // Same windows, different minute. The words on the widget are a
+        // function of the clock as much as of the schedule, so it still needs
+        // redrawing — skipping this is how it ends up naming the wrong prayer.
+        await _channel.refreshWidget();
+      } else {
+        _lastWidgetKey = key;
+        await _channel.updateWidget(windows);
+      }
+    } catch (error) {
+      // A widget that could not be redrawn must never break enforcement.
+      debugPrint('Widget update failed: $error');
     }
   }
 
@@ -269,6 +328,12 @@ class LockOrchestrator extends Notifier<LockState> {
             endsAt: slot.windowEndsAt,
             qazaEndsAt: slot.qazaDeadline,
             fulfilled: slot.isFulfilled,
+            // Only Jumu'ah silences, and only with the opt-in. Whether the
+            // phone goes quiet is decided here rather than natively, because
+            // the native side has no notion of which prayer is which.
+            silence: slot.isJumuah && settings.jumuah.silenceDuringJumuah,
+            // So a Friday lock says "Jumu'ah" rather than "Dhuhr".
+            label: slot.displayName,
           ),
         );
       }
@@ -286,7 +351,8 @@ class LockOrchestrator extends Notifier<LockState> {
       settings.blockedPackages.length,
       for (final window in windows)
         '${window.prayer}:${window.startsAt.millisecondsSinceEpoch}'
-            ':${window.endsAt.millisecondsSinceEpoch}:${window.fulfilled}',
+            ':${window.endsAt.millisecondsSinceEpoch}:${window.fulfilled}'
+            ':${window.silence}',
     ].join('|');
 
     if (key == _lastNativeScheduleKey) return;
@@ -426,6 +492,7 @@ class LockOrchestrator extends Notifier<LockState> {
         // Handed to native so the service can release itself at the end of the
         // window even if the alarm that should have released it never arrives.
         endsAt: decision.lockUntil,
+        silence: decision.isJumuah && settings.jumuah.silenceDuringJumuah,
       );
 
       if (!started) {

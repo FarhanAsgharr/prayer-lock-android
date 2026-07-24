@@ -8,11 +8,16 @@ library;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../blocking/data/datasources/blocking_platform_channel.dart';
 import '../../../prayer_times/presentation/providers/prayer_times_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
+import 'package:geolocator/geolocator.dart';
+
 import '../../data/repositories/jumuah_preference_repository.dart';
 import '../../domain/entities/mosque_profile.dart';
+import '../../domain/usecases/friday_detector.dart';
 import '../../domain/usecases/jumuah_manager.dart';
+import '../../domain/usecases/mosque_proximity_detector.dart';
 
 /// Persistence for the Jumu'ah preference, on the app's settings store.
 final jumuahPreferenceRepositoryProvider =
@@ -63,3 +68,75 @@ final activeJumuahMosqueProvider = Provider<MosqueProfile?>(
 final mosquesProvider = Provider<List<MosqueProfile>>(
   (ref) => ref.watch(jumuahManagerProvider).settings.mosques,
 );
+
+/// Whether the app may change Do Not Disturb.
+///
+/// Notification-policy access is granted in system Settings, not by a runtime
+/// dialog, so the answer changes while the app is backgrounded. Consumers
+/// invalidate this on resume rather than caching it for the session — a stale
+/// "no" would leave the user looking at a warning they had already resolved.
+final silencePermissionProvider = FutureProvider<bool>(
+  (ref) => BlockingPlatformChannel().canSilence(),
+);
+
+/// A single coarse position fix, taken only when a travel prompt could act on
+/// it.
+///
+/// Guarded hard, because the cost of getting this wrong is a prayer app that
+/// reads someone's location in the background. It resolves to null — without
+/// ever touching the GPS — unless it is Friday, smart prompts are on, and the
+/// user has saved coordinates for more than one mosque. On any other day the
+/// answer could not change anything, so it is not asked for.
+///
+/// Permission is never *requested* here either: a location dialog appearing
+/// unbidden on a Friday would be alarming. It uses the grant the user already
+/// gave when setting their prayer location, and stays silent without one.
+final _fridayPositionProvider = FutureProvider<MosqueCoordinates?>((ref) async {
+  final jumuah = ref.watch(settingsProvider).jumuah;
+  if (!jumuah.enabled || !jumuah.smartLocationPrompts) return null;
+
+  if (!FridayDetector.isFriday(ref.watch(localDateProvider))) return null;
+
+  // Nothing to compare against, so nothing worth a fix.
+  final located = jumuah.mosques.where((m) => m.coordinates != null);
+  if (located.length < 2) return null;
+
+  try {
+    final permission = await Geolocator.checkPermission();
+    if (permission != LocationPermission.always &&
+        permission != LocationPermission.whileInUse) {
+      return null;
+    }
+    if (!await Geolocator.isLocationServiceEnabled()) return null;
+
+    final position = await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(
+        // City-level is all this needs — the decision is measured in tens of
+        // kilometres — and it is far cheaper and less invasive than a fix.
+        accuracy: LocationAccuracy.low,
+        timeLimit: Duration(seconds: 15),
+      ),
+    );
+    return MosqueCoordinates(
+      latitude: position.latitude,
+      longitude: position.longitude,
+    );
+  } catch (_) {
+    // A timeout, a revoked permission, an emulator with no fix. Silence is the
+    // right failure mode: the user keeps the mosque they chose.
+    return null;
+  }
+});
+
+/// The mosque to offer instead of the selected one, or null to stay quiet.
+final mosqueSuggestionProvider = Provider<MosqueSuggestion?>((ref) {
+  final jumuah = ref.watch(settingsProvider).jumuah;
+  final position = ref.watch(_fridayPositionProvider).valueOrNull;
+
+  return MosqueProximityDetector.suggestionFor(
+    mosques: jumuah.mosques,
+    selectedMosqueId: jumuah.activeMosque?.id,
+    currentPosition: position,
+    smartPromptsEnabled: jumuah.smartLocationPrompts,
+  );
+});

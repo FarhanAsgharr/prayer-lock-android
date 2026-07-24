@@ -138,6 +138,7 @@ class AppBlockerService : Service() {
             ?: emptySet()
         val prayerName = intent.getStringExtra(EXTRA_PRAYER_NAME) ?: "prayer"
         val endsAt = intent.getLongExtra(EXTRA_ENDS_AT, 0L)
+        val shouldSilence = intent.getBooleanExtra(EXTRA_SILENCE, false)
 
         // A window that has already closed by the time the intent is delivered
         // — a deferred alarm, a slow boot — must not start a lock that would
@@ -155,6 +156,10 @@ class AppBlockerService : Service() {
         currentPrayerName = prayerName
         lastEventTimestamp = System.currentTimeMillis()
 
+        // Silenced only when the window asked for it — currently Jumu'ah, and
+        // only with the user's explicit opt-in and the policy permission.
+        if (shouldSilence) SilenceController.silence(this)
+
         startForeground(NOTIFICATION_ID, buildNotification(prayerName, endsAt))
         handler.removeCallbacks(pollRunnable)
         handler.post(pollRunnable)
@@ -169,6 +174,12 @@ class AppBlockerService : Service() {
     private fun stopLock() {
         isLockActive = false
         lockEndsAtMillis = 0L
+
+        // Unconditional and first: every path that ends a lock runs through
+        // here, including crash recovery, so this is the one place that
+        // guarantees a silenced phone is handed back. It returns immediately
+        // when nothing was silenced.
+        SilenceController.restore(this)
         handler.removeCallbacks(pollRunnable)
         lastInterceptedPackage = null
 
@@ -309,6 +320,11 @@ class AppBlockerService : Service() {
     }
 
     override fun onDestroy() {
+        // The system can destroy the service without ACTION_STOP_LOCK — under
+        // memory pressure, or on a force-stop. Leaving Do Not Disturb on after
+        // that would be the worst failure this feature has.
+        SilenceController.restore(this)
+
         handler.removeCallbacks(pollRunnable)
         workerThread.quitSafely()
         super.onDestroy()
@@ -325,6 +341,9 @@ class AppBlockerService : Service() {
 
         const val EXTRA_BLOCKED_PACKAGES = "blocked_packages"
         const val EXTRA_PRAYER_NAME = "prayer_name"
+
+        /** Whether to quieten the phone for this window. */
+        const val EXTRA_SILENCE = "silence"
 
         /** Epoch millis at which the prayer window closes. 0 means unbounded. */
         const val EXTRA_ENDS_AT = "ends_at"
