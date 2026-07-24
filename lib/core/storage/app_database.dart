@@ -31,7 +31,9 @@ class AppDatabase {
   // prayer-duration blocking.
   // v4 added prayer_history.was_combined, so a prayer logged while Dhuhr and
   // Asr were joined stays identifiable as such after the user changes mode.
-  static const int _schemaVersion = 4;
+  // v5 added the Jumu'ah columns, so a Friday Dhuhr row records that it was a
+  // congregation, which mosque, and how long apps were blocked for it.
+  static const int _schemaVersion = 5;
 
   static AppDatabase? _instance;
 
@@ -103,6 +105,15 @@ class AppDatabase {
         -- user who switches modes does not retroactively rewrite their own
         -- history into something that never happened.
         was_combined INTEGER NOT NULL DEFAULT 0,
+        -- Jumu'ah. A Friday Dhuhr row is still a Dhuhr row — same prayer, same
+        -- contribution to statistics and the streak — but these record that it
+        -- was prayed as a congregation, at which mosque, and how long apps were
+        -- blocked. Stored rather than derived from the weekday, because the
+        -- user can switch mosques or disable the feature and history must keep
+        -- describing what actually happened.
+        was_jumuah INTEGER NOT NULL DEFAULT 0,
+        jumuah_location TEXT,
+        jumuah_block_seconds INTEGER,
         synced INTEGER NOT NULL DEFAULT 0,
         updated_at INTEGER NOT NULL,
         UNIQUE (prayer_date, prayer)
@@ -353,6 +364,20 @@ class AppDatabase {
           await db.execute(
             'ALTER TABLE prayer_history '
             'ADD COLUMN was_combined INTEGER NOT NULL DEFAULT 0',
+          );
+        case 5:
+          // Additive and nullable/defaulted: every prayer recorded before this
+          // column existed was recorded without Jumu'ah tracking, which is
+          // exactly what 0 and NULL mean.
+          await db.execute(
+            'ALTER TABLE prayer_history '
+            'ADD COLUMN was_jumuah INTEGER NOT NULL DEFAULT 0',
+          );
+          await db.execute(
+            'ALTER TABLE prayer_history ADD COLUMN jumuah_location TEXT',
+          );
+          await db.execute(
+            'ALTER TABLE prayer_history ADD COLUMN jumuah_block_seconds INTEGER',
           );
         default:
           throw StateError(

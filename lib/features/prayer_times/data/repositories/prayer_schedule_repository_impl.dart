@@ -23,6 +23,7 @@ import '../../../settings/domain/entities/app_settings.dart';
 import '../../../tracking/data/repositories/tracking_repository.dart';
 import '../../domain/entities/prayer_day.dart';
 import '../../domain/repositories/prayer_schedule_repository.dart';
+import '../../../jumuah/domain/usecases/jumuah_scheduler.dart';
 import '../../domain/usecases/dynamic_duration_calculator.dart';
 import '../../domain/usecases/prayer_time_calculator.dart';
 import '../datasources/device_prayer_time_provider.dart';
@@ -86,9 +87,18 @@ class PrayerScheduleRepositoryImpl implements PrayerScheduleRepository {
     final today = await _resolveTimes(normalised, settings);
     final next = await _resolveTimes(tomorrow, settings);
 
-    final windows = DynamicDurationCalculator.fromSchedule(
+    final computed = DynamicDurationCalculator.fromSchedule(
       schedule: _toSchedule(today),
       nextDayFajr: next.fajr,
+    );
+
+    // Applied after the astronomical windows are built and before anything is
+    // cached, so the durations persisted below describe what will actually be
+    // enforced on a Friday.
+    final windows = JumuahScheduler.applyTo(
+      windows: computed,
+      settings: settings.jumuah,
+      timezone: today.timezone,
     );
 
     // Persist the durations and the closing boundary now that both days are

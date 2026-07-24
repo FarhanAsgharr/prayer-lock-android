@@ -14,6 +14,8 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:timezone/timezone.dart' as tz;
 
+import '../../features/jumuah/domain/usecases/jumuah_notification_manager.dart';
+import '../../features/jumuah/domain/usecases/jumuah_scheduler.dart';
 import '../../features/prayer_times/domain/entities/prayer_day.dart';
 import '../../features/prayer_times/domain/entities/prayer_enums.dart';
 import '../../features/prayer_times/domain/entities/prayer_slot.dart';
@@ -67,6 +69,10 @@ class PrayerNotificationScheduler {
   PrayerNotificationScheduler(this._service);
 
   final NotificationService _service;
+
+  /// Friday wording. Owns only the copy — never when anything fires.
+  static const JumuahNotificationManager _jumuahCopy =
+      JumuahNotificationManager();
 
   /// iOS silently drops anything beyond 64 pending notifications, and drops
   /// the *newest* — so exceeding the cap loses the far future first, which is
@@ -174,9 +180,13 @@ class PrayerNotificationScheduler {
       final schedule = schedules[date]!;
       final next = schedules[nextDate]!;
 
-      final windows = DynamicDurationCalculator.fromSchedule(
-        schedule: schedule,
-        nextDayFajr: next.fajr,
+      final windows = JumuahScheduler.applyTo(
+        windows: DynamicDurationCalculator.fromSchedule(
+          schedule: schedule,
+          nextDayFajr: next.fajr,
+        ),
+        settings: settings.jumuah,
+        timezone: location.timezone,
       );
 
       // Notices are emitted per *slot*, so a combined Dhuhr+Asr produces one
@@ -253,16 +263,28 @@ class PrayerNotificationScheduler {
       );
     }
 
+    // On a Friday the Dhuhr window has already been replaced by the mosque's
+    // Jumu'ah window, so nothing here checks the weekday — only whether the
+    // window it was handed is a congregation, which decides the wording.
+    final jumuah = slot.isJumuah ? settings.jumuah.activeProfile : null;
+
     // The adhan. Added first so that if the platform starts rejecting
     // scheduling mid-loop, the most important notice for each prayer is
     // already in.
     add(
       id: NotificationIds.adhan(date, prayer),
       instant: window.startsAt,
-      title: "It's time for $name",
-      body: settings.blockingEnabled
-          ? _adhanBody(settings, duration)
-          : 'May Allah accept your prayer.',
+      title: jumuah != null
+          ? _jumuahCopy.startedTitle()
+          : "It's time for $name",
+      body: jumuah != null
+          ? _jumuahCopy.startedBody(
+              profile: jumuah,
+              blockingEnabled: settings.blockingEnabled,
+            )
+          : settings.blockingEnabled
+              ? _adhanBody(settings, duration)
+              : 'May Allah accept your prayer.',
       kind: PrayerNotificationKind.adhan,
     );
 
@@ -271,12 +293,21 @@ class PrayerNotificationScheduler {
       add(
         id: NotificationIds.reminder(date, prayer, rung: rung),
         instant: window.startsAt.subtract(Duration(minutes: minutes)),
-        title: '$name in $minutes ${minutes == 1 ? 'minute' : 'minutes'}',
-        body: settings.blockingEnabled && minutes <= 5
-            // The last rung is the one that should change behaviour, so it says
-            // what is about to happen rather than repeating the countdown.
-            ? 'Selected apps lock when $name begins.'
-            : 'Prepare for prayer.',
+        title: jumuah != null
+            ? _jumuahCopy.reminderTitle(minutes)
+            : '$name in $minutes ${minutes == 1 ? 'minute' : 'minutes'}',
+        body: jumuah != null
+            ? _jumuahCopy.reminderBody(
+                profile: jumuah,
+                minutes: minutes,
+                blockingEnabled: settings.blockingEnabled,
+              )
+            : settings.blockingEnabled && minutes <= 5
+                // The last rung is the one that should change behaviour, so it
+                // says what is about to happen rather than repeating the
+                // countdown.
+                ? 'Selected apps lock when $name begins.'
+                : 'Prepare for prayer.',
         kind: PrayerNotificationKind.reminder,
       );
     }
@@ -285,13 +316,27 @@ class PrayerNotificationScheduler {
 
     // Only worth warning when there is meaningfully more window left than the
     // lead time — otherwise the warning lands on top of the adhan.
-    if (window.duration > windowEndingLead * 2) {
+    // A Jumu'ah window is short by design — often fifteen minutes — so the
+    // usual "warn well before it closes" lead is scaled down rather than
+    // skipped, which would leave a congregation with no closing warning at all.
+    final endingLead = jumuah != null
+        ? Duration(minutes: (window.duration.inMinutes / 3).clamp(1, 15).round())
+        : windowEndingLead;
+
+    if (window.duration > endingLead * 2) {
       add(
         id: NotificationIds.windowEnding(date, prayer),
-        instant: window.endsAt.subtract(windowEndingLead),
-        title: '$name window ends soon',
-        body: '${windowEndingLead.inMinutes} minutes left to pray $name '
-            'before ${window.boundary.displayName}.',
+        instant: window.endsAt.subtract(endingLead),
+        title: jumuah != null
+            ? _jumuahCopy.endingTitle()
+            : '$name window ends soon',
+        body: jumuah != null
+            ? _jumuahCopy.endingBody(
+                profile: jumuah,
+                leadMinutes: endingLead.inMinutes,
+              )
+            : '${endingLead.inMinutes} minutes left to pray $name '
+                'before ${window.boundary.displayName}.',
         kind: PrayerNotificationKind.windowEnding,
       );
     }
@@ -299,10 +344,14 @@ class PrayerNotificationScheduler {
     add(
       id: NotificationIds.windowEnded(date, prayer),
       instant: window.endsAt,
-      title: '$name window has ended',
-      body: settings.blockingEnabled
-          ? 'Apps are unlocked. You can still pray $name as qaza today.'
-          : 'You can still pray $name as qaza today.',
+      title: jumuah != null
+          ? _jumuahCopy.endedTitle()
+          : '$name window has ended',
+      body: jumuah != null
+          ? _jumuahCopy.endedBody(blockingEnabled: settings.blockingEnabled)
+          : settings.blockingEnabled
+              ? 'Apps are unlocked. You can still pray $name as qaza today.'
+              : 'You can still pray $name as qaza today.',
       kind: PrayerNotificationKind.windowEnded,
     );
 

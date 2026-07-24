@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/config/locale_config.dart';
+import '../../../jumuah/domain/entities/jumuah_profile.dart';
 import '../../../prayer_times/domain/entities/prayer_enums.dart';
 import '../../../sections/domain/entities/islamic_section.dart';
 import '../../../sections/domain/entities/prayer_grouping.dart';
@@ -144,6 +145,15 @@ class SettingsNotifier extends Notifier<AppSettings> {
   /// and Urdu flip the layout to right-to-left with no restart.
   Future<void> setLanguage(AppLanguage language) =>
       _update(state.copyWith(language: language));
+
+  /// Replace the whole Jumu'ah preference.
+  ///
+  /// Written as one operation rather than a setter per field because
+  /// [JumuahManager] owns the transitions — it computes the next JumuahSettings
+  /// and hands it here, so the rules for "choosing a location clears nothing
+  /// else" live in one place instead of being spread across setters.
+  Future<void> setJumuahSettings(JumuahSettings jumuah) =>
+      _update(state.copyWith(jumuah: jumuah));
 
   Future<void> setRequireAiVerification(bool enabled) =>
       _update(state.copyWith(requireAiVerification: enabled));

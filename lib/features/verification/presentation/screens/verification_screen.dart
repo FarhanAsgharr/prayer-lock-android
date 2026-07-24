@@ -27,6 +27,7 @@ import '../../../../core/notifications/notification_providers.dart';
 import '../../../tracking/data/repositories/tracking_repository.dart';
 import '../../../tracking/presentation/providers/tracking_providers.dart';
 import '../../../../core/storage/storage_providers.dart';
+import '../../../jumuah/presentation/providers/jumuah_providers.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../domain/entities/verification_result.dart';
 import '../providers/verification_provider.dart';
@@ -201,6 +202,9 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
             date: date,
             slot: slot,
             combinedVerification: settings.combinedVerification,
+            // Null on any day that is not a Friday, so the ordinary path is
+            // untouched.
+            jumuahProfile: ref.read(activeJumuahProfileProvider),
           );
       prayerHistoryId = TrackingRepository.prayerId(date, widget.prayer);
     } catch (error, stack) {

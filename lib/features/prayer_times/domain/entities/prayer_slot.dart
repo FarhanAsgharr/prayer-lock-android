@@ -58,9 +58,17 @@ class PrayerSlot {
   /// id never depends on a setting that can change mid-session.
   String get id => prayers.map((entry) => entry.prayer.wireValue).join('+');
 
-  /// "Dhuhr + Asr", or just "Asr".
-  String get displayName =>
-      pair?.displayName ?? prayers.single.prayer.displayName;
+  /// "Dhuhr + Asr", "Jumu'ah", or just "Asr".
+  ///
+  /// A window carrying its own label wins — that is how Jumu'ah replaces Dhuhr
+  /// on Fridays without anything here knowing what a Friday is.
+  String get displayName {
+    if (pair != null) return pair!.displayName;
+    return prayers.single.window.displayName;
+  }
+
+  /// Whether this slot is a Jumu'ah congregation rather than ordinary Dhuhr.
+  bool get isJumuah => prayers.any((entry) => entry.window.isJumuah);
 
   /// The joined window: from the first prayer's start to the last one's end.
   ///
@@ -174,6 +182,20 @@ abstract final class PrayerSlotBuilder {
 
       final pair = grouping.pairFor(entry.prayer);
       if (pair == null) {
+        slots.add(PrayerSlot.single(entry));
+        continue;
+      }
+
+      // Jumu'ah never joins a pair. Its window is a short, mosque-set slot —
+      // typically half an hour — and absorbing Asr into it would either extend
+      // the congregation to Maghrib or swallow Asr inside fifteen minutes.
+      // Neither is what a user who combines Dhuhr with Asr is asking for, so
+      // on Fridays the two stand alone.
+      if (entry.window.isJumuah ||
+          day.entries.any(
+            (candidate) =>
+                pair.contains(candidate.prayer) && candidate.window.isJumuah,
+          )) {
         slots.add(PrayerSlot.single(entry));
         continue;
       }

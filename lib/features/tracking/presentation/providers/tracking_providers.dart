@@ -11,6 +11,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/storage/storage_providers.dart';
 import '../../../prayer_times/domain/entities/prayer_day.dart';
 import '../../../prayer_times/domain/entities/prayer_enums.dart';
+import '../../../jumuah/domain/entities/jumuah_profile.dart';
+import '../../../jumuah/domain/usecases/jumuah_verification_controller.dart';
 import '../../../prayer_times/domain/entities/prayer_slot.dart';
 import '../../data/repositories/qaza_repository.dart';
 import '../../data/repositories/tracking_repository.dart';
@@ -119,6 +121,7 @@ class PrayerTracker {
     required PrayerEntry entry,
     DateTime? at,
     bool wasCombined = false,
+    JumuahRecord? jumuah,
   }) async {
     final verifiedAt = at ?? DateTime.now().toUtc();
 
@@ -131,6 +134,7 @@ class PrayerTracker {
         status: PrayerStatus.completed,
         completedAt: verifiedAt,
         wasCombined: wasCombined,
+        jumuah: jumuah,
       );
       _invalidate(date);
       return VerificationOutcome.onTime;
@@ -143,6 +147,7 @@ class PrayerTracker {
         status: PrayerStatus.qazaCompleted,
         qazaCompletedAt: verifiedAt,
         wasCombined: wasCombined,
+        jumuah: jumuah,
       );
       // The window closed before this, so a debt may already have been booked
       // by the reconciliation pass. Clearing it here keeps the ledger and the
@@ -187,8 +192,21 @@ class PrayerTracker {
     required PrayerSlot slot,
     required bool combinedVerification,
     DateTime? at,
+    JumuahProfile? jumuahProfile,
   }) async {
     final verifiedAt = at ?? DateTime.now().toUtc();
+
+    // A Jumu'ah slot writes the same Dhuhr row as any other day, plus the
+    // congregation details. Built here rather than by the caller so the record
+    // and the prayer write cannot disagree about which mosque or how long.
+    final jumuahRecord = slot.isJumuah && jumuahProfile != null
+        ? const JumuahVerificationController().recordFor(
+            slot: slot,
+            date: date,
+            profile: jumuahProfile,
+            verifiedAt: verifiedAt,
+          )
+        : null;
 
     // With combined verification off, only the prayer whose window is open is
     // discharged; the other is left for its own confirmation.
@@ -216,6 +234,7 @@ class PrayerTracker {
           // prayer logged today as combined must still read as combined after
           // the user switches back to five separate prayers.
           wasCombined: slot.isCombined,
+          jumuah: jumuahRecord,
         ),
       );
     }

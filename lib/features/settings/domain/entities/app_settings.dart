@@ -8,6 +8,7 @@ library;
 import 'package:flutter/foundation.dart';
 
 import '../../../../core/config/locale_config.dart';
+import '../../../jumuah/domain/entities/jumuah_profile.dart';
 import '../../../prayer_times/domain/entities/prayer_enums.dart';
 import '../../../sections/domain/entities/islamic_section.dart';
 import '../../../sections/domain/entities/prayer_grouping.dart';
@@ -93,6 +94,7 @@ class AppSettings {
     this.preferRemotePrayerTimes = true,
     this.notifyOnWindowEnd = true,
     this.language = AppLanguage.system,
+    this.jumuah = const JumuahSettings(),
   });
 
   final PrayerLocation? location;
@@ -179,6 +181,10 @@ class AppSettings {
 
   /// The language to render in, or [AppLanguage.system] to follow the device.
   final AppLanguage language;
+
+  /// Friday Jumu'ah configuration: whether it replaces Dhuhr, where the user
+  /// prays, and each mosque's schedule.
+  final JumuahSettings jumuah;
 
   /// Whether enough is configured to compute a schedule.
   bool get isReady => location != null;
@@ -269,6 +275,7 @@ class AppSettings {
     bool? preferRemotePrayerTimes,
     bool? notifyOnWindowEnd,
     AppLanguage? language,
+    JumuahSettings? jumuah,
   }) =>
       AppSettings(
         location: location ?? this.location,
@@ -301,6 +308,7 @@ class AppSettings {
             preferRemotePrayerTimes ?? this.preferRemotePrayerTimes,
         notifyOnWindowEnd: notifyOnWindowEnd ?? this.notifyOnWindowEnd,
         language: language ?? this.language,
+        jumuah: jumuah ?? this.jumuah,
       );
 
   /// Adopt [next] and take its suggested defaults.
@@ -340,6 +348,7 @@ class AppSettings {
       preferRemotePrayerTimes: preferRemotePrayerTimes,
       notifyOnWindowEnd: notifyOnWindowEnd,
       language: language,
+      jumuah: jumuah,
     );
   }
 
@@ -375,6 +384,7 @@ class AppSettings {
         'preferRemotePrayerTimes': preferRemotePrayerTimes,
         'notifyOnWindowEnd': notifyOnWindowEnd,
         'language': language.wireValue,
+        'jumuah': jumuah.toJson(),
       };
 
   factory AppSettings.fromJson(Map<String, dynamic> json) {
@@ -430,6 +440,9 @@ class AppSettings {
           json['preferRemotePrayerTimes'] as bool? ?? true,
       notifyOnWindowEnd: json['notifyOnWindowEnd'] as bool? ?? true,
       language: AppLanguage.fromWire(json['language'] as String? ?? 'system'),
+      jumuah: json['jumuah'] is Map
+          ? JumuahSettings.fromJson((json['jumuah'] as Map).cast<String, dynamic>())
+          : const JumuahSettings(),
     );
   }
 
