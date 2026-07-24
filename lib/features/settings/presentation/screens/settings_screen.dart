@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/config/locale_config.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../../blocking/data/datasources/blocking_platform_channel.dart';
 import '../../../prayer_times/domain/entities/prayer_enums.dart';
@@ -46,12 +47,46 @@ class SettingsScreen extends ConsumerWidget {
           ),
 
           ListTile(
+            leading: const Icon(Icons.groups_outlined),
+            title: const Text('Islamic section'),
+            subtitle: Text(settings.section.displayName),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/settings/islamic-section'),
+          ),
+
+          ListTile(
+            leading: const Icon(Icons.view_agenda_outlined),
+            title: const Text('Prayer mode'),
+            subtitle: Text(
+              settings.prayerGrouping.combinesAnything
+                  ? '${settings.prayerGrouping.displayName} — '
+                      '${settings.prayerGrouping.slotCount} prayer cards'
+                  : 'Five separate prayers',
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/settings/prayer-mode'),
+          ),
+
+          ListTile(
             leading: const Icon(Icons.wb_shade),
-            title: const Text('School'),
-            subtitle: Text(settings.madhab.displayName),
+            title: const Text('Asr timing'),
+            subtitle: Text(settings.madhab.description),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _pickMadhab(context, ref),
           ),
+
+          // Offered only when there is something to undo, so it is not a
+          // permanent button that appears to do nothing.
+          if (settings.hasSectionOverrides)
+            ListTile(
+              leading: const Icon(Icons.restart_alt),
+              title: const Text('Reset to section defaults'),
+              subtitle: Text(
+                'Return to what ${settings.section.displayName} suggests',
+              ),
+              onTap: () =>
+                  ref.read(settingsProvider.notifier).resetToSectionDefaults(),
+            ),
 
           ListTile(
             leading: const Icon(Icons.explore_outlined),
@@ -59,6 +94,14 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: Text(settings.highLatitudeRule.displayName),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _pickHighLatitudeRule(context, ref),
+          ),
+
+          ListTile(
+            leading: const Icon(Icons.translate),
+            title: const Text('Language'),
+            subtitle: Text(settings.language.displayName),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _pickLanguage(context, ref),
           ),
 
           const _SectionHeader('Reminders'),
@@ -130,6 +173,30 @@ class SettingsScreen extends ConsumerWidget {
                   : null,
             ),
 
+            ListTile(
+              enabled: settings.blockingEnabled,
+              leading: const Icon(Icons.lock_open_outlined),
+              title: const Text('When apps unlock'),
+              subtitle: Text(settings.unlockPolicy.description),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: settings.blockingEnabled
+                  ? () => _pickUnlockPolicy(context, ref)
+                  : null,
+            ),
+
+            ListTile(
+              enabled: settings.blockingEnabled,
+              leading: const Icon(Icons.hourglass_bottom),
+              title: const Text('Prayer durations'),
+              subtitle: const Text(
+                'See how long each prayer window lasts today',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: settings.blockingEnabled
+                  ? () => context.push('/durations')
+                  : null,
+            ),
+
             SwitchListTile(
               secondary: const Icon(Icons.wb_twilight),
               title: const Text('Morning protection'),
@@ -141,7 +208,57 @@ class SettingsScreen extends ConsumerWidget {
                   ? notifier.setMorningProtection
                   : null,
             ),
+
+            SwitchListTile(
+              secondary: const Icon(Icons.history_toggle_off),
+              title: const Text('Keep apps locked until qaza is made'),
+              // Stated plainly rather than softened. Turning this on can mean
+              // a missed Fajr keeps apps blocked until the following dawn, and
+              // a user who is surprised by that will uninstall rather than
+              // hunt for the setting.
+              subtitle: const Text(
+                'A missed prayer keeps apps blocked for the rest of the day '
+                'until you make it up',
+              ),
+              value: settings.blockUntilQazaCompleted,
+              onChanged: settings.blockingEnabled
+                  ? notifier.setBlockUntilQazaCompleted
+                  : null,
+            ),
+
+            ListTile(
+              leading: const Icon(Icons.event_repeat),
+              title: const Text('Make-up prayers'),
+              subtitle: const Text('Prayers you still owe'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push('/qaza'),
+            ),
           ],
+
+          const _SectionHeader('Prayer time source'),
+
+          SwitchListTile(
+            secondary: const Icon(Icons.cloud_sync_outlined),
+            title: const Text('Confirm times online'),
+            subtitle: const Text(
+              'Check prayer times against an online service when possible. '
+              'Times are always calculated on this device as well, so the app '
+              'works fully offline either way.',
+            ),
+            value: settings.preferRemotePrayerTimes,
+            onChanged: notifier.setPreferRemotePrayerTimes,
+          ),
+
+          SwitchListTile(
+            secondary: const Icon(Icons.notifications_active_outlined),
+            title: const Text('Notify when a window ends'),
+            subtitle: const Text(
+              'Warn before a prayer window closes, and confirm when apps '
+              'unlock',
+            ),
+            value: settings.notifyOnWindowEnd,
+            onChanged: notifier.setNotifyOnWindowEnd,
+          ),
 
           const _SectionHeader('Verification'),
 
@@ -227,6 +344,34 @@ class SettingsScreen extends ConsumerWidget {
     );
     if (choice != null) {
       await ref.read(settingsProvider.notifier).setReminderMinutes(choice);
+    }
+  }
+
+  Future<void> _pickLanguage(BuildContext context, WidgetRef ref) async {
+    final choice = await _showOptionSheet<AppLanguage>(
+      context: context,
+      title: 'Language',
+      options: AppLanguage.values,
+      current: ref.read(settingsProvider).language,
+      // Each language names itself: someone looking for Urdu is looking for
+      // "اردو", not for the English word.
+      labelFor: (language) => language.displayName,
+    );
+    if (choice != null) {
+      await ref.read(settingsProvider.notifier).setLanguage(choice);
+    }
+  }
+
+  Future<void> _pickUnlockPolicy(BuildContext context, WidgetRef ref) async {
+    final choice = await _showOptionSheet<UnlockPolicy>(
+      context: context,
+      title: 'When apps unlock',
+      options: UnlockPolicy.values,
+      current: ref.read(settingsProvider).unlockPolicy,
+      labelFor: (policy) => policy.displayName,
+    );
+    if (choice != null) {
+      await ref.read(settingsProvider.notifier).setUnlockPolicy(choice);
     }
   }
 

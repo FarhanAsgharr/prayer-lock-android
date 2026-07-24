@@ -1,0 +1,76 @@
+{
+  "@@locale": "en",
+
+  "prayerFajr": "Fajr",
+  "@prayerFajr": { "description": "The dawn prayer." },
+  "prayerDhuhr": "Dhuhr",
+  "@prayerDhuhr": { "description": "The midday prayer." },
+  "prayerAsr": "Asr",
+  "@prayerAsr": { "description": "The afternoon prayer." },
+  "prayerMaghrib": "Maghrib",
+  "@prayerMaghrib": { "description": "The sunset prayer." },
+  "prayerIsha": "Isha",
+  "@prayerIsha": { "description": "The night prayer." },
+  "prayerSunrise": "Sunrise",
+  "@prayerSunrise": { "description": "Not a prayer; it closes the Fajr window." },
+
+  "combinedPair": "{first} + {second}",
+  "@combinedPair": {
+    "description": "Two prayers joined into one window, e.g. Dhuhr + Asr.",
+    "placeholders": { "first": {"type": "String"}, "second": {"type": "String"} }
+  },
+
+  "islamicSectionTitle": "Islamic section",
+  "@islamicSectionTitle": {
+    "description": "Screen title. Deliberately not 'Madhab' — the list includes movements and orientations that are not schools of jurisprudence."
+  },
+  "islamicSectionIntro": "Your section sets a starting point for prayer times and how prayers are grouped. Everything it changes stays editable, and nothing here is a religious ruling.",
+  "islamicSectionEnterOwn": "Enter your Islamic section",
+  "islamicSectionEnterOwnHelp": "Used wherever your section is shown.",
+  "islamicSectionNotSet": "Not set",
+  "@islamicSectionNotSet": {
+    "description": "Shown when the user has chosen 'Other' but not named it. Never 'Other', which would read as a decision they did not make."
+  },
+  "islamicSectionNameYours": "Name your section above",
+  "islamicSectionSelected": "Selected: {name}",
+  "@islamicSectionSelected": {
+    "placeholders": { "name": {"type": "String"} }
+  },
+  "islamicSectionEditable": "You can change any of these in Settings.",
+
+  "sectionFamilySunniTraditions": "Sunni traditions",
+  "sectionFamilySunniCommunities": "Sunni communities",
+  "sectionFamilyShiaTraditions": "Shia traditions",
+  "sectionFamilyOtherCommunities": "Other Muslim communities",
+  "sectionFamilyOther": "Other",
+
+  "prayerModeTitle": "Prayer mode",
+  "prayerModeIntro": "Combining joins two prayers into one window with one lock and one confirmation. Both prayers are still recorded and still count towards your statistics and streak.",
+  "prayerModeCombinedSubtitle": "One window, one lock, one confirmation.",
+  "prayerModeSeparateSubtitle": "Tracked and blocked separately.",
+  "prayerModeOneConfirmation": "One confirmation for a combined pair",
+  "prayerModeOneConfirmationHelp": "Turn off to confirm each prayer separately even when their windows are joined.",
+  "prayerModeSuggestion": "These are the defaults suggested for {section}. Change either switch if your practice differs — nothing here is required.",
+  "@prayerModeSuggestion": {
+    "placeholders": { "section": {"type": "String"} }
+  },
+  "prayerModeCardCount": "{count, plural, =1{Your day: 1 prayer card} other{Your day: {count} prayer cards}}",
+  "@prayerModeCardCount": {
+    "placeholders": { "count": {"type": "int"} }
+  },
+
+  "groupingNone": "Five separate prayers",
+  "groupingDhuhrAsr": "Combine Dhuhr and Asr",
+  "groupingMaghribIsha": "Combine Maghrib and Isha",
+  "groupingBoth": "Combine both pairs",
+
+  "settingsTitle": "Settings",
+  "settingsLanguage": "Language",
+  "settingsLanguageSystem": "Match system",
+
+  "durationHoursMinutes": "{hours}h {minutes}m",
+  "@durationHoursMinutes": {
+    "description": "Compact duration for tight layouts.",
+    "placeholders": { "hours": {"type": "int"}, "minutes": {"type": "int"} }
+  }
+}

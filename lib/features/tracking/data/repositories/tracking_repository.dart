@@ -40,16 +40,20 @@ class TrackingRepository {
     required PrayerEntry entry,
     required PrayerStatus status,
     DateTime? completedAt,
+    DateTime? qazaCompletedAt,
     DateTime? startedAt,
     String? excuseReason,
+    bool wasCombined = false,
   }) async {
     final id = prayerId(date, entry.prayer);
     final now = DateTime.now().toUtc();
 
+    final verifiedAt = completedAt ?? qazaCompletedAt;
+
     // Clamped at zero: a prayer performed before its scheduled instant would
     // otherwise record a negative delay, which the statistics treat as time
     // travel rather than as on time.
-    final delayMinutes = completedAt
+    final delayMinutes = verifiedAt
         ?.difference(entry.scheduledAt)
         .inMinutes
         .clamp(0, 1 << 30);
@@ -61,10 +65,15 @@ class TrackingRepository {
       'status': status.wireValue,
       'scheduled_at': entry.scheduledAt.millisecondsSinceEpoch,
       'window_ends_at': entry.windowEndsAt.millisecondsSinceEpoch,
+      'verification_deadline':
+          entry.verificationDeadline.millisecondsSinceEpoch,
+      'qaza_deadline': entry.qazaDeadline.millisecondsSinceEpoch,
       'started_at': startedAt?.millisecondsSinceEpoch,
       'completed_at': completedAt?.millisecondsSinceEpoch,
+      'qaza_completed_at': qazaCompletedAt?.millisecondsSinceEpoch,
       'delay_minutes': delayMinutes,
       'excuse_reason': excuseReason,
+      'was_combined': wasCombined ? 1 : 0,
       'synced': 0,
       'updated_at': now.millisecondsSinceEpoch,
     };
@@ -85,13 +94,70 @@ class TrackingRepository {
         'status': row['status'],
         'scheduled_at': entry.scheduledAt.toIso8601String(),
         'window_ends_at': entry.windowEndsAt.toIso8601String(),
+        'verification_deadline': entry.verificationDeadline.toIso8601String(),
+        'qaza_deadline': entry.qazaDeadline.toIso8601String(),
         'completed_at': completedAt?.toIso8601String(),
+        'qaza_completed_at': qazaCompletedAt?.toIso8601String(),
         'delay_minutes': delayMinutes,
         'excuse_reason': excuseReason,
+        'was_combined': wasCombined,
       },
     );
 
     return id;
+  }
+
+  /// Change a recorded prayer's status without rewriting its window.
+  ///
+  /// Used when a debt is discharged from the qaza screen days later: the
+  /// prayer's original scheduled instant and window must not move, because they
+  /// describe when it was due, not when it was eventually made up.
+  ///
+  /// Does nothing when no row exists — a prayer with no history row was never
+  /// missed in a way this app observed, so there is nothing to promote.
+  Future<bool> updateStatus({
+    required DateTime date,
+    required PrayerName prayer,
+    required PrayerStatus status,
+    DateTime? completedAt,
+    DateTime? qazaCompletedAt,
+  }) async {
+    final id = prayerId(date, prayer);
+    final now = DateTime.now().toUtc();
+
+    final updated = await _database.update(
+      'prayer_history',
+      {
+        'status': status.wireValue,
+        if (completedAt != null)
+          'completed_at': completedAt.millisecondsSinceEpoch,
+        if (qazaCompletedAt != null)
+          'qaza_completed_at': qazaCompletedAt.millisecondsSinceEpoch,
+        'synced': 0,
+        'updated_at': now.millisecondsSinceEpoch,
+      },
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+
+    if (updated == 0) return false;
+
+    await _queue.enqueue(
+      entityType: SyncEntityType.prayerHistory,
+      entityId: id,
+      // The server already has this row; sending a create again would be
+      // rejected or would duplicate it.
+      operation: SyncOperation.update,
+      payload: {
+        'prayer_date': _dateKey(date),
+        'prayer': prayer.wireValue,
+        'status': status.wireValue,
+        'completed_at': completedAt?.toIso8601String(),
+        'qaza_completed_at': qazaCompletedAt?.toIso8601String(),
+      },
+    );
+
+    return true;
   }
 
   /// Record a verification attempt against a prayer.
@@ -294,6 +360,49 @@ class TrackingRepository {
   }
 
   // -- Reads --------------------------------------------------------------
+
+  /// How many recorded prayers were prayed joined with their neighbour.
+  ///
+  /// Read from the stored flag rather than from the current grouping setting,
+  /// so the answer describes what the user actually did rather than what their
+  /// settings say today.
+  Future<CombinedPrayerCounts> combinedCounts({
+    DateTime? from,
+    DateTime? to,
+  }) async {
+    final clauses = <String>[];
+    final args = <Object?>[];
+
+    if (from != null) {
+      clauses.add('prayer_date >= ?');
+      args.add(_dateKey(from));
+    }
+    if (to != null) {
+      clauses.add('prayer_date <= ?');
+      args.add(_dateKey(to));
+    }
+
+    final where = clauses.isEmpty ? '' : 'WHERE ${clauses.join(' AND ')}';
+
+    final rows = await _database.rawQuery(
+      'SELECT was_combined, COUNT(*) AS count FROM prayer_history '
+      '$where GROUP BY was_combined',
+      args,
+    );
+
+    var combined = 0;
+    var separate = 0;
+    for (final row in rows) {
+      final count = (row['count'] as int?) ?? 0;
+      if ((row['was_combined'] as int? ?? 0) == 1) {
+        combined += count;
+      } else {
+        separate += count;
+      }
+    }
+
+    return CombinedPrayerCounts(combined: combined, separate: separate);
+  }
 
   /// Tracked entries for a date, for merging into a recalculated schedule.
   Future<Map<PrayerName, PrayerStatus>> statusesForDate(DateTime date) async {

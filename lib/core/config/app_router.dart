@@ -14,9 +14,13 @@ import '../../features/dashboard/presentation/screens/analytics_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../../features/prayer_times/domain/entities/prayer_enums.dart';
+import '../../features/prayer_times/presentation/screens/prayer_durations_screen.dart';
+import '../../features/sections/presentation/screens/islamic_section_screen.dart';
+import '../../features/sections/presentation/screens/prayer_mode_screen.dart';
 import '../../features/settings/presentation/providers/settings_provider.dart';
 import '../../features/settings/presentation/screens/blocked_apps_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
+import '../../features/tracking/presentation/screens/qaza_screen.dart';
 import '../../features/verification/presentation/screens/verification_screen.dart';
 
 abstract final class Routes {
@@ -27,6 +31,18 @@ abstract final class Routes {
   static const String verify = '/verify';
   static const String emergencyUnlock = '/emergency-unlock';
   static const String analytics = '/analytics';
+
+  /// Today's windows and how long each blocks apps.
+  static const String durations = '/durations';
+
+  /// Outstanding make-up prayers.
+  static const String qaza = '/qaza';
+
+  /// Choosing an Islamic section.
+  static const String islamicSection = '/settings/islamic-section';
+
+  /// Choosing whether prayers are combined.
+  static const String prayerMode = '/settings/prayer-mode';
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -64,6 +80,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: 'blocked-apps',
             builder: (context, state) => const BlockedAppsScreen(),
           ),
+          GoRoute(
+            path: 'islamic-section',
+            builder: (context, state) => const IslamicSectionScreen(),
+          ),
+          GoRoute(
+            path: 'prayer-mode',
+            builder: (context, state) => const PrayerModeScreen(),
+          ),
         ],
       ),
       GoRoute(
@@ -73,6 +97,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: Routes.analytics,
         builder: (context, state) => const AnalyticsScreen(),
+      ),
+      GoRoute(
+        path: Routes.durations,
+        builder: (context, state) => const PrayerDurationsScreen(),
+      ),
+      GoRoute(
+        path: Routes.qaza,
+        builder: (context, state) => const QazaScreen(),
       ),
       GoRoute(
         path: '${Routes.verify}/:prayer',

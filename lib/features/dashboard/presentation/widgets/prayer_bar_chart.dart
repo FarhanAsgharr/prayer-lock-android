@@ -110,7 +110,7 @@ class _DayBar extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 _segment(heightFor(counts.missed), AppColors.danger, top: true),
-                _segment(heightFor(counts.late), AppColors.warning),
+                _segment(heightFor(counts.qaza), AppColors.warning),
                 _segment(
                   heightFor(counts.completed),
                   AppColors.primary,

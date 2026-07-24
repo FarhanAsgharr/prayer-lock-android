@@ -18,7 +18,7 @@ DailySummary day(int daysAgo, PrayerCounts counts) => DailySummary(
     );
 
 const perfect = PrayerCounts(completed: 5);
-const perfectWithLate = PrayerCounts(completed: 4, late: 1);
+const perfectWithQaza = PrayerCounts(completed: 4, qaza: 1);
 const perfectWithExcused = PrayerCounts(completed: 4, excused: 1);
 const brokenDay = PrayerCounts(completed: 4, missed: 1);
 
@@ -33,8 +33,8 @@ void main() {
       expect(counts.successRate, 0.75);
     });
 
-    test('late prayers count towards success but not on-time', () {
-      const counts = PrayerCounts(completed: 3, late: 2);
+    test('qaza prayers count towards success but not on-time', () {
+      const counts = PrayerCounts(completed: 3, qaza: 2);
 
       expect(counts.successRate, 1.0);
       expect(counts.onTimeRate, 0.6);
@@ -62,12 +62,12 @@ void main() {
 
     test('counts add together', () {
       const a = PrayerCounts(completed: 2, missed: 1);
-      const b = PrayerCounts(completed: 3, late: 1);
+      const b = PrayerCounts(completed: 3, qaza: 1);
       final total = a + b;
 
       expect(total.completed, 5);
       expect(total.missed, 1);
-      expect(total.late, 1);
+      expect(total.qaza, 1);
     });
   });
 
@@ -76,10 +76,10 @@ void main() {
       expect(day(0, perfect).isPerfect, isTrue);
     });
 
-    test('a late prayer still makes a perfect day', () {
-      // Late is worse than on time, but it is not the same as not praying,
+    test('a qaza prayer still makes a perfect day', () {
+      // Qaza is worse than on time, but it is not the same as not praying,
       // and breaking a long streak over it would teach the user to give up.
-      expect(day(0, perfectWithLate).isPerfect, isTrue);
+      expect(day(0, perfectWithQaza).isPerfect, isTrue);
     });
 
     test('an excused prayer still makes a perfect day', () {

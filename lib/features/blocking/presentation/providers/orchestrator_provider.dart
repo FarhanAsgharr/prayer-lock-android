@@ -14,6 +14,7 @@
 library;
 
 import 'dart:async';
+import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,6 +28,7 @@ import '../../../settings/domain/entities/app_settings.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../tracking/presentation/providers/tracking_providers.dart';
 import '../../data/datasources/blocking_platform_channel.dart';
+import '../../domain/entities/blocking_entities.dart';
 import '../../domain/usecases/lock_decision.dart';
 
 /// Current enforcement state, for the UI.
@@ -38,6 +40,10 @@ class LockState {
     this.prayer,
     this.sessionId,
     this.error,
+    this.lockUntil,
+    this.windowDuration,
+    this.prayers = const [],
+    this.slotName,
   });
 
   const LockState.idle()
@@ -45,12 +51,41 @@ class LockState {
         reason = LockReason.noPrayerDue,
         prayer = null,
         sessionId = null,
-        error = null;
+        error = null,
+        lockUntil = null,
+        windowDuration = null,
+        prayers = const [],
+        slotName = null;
+
+  /// Every prayer the current lock covers — two under a combined grouping.
+  final List<PrayerName> prayers;
+
+  /// What to call the lock in the UI: "Dhuhr + Asr", or a single prayer's name.
+  final String? slotName;
+
+  /// Whether the lock covers a joined pair.
+  bool get isCombined => prayers.length > 1;
 
   final bool isLocked;
   final LockReason reason;
   final PrayerName? prayer;
   final String? sessionId;
+
+  /// When the lock releases on its own, if it does. Drives the countdown on
+  /// the lock screen — under dynamic durations a user facing a three-hour
+  /// window needs to see the end of it.
+  final DateTime? lockUntil;
+
+  /// The governing prayer's full computed window length.
+  final Duration? windowDuration;
+
+  /// Time left before the lock lifts by itself, or null if it will not.
+  Duration? remainingAt(DateTime now) {
+    final until = lockUntil;
+    if (until == null) return null;
+    final remaining = until.difference(now);
+    return remaining.isNegative ? Duration.zero : remaining;
+  }
 
   /// Set when enforcement was requested but could not be applied — almost
   /// always a revoked permission. Surfaced so the user is told, rather than
@@ -137,6 +172,11 @@ class LockOrchestrator extends Notifier<LockState> {
         // DeviceActivity schedule, not this timer. Keep that schedule current
         // with today's windows. No-op on Android.
         await _scheduleIosWindows(settings, day);
+
+        // On Android, mirror the coming week's windows to native storage and
+        // re-arm the alarm chain. This is what keeps blocking working after a
+        // reboot or a process kill, when no Dart code is running at all.
+        await _syncNativeSchedule(settings, date);
       }
 
       final decision = LockDecisionMaker.decide(
@@ -159,6 +199,110 @@ class LockOrchestrator extends Notifier<LockState> {
   /// Key of the window set last pushed to iOS, so identical schedules are not
   /// re-pushed on every 30-second tick.
   String? _lastIosWindowKey;
+
+  /// Key of the schedule last mirrored to Android, for the same reason.
+  String? _lastNativeScheduleKey;
+
+  /// How many days of windows to mirror natively.
+  ///
+  /// The native side cannot compute prayer times — that needs the Dart layer —
+  /// so the mirror is the entire horizon over which enforcement can survive
+  /// without the app being opened. A week is long enough that a user who
+  /// forgets about the app for a few days is still protected, and short enough
+  /// that a settings change is fully reflected within one sync.
+  static const int _nativeHorizonDays = 7;
+
+  /// Push the coming week's windows and the blocking policy to native storage.
+  ///
+  /// Days are read through the repository, so they come from the cache when
+  /// present — this is a database read per day, not a network call.
+  Future<void> _syncNativeSchedule(AppSettings settings, DateTime date) async {
+    if (!Platform.isAndroid) return;
+
+    // Nothing to enforce: clear the mirror so armed alarms do not keep firing
+    // for a feature the user has switched off.
+    if (!settings.blockingEnabled || settings.blockedPackages.isEmpty) {
+      if (_lastNativeScheduleKey != null) {
+        await _channel.clearSchedule();
+        _lastNativeScheduleKey = null;
+      }
+      return;
+    }
+
+    final repository = ref.read(prayerScheduleRepositoryProvider);
+    final grace = Duration(minutes: settings.lockGracePeriodMinutes);
+
+    final windows = <NativePrayerWindow>[];
+
+    for (var offset = 0; offset < _nativeHorizonDays; offset++) {
+      final target = DateTime(date.year, date.month, date.day + offset);
+
+      final PrayerDay dayForOffset;
+      try {
+        dayForOffset = await repository.prayerDay(target);
+      } catch (error) {
+        // One unreadable day must not abort the whole mirror; the days that
+        // did resolve are still worth arming.
+        debugPrint('Skipping native mirror for $target: $error');
+        continue;
+      }
+
+      // Mirrored as slots, so a combined pair crosses the channel as one
+      // window. Sending two would have the native side release the lock at
+      // Asr's start and immediately re-engage — visible to the user as apps
+      // flickering unblocked in the middle of a joined window.
+      for (final slot in dayForOffset.slots(settings.prayerGrouping)) {
+        // The grace period cannot push engagement past the window's own end,
+        // or the lock would be armed to start after it should already have
+        // finished.
+        final engagesAt = slot.scheduledAt.add(grace);
+
+        windows.add(
+          NativePrayerWindow(
+            // The slot id, so the native side's logs and notification text
+            // name what is actually being enforced.
+            prayer: slot.id,
+            startsAt: slot.scheduledAt,
+            engagesAt: engagesAt.isAfter(slot.windowEndsAt)
+                ? slot.windowEndsAt
+                : engagesAt,
+            endsAt: slot.windowEndsAt,
+            qazaEndsAt: slot.qazaDeadline,
+            fulfilled: slot.isFulfilled,
+          ),
+        );
+      }
+    }
+
+    if (windows.isEmpty) return;
+
+    // Only push when something actually changed. Without this the mirror would
+    // be rewritten and every alarm re-armed twice a minute, which is both a
+    // synchronous disk commit and a burst of AlarmManager churn.
+    final key = [
+      settings.unlockPolicy.wireValue,
+      settings.blockUntilQazaCompleted,
+      settings.morningProtectionEnabled,
+      settings.blockedPackages.length,
+      for (final window in windows)
+        '${window.prayer}:${window.startsAt.millisecondsSinceEpoch}'
+            ':${window.endsAt.millisecondsSinceEpoch}:${window.fulfilled}',
+    ].join('|');
+
+    if (key == _lastNativeScheduleKey) return;
+    _lastNativeScheduleKey = key;
+
+    final stored = await _channel.syncSchedule(
+      windows: windows,
+      packages: settings.blockedPackages.toList(),
+      blockingEnabled: settings.blockingEnabled,
+      unlockPolicy: settings.unlockPolicy.wireValue,
+      blockUntilQaza: settings.blockUntilQazaCompleted,
+      morningProtection: settings.morningProtectionEnabled,
+    );
+
+    debugPrint('Mirrored $stored prayer windows to the native scheduler');
+  }
 
   /// Push each prayer's blocking window to iOS DeviceActivity.
   ///
@@ -224,16 +368,34 @@ class LockOrchestrator extends Notifier<LockState> {
   }
 
   /// Today's schedule with recorded outcomes merged in.
+  ///
+  /// Resolved through the repository so the orchestrator sees the same times
+  /// the UI does — cached or fetched where available, computed on-device
+  /// otherwise. A divergence here would mean the lock engaging at a different
+  /// instant from the one the countdown on screen is showing.
   Future<PrayerDay?> _currentDay(AppSettings settings, DateTime date) async {
-    final schedule = scheduleFor(settings, date);
-    final tomorrow =
-        scheduleFor(settings, date.add(const Duration(days: 1)));
-    if (schedule == null || tomorrow == null) return null;
+    if (!settings.isReady) return null;
 
+    try {
+      return await ref.read(prayerScheduleRepositoryProvider).prayerDay(date);
+    } catch (error) {
+      // Enforcement must not stop because a database read failed. The device
+      // calculator needs nothing but the settings, so it is always available as
+      // a floor — and a lock driven by locally computed times is far better
+      // than no lock at all.
+      debugPrint('Falling back to on-device schedule: $error');
+      return _deviceDay(settings, date);
+    }
+  }
+
+  /// The purely computed fallback day, with tracked outcomes merged in.
+  Future<PrayerDay?> _deviceDay(AppSettings settings, DateTime date) async {
+    final windows = windowsFor(settings, date);
+    if (windows == null) return null;
+
+    final base = PrayerDay.fromWindows(windows);
     final statuses =
         await ref.read(trackingRepositoryProvider).statusesForDate(date);
-
-    final base = PrayerDay.fromSchedule(schedule, nextDayFajr: tomorrow.fajr);
 
     return statuses.entries.fold<PrayerDay>(
       base,
@@ -258,7 +420,12 @@ class LockOrchestrator extends Notifier<LockState> {
     try {
       final started = await _channel.startLock(
         packages: settings.blockedPackages.toList(),
-        prayerName: prayer.displayName,
+        // The slot's name, so a combined lock says "Dhuhr + Asr" rather than
+        // naming one prayer and appearing not to release when it is prayed.
+        prayerName: decision.slotName ?? prayer.displayName,
+        // Handed to native so the service can release itself at the end of the
+        // window even if the alarm that should have released it never arrives.
+        endsAt: decision.lockUntil,
       );
 
       if (!started) {
@@ -268,6 +435,10 @@ class LockOrchestrator extends Notifier<LockState> {
           isLocked: false,
           reason: decision.reason,
           prayer: prayer,
+          prayers: decision.prayers,
+          slotName: decision.slotName,
+          lockUntil: decision.lockUntil,
+          windowDuration: decision.windowDuration,
         );
         return;
       }
@@ -287,10 +458,17 @@ class LockOrchestrator extends Notifier<LockState> {
         isLocked: true,
         reason: decision.reason,
         prayer: prayer,
+        prayers: decision.prayers,
+        slotName: decision.slotName,
         sessionId: sessionId,
+        lockUntil: decision.lockUntil,
+        windowDuration: decision.windowDuration,
       );
 
-      debugPrint('Lock engaged for ${prayer.displayName}');
+      debugPrint(
+        'Lock engaged for ${prayer.displayName}'
+        '${decision.lockUntil == null ? '' : ' until ${decision.lockUntil}'}',
+      );
     } on BlockingPlatformException catch (error) {
       // A missing permission means enforcement silently does nothing. Telling
       // the user is essential: believing you are protected when you are not is
@@ -299,6 +477,10 @@ class LockOrchestrator extends Notifier<LockState> {
         isLocked: false,
         reason: decision.reason,
         prayer: prayer,
+        prayers: decision.prayers,
+        slotName: decision.slotName,
+        lockUntil: decision.lockUntil,
+        windowDuration: decision.windowDuration,
         error: error.isMissingPermission
             ? 'App blocking needs permission that has been turned off.'
             : error.message,
@@ -368,8 +550,14 @@ class LockOrchestrator extends Notifier<LockState> {
 
     if (unlockId == null) return false;
 
-    final prayer = state.prayer;
-    if (prayer != null) _emergencyUnlocked.add(prayer);
+    // Exempt every prayer in the governing slot, not just the one that named
+    // it. Under a combined grouping, exempting only Dhuhr would let the lock
+    // re-engage for Asr inside the same window — the user would have spent
+    // their single daily unlock and gained nothing.
+    final covered = state.prayers.isNotEmpty
+        ? state.prayers
+        : [if (state.prayer != null) state.prayer!];
+    _emergencyUnlocked.addAll(covered);
 
     await _release(LockReason.emergencyUnlocked);
 

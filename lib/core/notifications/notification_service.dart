@@ -301,6 +301,11 @@ class NotificationService {
     }
   }
 
+  /// Cancel the "qaza now available" notice for a prayer once it has been
+  /// verified, so it never fires for a prayer already completed on time.
+  Future<void> cancelQazaNotice(DateTime date, PrayerName prayer) =>
+      _plugin.cancel(NotificationIds.qazaTransition(date, prayer));
+
   Future<List<PendingNotificationRequest>> pending() =>
       _plugin.pendingNotificationRequests();
 
@@ -331,15 +336,41 @@ abstract final class NotificationIds {
       _base(date, prayer) + 0;
 
   /// Stable id for a prayer's pre-reminder on a given date.
-  static int reminder(DateTime date, PrayerName prayer) =>
-      _base(date, prayer) + 1;
+  ///
+  /// [rung] distinguishes the steps of the reminder ladder (15, 10 and 5
+  /// minutes before), which must not collide or the later one silently replaces
+  /// the earlier.
+  static int reminder(DateTime date, PrayerName prayer, {int rung = 0}) =>
+      _base(date, prayer) + 1 + rung.clamp(0, maxReminderRungs - 1);
+
+  /// How many distinct pre-prayer reminders a single prayer may have.
+  static const int maxReminderRungs = 4;
+
+  /// Stable id for the "on-time window ended, qaza now available" notice.
+  static int qazaTransition(DateTime date, PrayerName prayer) =>
+      _base(date, prayer) + 1 + maxReminderRungs;
+
+  /// Stable id for the "this prayer's window is about to close" warning.
+  static int windowEnding(DateTime date, PrayerName prayer) =>
+      _base(date, prayer) + 2 + maxReminderRungs;
+
+  /// Stable id for the "apps unlocked, the window has ended" notice.
+  static int windowEnded(DateTime date, PrayerName prayer) =>
+      _base(date, prayer) + 3 + maxReminderRungs;
+
+  /// Slots reserved per prayer per day. Must exceed the highest offset used
+  /// above, or two notification kinds share an id and one is lost.
+  static const int _slotsPerPrayer = 4 + maxReminderRungs;
 
   static int _base(DateTime date, PrayerName prayer) {
     // day-of-year (1-366) and prayer index pack into a small, collision-free
-    // space that stays inside the reserved band for a whole year.
+    // space. Eight slots per prayer across five prayers is 40 per day;
+    // 366 * 40 = 14,640 stays well inside the reserved band.
     final dayOfYear = date.difference(DateTime(date.year, 1, 1)).inDays + 1;
     final prayerIndex = PrayerName.values.indexOf(prayer);
-    return _prayerBandStart + (dayOfYear * 10) + (prayerIndex * 2);
+    return _prayerBandStart +
+        (dayOfYear * _slotsPerPrayer * PrayerName.values.length) +
+        (prayerIndex * _slotsPerPrayer);
   }
 }
 

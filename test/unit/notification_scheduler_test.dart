@@ -25,13 +25,17 @@ AppSettings settingsWith({
   int reminderMinutes = 15,
   bool adhanEnabled = true,
   bool blockingEnabled = true,
+  bool notifyOnWindowEnd = true,
   PrayerLocation? location = makkah,
 }) =>
     AppSettings(
       location: location,
-      reminderMinutesBefore: reminderMinutes,
+      // The ladder is the stored setting; the single "N minutes before" value
+      // is derived from it.
+      reminderOffsetsMinutes: AppSettings.reminderLadderFor(reminderMinutes),
       adhanEnabled: adhanEnabled,
       blockingEnabled: blockingEnabled,
+      notifyOnWindowEnd: notifyOnWindowEnd,
     );
 
 void main() {
@@ -65,23 +69,119 @@ void main() {
       final fajrAdhan = planned.firstWhere(
         (n) => n.isAdhan && n.prayer == PrayerName.fajr,
       );
-      final fajrReminder = planned.firstWhere(
-        (n) => !n.isAdhan && n.prayer == PrayerName.fajr,
-      );
+      final fajrReminders = planned
+          .where((n) =>
+              n.kind == PrayerNotificationKind.reminder &&
+              n.prayer == PrayerName.fajr &&
+              n.date == DateTime(2026, 7, 20))
+          .toList();
 
+      // The ladder: 15, 10 and 5 minutes before.
       expect(
-        fajrAdhan.instant.difference(fajrReminder.instant),
-        const Duration(minutes: 15),
+        fajrReminders
+            .map((n) => fajrAdhan.instant.difference(n.instant).inMinutes)
+            .toSet(),
+        {15, 10, 5},
       );
     });
 
-    test('omits reminders when the lead time is zero', () {
+    test('omits pre-reminders when the lead time is zero', () {
       final planned = scheduler.plan(
         settings: settingsWith(reminderMinutes: 0),
         from: referenceNow,
       );
 
-      expect(planned.every((n) => n.isAdhan), isTrue);
+      // The whole ladder is switched off; the adhan and the window-end notices
+      // are unaffected by the reminder lead time.
+      expect(
+        planned.any((n) => n.kind == PrayerNotificationKind.reminder),
+        isFalse,
+      );
+      expect(planned.any((n) => n.isAdhan), isTrue);
+    });
+
+    test('schedules a window-end notice per prayer', () {
+      final planned =
+          scheduler.plan(settings: settingsWith(), from: referenceNow);
+
+      final ended = planned
+          .where((n) =>
+              n.kind == PrayerNotificationKind.windowEnded &&
+              n.date == DateTime(2026, 7, 20))
+          .map((n) => n.prayer)
+          .toSet();
+
+      expect(ended, equals(PrayerName.values.toSet()));
+    });
+
+    test('a window-end notice fires exactly when the window closes', () {
+      final planned =
+          scheduler.plan(settings: settingsWith(), from: referenceNow);
+
+      final fajrAdhan = planned.firstWhere(
+        (n) => n.isAdhan && n.prayer == PrayerName.fajr,
+      );
+      final fajrEnded = planned.firstWhere(
+        (n) =>
+            n.kind == PrayerNotificationKind.windowEnded &&
+            n.prayer == PrayerName.fajr &&
+            n.date == DateTime(2026, 7, 20),
+      );
+
+      // Fajr's window closes at sunrise, well over an hour later — and not at
+      // any fixed offset from the adhan.
+      expect(fajrEnded.instant.isAfter(fajrAdhan.instant), isTrue);
+      expect(
+        fajrEnded.instant.difference(fajrAdhan.instant),
+        greaterThan(const Duration(minutes: 30)),
+      );
+    });
+
+    test('warns before a long window closes', () {
+      final planned =
+          scheduler.plan(settings: settingsWith(), from: referenceNow);
+
+      final ending = planned.where(
+        (n) => n.kind == PrayerNotificationKind.windowEnding,
+      );
+      expect(ending, isNotEmpty);
+
+      for (final notice in ending) {
+        final ended = planned.firstWhere(
+          (n) =>
+              n.kind == PrayerNotificationKind.windowEnded &&
+              n.prayer == notice.prayer &&
+              n.date == notice.date,
+        );
+        expect(
+          ended.instant.difference(notice.instant),
+          PrayerNotificationScheduler.windowEndingLead,
+        );
+      }
+    });
+
+    test('window-end notices can be switched off', () {
+      final planned = scheduler.plan(
+        settings: settingsWith(notifyOnWindowEnd: false),
+        from: referenceNow,
+      );
+
+      expect(
+        planned.any((n) =>
+            n.kind == PrayerNotificationKind.windowEnded ||
+            n.kind == PrayerNotificationKind.windowEnding),
+        isFalse,
+      );
+    });
+
+    test('every planned notification has a unique id', () {
+      // A collision means one notification silently replaces another, and the
+      // ladder plus the window notices give each prayer six ids a day.
+      final planned =
+          scheduler.plan(settings: settingsWith(), from: referenceNow);
+      final ids = planned.map((n) => n.id).toList();
+
+      expect(ids.toSet().length, ids.length);
     });
 
     test('produces nothing without a location', () {

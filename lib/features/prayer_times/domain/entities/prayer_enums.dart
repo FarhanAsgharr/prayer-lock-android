@@ -30,13 +30,23 @@ enum PrayerName {
       };
 }
 
+/// The stored, persistent outcome of a prayer.
+///
+/// This is *what happened*, recorded once and immutable thereafter. The
+/// time-derived "what can the user do now" state is [PrayerPhase], computed
+/// from the clock — the two are deliberately separate so a recorded outcome
+/// never silently changes as time passes.
+///
+/// `active` and `late` are legacy values kept only so rows written by earlier
+/// versions still deserialise; the current model never produces them.
 enum PrayerStatus {
   pending('pending'),
-  active('active'),
-  completed('completed'),
-  late('late'),
-  missed('missed'),
-  excused('excused');
+  completed('completed'), // verified within the 30-minute on-time window
+  qazaCompleted('qaza_completed'), // verified within the 1-hour qaza window
+  missed('missed'), // both windows expired without verification
+  excused('excused'),
+  active('active'), // legacy
+  late('late'); // legacy
 
   const PrayerStatus(this.wireValue);
   final String wireValue;
@@ -46,11 +56,131 @@ enum PrayerStatus {
         orElse: () => throw ArgumentError('Unknown prayer status: $value'),
       );
 
-  /// Whether this status means the obligation was discharged, on time or not.
+  /// Whether this status means the obligation was discharged — on time, as
+  /// qaza, or excused. A fulfilled prayer keeps the streak and releases the
+  /// lock; a missed one does neither.
   bool get isFulfilled =>
       this == PrayerStatus.completed ||
-      this == PrayerStatus.late ||
+      this == PrayerStatus.qazaCompleted ||
+      this == PrayerStatus.late || // legacy fulfilled
       this == PrayerStatus.excused;
+}
+
+/// When apps are released after a prayer begins.
+///
+/// The two modes exist because users want opposite things from the same
+/// feature. One group wants the lock to be a nudge that ends the moment they
+/// have prayed; the other wants it to be a commitment they cannot talk
+/// themselves out of. Silently picking one would make the app useless to half
+/// its users, so it is an explicit choice.
+enum UnlockPolicy {
+  /// Mode A — release as soon as the prayer is verified.
+  ///
+  /// The default. Under dynamic durations a Dhuhr window runs to Asr, which can
+  /// be three and a half hours; blocking for all of it by default would be a
+  /// surprise severe enough that most users would simply uninstall.
+  onVerification('on_verification', 'Unlock after verification'),
+
+  /// Mode B — keep apps blocked for the whole computed window, even after the
+  /// prayer is verified.
+  fullDuration('full_duration', 'Unlock when the prayer window ends'),
+
+  /// Whichever comes first: verification, or the window ending.
+  ///
+  /// Distinct from [onVerification] only in that it is explicit about the
+  /// window also releasing the lock, which is the behaviour users assume when
+  /// they read "duration" in the settings.
+  earliestOf('earliest_of', 'Unlock at verification or window end');
+
+  const UnlockPolicy(this.wireValue, this.displayName);
+
+  final String wireValue;
+  final String displayName;
+
+  static UnlockPolicy fromWire(String value) => UnlockPolicy.values.firstWhere(
+        (policy) => policy.wireValue == value,
+        orElse: () => UnlockPolicy.onVerification,
+      );
+
+  /// Whether verifying the prayer lifts the lock.
+  bool get releasesOnVerification => this != UnlockPolicy.fullDuration;
+
+  String get description => switch (this) {
+        UnlockPolicy.onVerification =>
+          'Apps unlock the moment you confirm you have prayed.',
+        UnlockPolicy.fullDuration =>
+          'Apps stay locked for the full prayer window, even after you pray.',
+        UnlockPolicy.earliestOf =>
+          'Apps unlock when you pray, or when the window ends — whichever is first.',
+      };
+}
+
+/// Where a day's prayer times came from.
+///
+/// Recorded per cached day so the UI can say "showing offline times" honestly,
+/// and so a day computed on-device is replaced by an authoritative one when the
+/// network returns rather than being trusted forever.
+enum PrayerTimeSource {
+  /// Fetched from a remote prayer-time service.
+  remote('remote'),
+
+  /// Computed on-device by the built-in astronomical calculator.
+  device('device'),
+
+  /// Read back from the local cache, original source unknown.
+  cache('cache');
+
+  const PrayerTimeSource(this.wireValue);
+
+  final String wireValue;
+
+  static PrayerTimeSource fromWire(String value) =>
+      PrayerTimeSource.values.firstWhere(
+        (source) => source.wireValue == value,
+        orElse: () => PrayerTimeSource.device,
+      );
+
+  /// Whether a day from this source should be refreshed when connectivity
+  /// allows. A device-computed day is correct but not authoritative.
+  bool get shouldRefreshWhenOnline => this != PrayerTimeSource.remote;
+}
+
+/// The time-derived state of a prayer: what the user can do about it right now.
+///
+/// Computed from the clock against the prayer's dynamic window, so it advances
+/// automatically as the window opens and closes. The dashboard badges and the
+/// lock logic both read this.
+enum PrayerPhase {
+  /// Before the prayer has begun.
+  upcoming,
+
+  /// Inside the prayer's own window — verifying now counts as on time.
+  verifyOnTime,
+
+  /// The window has closed unfulfilled, but qaza can still be made today.
+  qazaAvailable,
+
+  /// Verified within the on-time window.
+  verifiedOnTime,
+
+  /// Verified within the qaza window.
+  qazaCompleted,
+
+  /// Both windows expired without verification — permanently missed.
+  missed,
+
+  /// Marked exempt (travel, illness, menstruation).
+  excused;
+
+  /// Whether the user can still submit a verification photo in this phase.
+  bool get isVerifiable =>
+      this == PrayerPhase.verifyOnTime || this == PrayerPhase.qazaAvailable;
+
+  /// Whether apps should be locked for a prayer in this phase.
+  ///
+  /// True only while a prayer is owed and still verifiable. Once verified,
+  /// missed or excused, nothing more can be done, so the lock lifts.
+  bool get requiresLock => isVerifiable;
 }
 
 /// School of jurisprudence, as it affects prayer-time calculation.
@@ -113,7 +243,12 @@ enum CalculationMethod {
   singapore('singapore', 'Singapore'),
   turkey('turkey', 'Diyanet, Turkey'),
   tehran('tehran', 'Institute of Geophysics, Tehran'),
-  northAmerica('north_america', 'ISNA, North America');
+  northAmerica('north_america', 'ISNA, North America'),
+  // Ja'fari (Shia Ithna-Ashari): distinct from Tehran, which is a different
+  // authority with different angles despite both being used by Shia
+  // communities. Offered as its own method so users are not made to choose
+  // between two conventions neither of which is theirs.
+  jafari('jafari', "Ja'fari (Shia Ithna-Ashari)");
 
   const CalculationMethod(this.wireValue, this.displayName);
   final String wireValue;

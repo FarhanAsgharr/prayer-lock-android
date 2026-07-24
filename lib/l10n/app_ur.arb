@@ -1,0 +1,47 @@
+{
+  "@@locale": "ur",
+
+  "prayerFajr": "فجر",
+  "prayerDhuhr": "ظہر",
+  "prayerAsr": "عصر",
+  "prayerMaghrib": "مغرب",
+  "prayerIsha": "عشاء",
+  "prayerSunrise": "طلوعِ آفتاب",
+
+  "combinedPair": "{first} + {second}",
+
+  "islamicSectionTitle": "اسلامی مسلک",
+  "islamicSectionIntro": "آپ کا مسلک نمازوں کے اوقات اور ان کے جمع ہونے کا ابتدائی نقطہ طے کرتا ہے۔ جو کچھ بھی بدلتا ہے وہ قابلِ تبدیل رہتا ہے، اور یہاں کوئی چیز شرعی فتویٰ نہیں۔",
+  "islamicSectionEnterOwn": "اپنا اسلامی مسلک لکھیں",
+  "islamicSectionEnterOwnHelp": "جہاں بھی آپ کا مسلک دکھایا جائے گا وہاں استعمال ہوگا۔",
+  "islamicSectionNotSet": "متعین نہیں",
+  "islamicSectionNameYours": "اوپر اپنے مسلک کا نام لکھیں",
+  "islamicSectionSelected": "منتخب: {name}",
+  "islamicSectionEditable": "آپ ان میں سے کوئی بھی ترتیب بعد میں بدل سکتے ہیں۔",
+
+  "sectionFamilySunniTraditions": "سنی مسالک",
+  "sectionFamilySunniCommunities": "سنی جماعتیں",
+  "sectionFamilyShiaTraditions": "شیعہ مسالک",
+  "sectionFamilyOtherCommunities": "دیگر مسلم جماعتیں",
+  "sectionFamilyOther": "دیگر",
+
+  "prayerModeTitle": "نماز کا انداز",
+  "prayerModeIntro": "جمع کرنے سے دو نمازیں ایک ونڈو، ایک لاک اور ایک تصدیق میں آ جاتی ہیں۔ دونوں نمازیں پھر بھی ریکارڈ ہوتی ہیں اور آپ کے اعدادوشمار اور سلسلے میں شمار ہوتی ہیں۔",
+  "prayerModeCombinedSubtitle": "ایک ونڈو، ایک لاک، ایک تصدیق۔",
+  "prayerModeSeparateSubtitle": "ہر نماز الگ سے ٹریک اور بلاک ہوتی ہے۔",
+  "prayerModeOneConfirmation": "جمع شدہ جوڑے کے لیے ایک تصدیق",
+  "prayerModeOneConfirmationHelp": "ونڈو جمع ہونے کے باوجود ہر نماز الگ تصدیق کرنے کے لیے بند کریں۔",
+  "prayerModeSuggestion": "یہ {section} کے لیے تجویز کردہ ترتیبات ہیں۔ اگر آپ کا عمل مختلف ہے تو کوئی بھی سوئچ بدل دیں — یہاں کچھ بھی لازمی نہیں۔",
+  "prayerModeCardCount": "{count, plural, one{آپ کا دن: 1 نماز کارڈ} other{آپ کا دن: {count} نماز کارڈ}}",
+
+  "groupingNone": "پانچ الگ نمازیں",
+  "groupingDhuhrAsr": "ظہر اور عصر جمع کریں",
+  "groupingMaghribIsha": "مغرب اور عشاء جمع کریں",
+  "groupingBoth": "دونوں جوڑے جمع کریں",
+
+  "settingsTitle": "ترتیبات",
+  "settingsLanguage": "زبان",
+  "settingsLanguageSystem": "سسٹم کے مطابق",
+
+  "durationHoursMinutes": "{hours} گھنٹے {minutes} منٹ"
+}

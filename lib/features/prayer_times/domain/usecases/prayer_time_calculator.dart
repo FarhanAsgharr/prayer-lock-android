@@ -67,6 +67,13 @@ const Map<CalculationMethod, MethodParameters> methodParameters = {
   ),
   CalculationMethod.northAmerica:
       MethodParameters(fajrAngle: 15.0, ishaAngle: 15.0),
+  // Ja'fari also lifts Maghrib off the horizon: it begins when the sun's
+  // redness fades, at roughly 4 degrees of depression, rather than at sunset.
+  CalculationMethod.jafari: MethodParameters(
+    fajrAngle: 16.0,
+    ishaAngle: 14.0,
+    maghribAngle: 4.0,
+  ),
 };
 
 double _degreesToRadians(double degrees) => degrees * math.pi / 180.0;

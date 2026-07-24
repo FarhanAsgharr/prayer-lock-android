@@ -7,6 +7,9 @@ import android.os.Build
 import com.prayerlock.prayer_lock.blocking.AppBlockerService
 import com.prayerlock.prayer_lock.blocking.LockScreenActivity
 import com.prayerlock.prayer_lock.blocking.PermissionHelper
+import com.prayerlock.prayer_lock.scheduling.PrayerAlarmScheduler
+import com.prayerlock.prayer_lock.scheduling.PrayerScheduleStore
+import com.prayerlock.prayer_lock.scheduling.ScheduleMaintenanceWorker
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
@@ -113,6 +116,26 @@ class MainActivity : FlutterActivity() {
                 result.success(true)
             }
 
+            // Mirrors the computed prayer windows and blocking policy into
+            // native storage, then re-arms the alarm chain. This is what lets
+            // enforcement continue after the Dart isolate is gone.
+            "syncSchedule" -> syncSchedule(call, result)
+
+            "clearSchedule" -> {
+                PrayerScheduleStore(applicationContext).clear()
+                PrayerAlarmScheduler(applicationContext).cancelAll()
+                ScheduleMaintenanceWorker.cancel(applicationContext)
+                result.success(true)
+            }
+
+            "canScheduleExactAlarms" ->
+                result.success(PermissionHelper.canScheduleExactAlarms(this))
+
+            "requestExactAlarmPermission" -> {
+                PermissionHelper.exactAlarmSettingsIntent(this)?.let(::startActivity)
+                result.success(null)
+            }
+
             "updateBlockedApps" -> {
                 val packages = call.argument<List<String>>("packages") ?: emptyList()
                 startService(
@@ -153,6 +176,9 @@ class MainActivity : FlutterActivity() {
 
         val packages = call.argument<List<String>>("packages") ?: emptyList()
         val prayerName = call.argument<String>("prayerName") ?: "prayer"
+        // Epoch millis at which the prayer window closes. Absent means the lock
+        // has no clock-driven end and is released by verification alone.
+        val endsAt = call.argument<Number>("endsAtEpochMs")?.toLong() ?: 0L
 
         val intent = Intent(this, AppBlockerService::class.java)
             .setAction(AppBlockerService.ACTION_START_LOCK)
@@ -161,6 +187,7 @@ class MainActivity : FlutterActivity() {
                 ArrayList(packages),
             )
             .putExtra(AppBlockerService.EXTRA_PRAYER_NAME, prayerName)
+            .putExtra(AppBlockerService.EXTRA_ENDS_AT, endsAt)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(intent)
@@ -169,6 +196,57 @@ class MainActivity : FlutterActivity() {
         }
 
         result.success(true)
+    }
+
+    /**
+     * Mirror the schedule Dart computed into native storage and re-arm alarms.
+     *
+     * Dart remains the single source of truth: this is a projection of it,
+     * carrying only what enforcement needs to run without a Flutter engine.
+     * The whole mirror is replaced on every call rather than merged, so a
+     * stale window can never survive a settings change.
+     */
+    private fun syncSchedule(call: MethodCall, result: MethodChannel.Result) {
+        val rawWindows = call.argument<List<Map<String, Any?>>>("windows") ?: emptyList()
+
+        val windows = rawWindows.mapNotNull { entry ->
+            val startsAt = (entry["startsAt"] as? Number)?.toLong() ?: return@mapNotNull null
+            val endsAt = (entry["endsAt"] as? Number)?.toLong() ?: return@mapNotNull null
+
+            PrayerScheduleStore.Window(
+                prayer = entry["prayer"] as? String ?: "prayer",
+                startsAt = startsAt,
+                engagesAt = (entry["engagesAt"] as? Number)?.toLong() ?: startsAt,
+                endsAt = endsAt,
+                qazaEndsAt = (entry["qazaEndsAt"] as? Number)?.toLong() ?: endsAt,
+                fulfilled = entry["fulfilled"] as? Boolean ?: false,
+            )
+        }
+
+        val schedule = PrayerScheduleStore.Schedule(
+            windows = windows.sortedBy { it.startsAt },
+            blockedPackages = (call.argument<List<String>>("packages") ?: emptyList()).toSet(),
+            blockingEnabled = call.argument<Boolean>("blockingEnabled") ?: true,
+            unlockPolicy = call.argument<String>("unlockPolicy")
+                ?: PrayerScheduleStore.POLICY_ON_VERIFICATION,
+            blockUntilQazaCompleted = call.argument<Boolean>("blockUntilQaza") ?: false,
+            morningProtectionEnabled = call.argument<Boolean>("morningProtection") ?: true,
+            updatedAt = System.currentTimeMillis(),
+        )
+
+        val store = PrayerScheduleStore(applicationContext)
+        store.save(schedule)
+        store.recordClockCheckpoint(
+            System.currentTimeMillis(),
+            android.os.SystemClock.elapsedRealtime(),
+        )
+
+        PrayerAlarmScheduler(applicationContext).rearm(schedule)
+        // Registered here rather than at app start so the repair job only
+        // exists once there is actually a schedule for it to repair.
+        ScheduleMaintenanceWorker.enqueue(applicationContext)
+
+        result.success(windows.size)
     }
 
     /**

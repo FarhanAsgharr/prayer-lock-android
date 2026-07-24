@@ -16,6 +16,7 @@ import '../../../blocking/data/datasources/blocking_platform_channel.dart';
 import '../../../blocking/domain/entities/blocking_entities.dart';
 import '../../../prayer_times/domain/entities/prayer_enums.dart';
 import '../../../settings/domain/entities/app_settings.dart';
+import '../../../sections/presentation/screens/islamic_section_screen.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../data/city_catalog.dart';
 
@@ -73,7 +74,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 onPageChanged: (index) => setState(() => _pageIndex = index),
                 children: const [
                   _LocationPage(),
-                  _MadhabPage(),
+                  _SectionPage(),
                   _MethodPage(),
                   _PermissionsPage(),
                 ],
@@ -312,35 +313,31 @@ class _LocationFailure implements Exception {
   final String message;
 }
 
-class _MadhabPage extends ConsumerWidget {
-  const _MadhabPage();
+/// Choosing an Islamic section during first-run setup.
+///
+/// Uses the same picker as the settings screen rather than a simplified copy,
+/// so the two cannot offer different sections or describe them differently.
+/// Nothing is required here: the default is already a working configuration,
+/// and a user who skips past this page gets a correct schedule.
+class _SectionPage extends ConsumerWidget {
+  const _SectionPage();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selected = ref.watch(settingsProvider).madhab;
+    final settings = ref.watch(settingsProvider);
+    final notifier = ref.read(settingsProvider.notifier);
 
     return _PageScaffold(
-      title: 'Which school do you follow?',
+      title: 'Which Islamic section do you follow?',
       subtitle:
-          'This adjusts the Asr time, and for the Ja‘fari (Shia) school, the '
-          'Maghrib time as well.',
-      child: RadioGroup<Madhab>(
-        groupValue: selected,
-        onChanged: (value) => value == null
-            ? null
-            : ref.read(settingsProvider.notifier).setMadhab(value),
-        child: ListView(
-          children: Madhab.values.map((madhab) {
-            return Card(
-              margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: RadioListTile<Madhab>(
-                value: madhab,
-                title: Text(madhab.displayName),
-                subtitle: Text(madhab.description),
-              ),
-            );
-          }).toList(),
-        ),
+          'This sets a starting point for prayer times and how prayers are '
+          'grouped. You can change everything later.',
+      child: IslamicSectionPicker(
+        selected: settings.section,
+        onSelected: notifier.setSection,
+        onLabelChanged: notifier.setCustomSectionLabel,
+        // The page already carries the explanation in its subtitle.
+        showIntro: false,
       ),
     );
   }

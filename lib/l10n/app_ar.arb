@@ -1,0 +1,47 @@
+{
+  "@@locale": "ar",
+
+  "prayerFajr": "الفجر",
+  "prayerDhuhr": "الظهر",
+  "prayerAsr": "العصر",
+  "prayerMaghrib": "المغرب",
+  "prayerIsha": "العشاء",
+  "prayerSunrise": "الشروق",
+
+  "combinedPair": "{first} + {second}",
+
+  "islamicSectionTitle": "المذهب أو الطريقة",
+  "islamicSectionIntro": "يحدد اختيارك نقطة انطلاق لأوقات الصلاة وطريقة جمعها. كل ما يغيّره يبقى قابلاً للتعديل، ولا شيء هنا فتوى دينية.",
+  "islamicSectionEnterOwn": "اكتب انتماءك الإسلامي",
+  "islamicSectionEnterOwnHelp": "يُستخدم في كل مكان يظهر فيه انتماؤك.",
+  "islamicSectionNotSet": "غير محدد",
+  "islamicSectionNameYours": "اكتب اسم انتمائك أعلاه",
+  "islamicSectionSelected": "المحدد: {name}",
+  "islamicSectionEditable": "يمكنك تغيير أي من هذه الإعدادات لاحقًا.",
+
+  "sectionFamilySunniTraditions": "المذاهب السنية",
+  "sectionFamilySunniCommunities": "الجماعات السنية",
+  "sectionFamilyShiaTraditions": "المذاهب الشيعية",
+  "sectionFamilyOtherCommunities": "جماعات إسلامية أخرى",
+  "sectionFamilyOther": "أخرى",
+
+  "prayerModeTitle": "نمط الصلاة",
+  "prayerModeIntro": "الجمع يدمج صلاتين في نافذة واحدة بقفل واحد وتأكيد واحد. تُسجَّل الصلاتان كلتاهما وتُحتسبان في إحصاءاتك وسلسلتك.",
+  "prayerModeCombinedSubtitle": "نافذة واحدة، قفل واحد، تأكيد واحد.",
+  "prayerModeSeparateSubtitle": "تُتابَع وتُقفَل كل صلاة على حدة.",
+  "prayerModeOneConfirmation": "تأكيد واحد للصلاتين المجموعتين",
+  "prayerModeOneConfirmationHelp": "أوقفه لتأكيد كل صلاة على حدة حتى مع جمع النوافذ.",
+  "prayerModeSuggestion": "هذه هي الإعدادات المقترحة لـ {section}. غيّر أيًّا من الخيارين إذا اختلفت ممارستك — لا شيء هنا إلزامي.",
+  "prayerModeCardCount": "{count, plural, zero{يومك: لا بطاقات صلاة} one{يومك: بطاقة صلاة واحدة} two{يومك: بطاقتا صلاة} few{يومك: {count} بطاقات صلاة} many{يومك: {count} بطاقة صلاة} other{يومك: {count} بطاقة صلاة}}",
+
+  "groupingNone": "خمس صلوات منفصلة",
+  "groupingDhuhrAsr": "جمع الظهر والعصر",
+  "groupingMaghribIsha": "جمع المغرب والعشاء",
+  "groupingBoth": "جمع الاثنين معًا",
+
+  "settingsTitle": "الإعدادات",
+  "settingsLanguage": "اللغة",
+  "settingsLanguageSystem": "حسب النظام",
+
+  "durationHoursMinutes": "{hours} س {minutes} د"
+}

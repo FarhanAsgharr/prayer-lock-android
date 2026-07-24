@@ -1,0 +1,10 @@
+# Localisation generation.
+#
+# Templates live in lib/l10n. The generated AppLocalizations class is written
+# into .dart_tool and imported via package:flutter_gen, so nothing generated is
+# committed and a stale copy cannot drift from the ARB files.
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+nullable-getter: false
