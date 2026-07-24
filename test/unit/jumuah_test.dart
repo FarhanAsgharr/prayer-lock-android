@@ -8,6 +8,8 @@ library;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prayer_lock/features/jumuah/data/repositories/jumuah_preference_repository.dart';
 import 'package:prayer_lock/features/jumuah/domain/entities/jumuah_profile.dart';
+import 'package:prayer_lock/features/jumuah/domain/entities/jumuah_settings.dart';
+import 'package:prayer_lock/features/jumuah/domain/entities/mosque_profile.dart';
 import 'package:prayer_lock/features/jumuah/domain/usecases/friday_detector.dart';
 import 'package:prayer_lock/features/jumuah/domain/usecases/jumuah_manager.dart';
 import 'package:prayer_lock/features/jumuah/domain/usecases/jumuah_scheduler.dart';
@@ -29,18 +31,31 @@ final _saturday = DateTime(2026, 7, 25);
 
 const _timezone = 'Asia/Riyadh';
 
+/// Settings pointing at one of the seeded mosques, optionally overriding it.
 JumuahSettings _settings({
   bool enabled = true,
-  JumuahLocation? location = JumuahLocation.homeMosque,
-  JumuahProfile? home,
-  JumuahProfile? university,
+  String? mosqueId = 'home',
+  MosqueProfile? override,
+}) {
+  final mosques = MosqueProfile.defaults();
+  return JumuahSettings(
+    enabled: enabled,
+    selectedMosqueId: mosqueId,
+    mosques: override == null
+        ? mosques
+        : [for (final m in mosques) m.id == override.id ? override : m],
+  );
+}
+
+/// A seeded mosque with different times.
+MosqueProfile _mosque(
+  String id, {
+  required LocalTimeOfDay startsAt,
+  required LocalTimeOfDay endsAt,
 }) =>
-    JumuahSettings(
-      enabled: enabled,
-      selectedLocation: location,
-      homeMosque: home ?? JumuahProfile.homeMosqueDefault,
-      universityMosque: university ?? JumuahProfile.universityMosqueDefault,
-    );
+    MosqueProfile.defaults()
+        .firstWhere((m) => m.id == id)
+        .copyWith(startsAt: startsAt, endsAt: endsAt);
 
 DailyPrayerWindows _windowsOn(DateTime date) =>
     windowsAt(date: date, utcOffsetHours: 3);
@@ -182,7 +197,7 @@ void main() {
       // A half-configured feature must not silently move Dhuhr.
       final result = JumuahScheduler.apply(
         windows: _windowsOn(_friday),
-        settings: _settings(location: null),
+        settings: _settings(mosqueId: null),
         timezone: _timezone,
       );
       expect(result.application, JumuahApplication.notApplied);
@@ -193,7 +208,7 @@ void main() {
     test('Home Mosque uses 2:00–2:15 PM', () {
       final windows = JumuahScheduler.applyTo(
         windows: _windowsOn(_friday),
-        settings: _settings(location: JumuahLocation.homeMosque),
+        settings: _settings(mosqueId: 'home'),
         timezone: _timezone,
       );
       final dhuhr = windows.windowFor(PrayerName.dhuhr);
@@ -206,7 +221,7 @@ void main() {
     test('University Mosque uses 1:15–1:30 PM', () {
       final windows = JumuahScheduler.applyTo(
         windows: _windowsOn(_friday),
-        settings: _settings(location: JumuahLocation.universityMosque),
+        settings: _settings(mosqueId: 'university'),
         timezone: _timezone,
       );
       final dhuhr = windows.windowFor(PrayerName.dhuhr);
@@ -216,10 +231,10 @@ void main() {
     });
 
     test('switching mosque changes the window', () {
-      Duration startOf(JumuahLocation location) {
+      Duration startOf(String mosqueId) {
         final windows = JumuahScheduler.applyTo(
           windows: _windowsOn(_friday),
-          settings: _settings(location: location),
+          settings: _settings(mosqueId: mosqueId),
           timezone: _timezone,
         );
         final start = windows.windowFor(PrayerName.dhuhr).startsAt;
@@ -229,21 +244,21 @@ void main() {
       }
 
       expect(
-        startOf(JumuahLocation.homeMosque),
-        isNot(startOf(JumuahLocation.universityMosque)),
+        startOf('home'),
+        isNot(startOf('university')),
       );
     });
 
     test('edited times are honoured', () {
-      const custom = JumuahProfile(
-        location: JumuahLocation.homeMosque,
-        startsAt: LocalTimeOfDay(13, 30),
-        endsAt: LocalTimeOfDay(14, 0),
+      final custom = _mosque(
+        'home',
+        startsAt: const LocalTimeOfDay(13, 30),
+        endsAt: const LocalTimeOfDay(14, 0),
       );
 
       final windows = JumuahScheduler.applyTo(
         windows: _windowsOn(_friday),
-        settings: _settings(home: custom),
+        settings: _settings(override: custom),
         timezone: _timezone,
       );
       final dhuhr = windows.windowFor(PrayerName.dhuhr);
@@ -256,16 +271,16 @@ void main() {
   group('a configured time cannot break the schedule', () {
     test('a start before Dhuhr is clamped to Dhuhr', () {
       // Jumu'ah replaces Dhuhr, so it cannot begin before Dhuhr's time enters.
-      const tooEarly = JumuahProfile(
-        location: JumuahLocation.homeMosque,
-        startsAt: LocalTimeOfDay(6, 0),
-        endsAt: LocalTimeOfDay(14, 0),
+      final tooEarly = _mosque(
+        'home',
+        startsAt: const LocalTimeOfDay(6, 0),
+        endsAt: const LocalTimeOfDay(14, 0),
       );
 
       final base = _windowsOn(_friday);
       final result = JumuahScheduler.apply(
         windows: base,
-        settings: _settings(home: tooEarly),
+        settings: _settings(override: tooEarly),
         timezone: _timezone,
       );
 
@@ -277,16 +292,16 @@ void main() {
     });
 
     test('an end after Asr is clamped to Asr', () {
-      const tooLate = JumuahProfile(
-        location: JumuahLocation.homeMosque,
-        startsAt: LocalTimeOfDay(14, 0),
-        endsAt: LocalTimeOfDay(23, 59),
+      final tooLate = _mosque(
+        'home',
+        startsAt: const LocalTimeOfDay(14, 0),
+        endsAt: const LocalTimeOfDay(23, 59),
       );
 
       final base = _windowsOn(_friday);
       final result = JumuahScheduler.apply(
         windows: base,
-        settings: _settings(home: tooLate),
+        settings: _settings(override: tooLate),
         timezone: _timezone,
       );
 
@@ -300,16 +315,16 @@ void main() {
     test('a window entirely outside Dhuhr falls back to Dhuhr', () {
       // 6:00–6:30 AM is before Dhuhr on any day; clamping collapses it, so the
       // only correct answer is ordinary Dhuhr.
-      const impossible = JumuahProfile(
-        location: JumuahLocation.homeMosque,
-        startsAt: LocalTimeOfDay(6, 0),
-        endsAt: LocalTimeOfDay(6, 30),
+      final impossible = _mosque(
+        'home',
+        startsAt: const LocalTimeOfDay(6, 0),
+        endsAt: const LocalTimeOfDay(6, 30),
       );
 
       final base = _windowsOn(_friday);
       final result = JumuahScheduler.apply(
         windows: base,
-        settings: _settings(home: impossible),
+        settings: _settings(override: impossible),
         timezone: _timezone,
       );
 
@@ -321,16 +336,16 @@ void main() {
     });
 
     test('an inverted profile is rejected rather than run backwards', () {
-      const inverted = JumuahProfile(
-        location: JumuahLocation.homeMosque,
-        startsAt: LocalTimeOfDay(14, 30),
-        endsAt: LocalTimeOfDay(14, 0),
+      final inverted = _mosque(
+        'home',
+        startsAt: const LocalTimeOfDay(14, 30),
+        endsAt: const LocalTimeOfDay(14, 0),
       );
       expect(inverted.isValid, isFalse);
 
       final result = JumuahScheduler.apply(
         windows: _windowsOn(_friday),
-        settings: _settings(home: inverted),
+        settings: _settings(override: inverted),
         timezone: _timezone,
       );
       expect(result.application, JumuahApplication.notApplied);
@@ -361,7 +376,7 @@ void main() {
   group('preference memory', () {
     test('a fresh install asks on Friday and not before', () {
       final manager = JumuahManager(
-        InMemoryJumuahPreferenceRepository(_settings(location: null)),
+        InMemoryJumuahPreferenceRepository(_settings(mosqueId: null)),
       );
 
       expect(manager.statusFor(_friday).needsLocationChoice, isTrue);
@@ -371,16 +386,13 @@ void main() {
 
     test('the choice is remembered for every later Friday', () async {
       final repository =
-          InMemoryJumuahPreferenceRepository(_settings(location: null));
+          InMemoryJumuahPreferenceRepository(_settings(mosqueId: null));
       final manager = JumuahManager(repository);
 
-      await manager.chooseLocation(JumuahLocation.universityMosque);
+      await manager.chooseMosque('university');
 
       expect(manager.statusFor(_friday).needsLocationChoice, isFalse);
-      expect(
-        manager.statusFor(_friday).location,
-        JumuahLocation.universityMosque,
-      );
+      expect(manager.statusFor(_friday).mosque?.id, 'university');
       // The following Friday, and the one after.
       for (final later in [DateTime(2026, 7, 31), DateTime(2026, 8, 7)]) {
         expect(manager.statusFor(later).needsLocationChoice, isFalse);
@@ -401,23 +413,20 @@ void main() {
 
     test('changing mosque times keeps the chosen mosque', () async {
       final manager = JumuahManager(
-        InMemoryJumuahPreferenceRepository(
-          _settings(location: JumuahLocation.universityMosque),
-        ),
+        InMemoryJumuahPreferenceRepository(_settings(mosqueId: 'university')),
       );
 
-      await manager.updateProfile(
-        JumuahProfile.homeMosqueDefault.copyWith(
+      await manager.saveMosque(
+        _mosque(
+          'home',
           startsAt: const LocalTimeOfDay(13, 0),
+          endsAt: const LocalTimeOfDay(13, 15),
         ),
       );
 
+      expect(manager.settings.selectedMosqueId, 'university');
       expect(
-        manager.settings.selectedLocation,
-        JumuahLocation.universityMosque,
-      );
-      expect(
-        manager.settings.homeMosque.startsAt,
+        manager.settings.mosqueById('home')!.startsAt,
         const LocalTimeOfDay(13, 0),
       );
     });
@@ -432,38 +441,44 @@ void main() {
 
       await manager.setEnabled(true);
       expect(manager.statusFor(_friday).isActive, isTrue);
-      expect(manager.settings.selectedLocation, JumuahLocation.homeMosque);
+      expect(manager.settings.selectedMosqueId, 'home');
     });
 
     test('survives a JSON round trip, as it must across a restart', () {
       final original = _settings(
-        location: JumuahLocation.universityMosque,
-        home: JumuahProfile.homeMosqueDefault
-            .copyWith(startsAt: const LocalTimeOfDay(13, 45)),
+        mosqueId: 'university',
+        override: _mosque(
+          'home',
+          startsAt: const LocalTimeOfDay(13, 45),
+          endsAt: const LocalTimeOfDay(14, 0),
+        ),
       );
 
       final restored = JumuahSettings.fromJson(original.toJson());
       expect(restored, original);
-      expect(restored.selectedLocation, JumuahLocation.universityMosque);
-      expect(restored.homeMosque.startsAt, const LocalTimeOfDay(13, 45));
+      expect(restored.selectedMosqueId, 'university');
+      expect(
+        restored.mosqueById('home')!.startsAt,
+        const LocalTimeOfDay(13, 45),
+      );
     });
 
     test('an unchosen mosque round-trips as unchosen', () {
       // Null is meaningful — it is what triggers the prompt — so it must not
       // become Home Mosque on a restart.
       final restored =
-          JumuahSettings.fromJson(_settings(location: null).toJson());
-      expect(restored.selectedLocation, isNull);
-      expect(restored.needsLocationChoice, isTrue);
+          JumuahSettings.fromJson(_settings(mosqueId: null).toJson());
+      expect(restored.selectedMosqueId, isNull);
+      expect(restored.needsMosqueChoice, isTrue);
     });
   });
 
   group('slots and blocking', () {
-    PrayerDay jumuahDay({JumuahLocation location = JumuahLocation.homeMosque}) {
+    PrayerDay jumuahDay({String mosqueId = 'home'}) {
       return PrayerDay.fromWindows(
         JumuahScheduler.applyTo(
           windows: _windowsOn(_friday),
-          settings: _settings(location: location),
+          settings: _settings(mosqueId: mosqueId),
           timezone: _timezone,
         ),
       );
@@ -586,14 +601,15 @@ void main() {
       final record = controller.recordFor(
         slot: slot,
         date: _friday,
-        profile: JumuahProfile.homeMosqueDefault,
+        mosque: MosqueProfile.defaults().first,
         verifiedAt: verifiedAt,
       );
 
-      expect(record.location, JumuahLocation.homeMosque);
+      expect(record.mosqueId, 'home');
+      expect(record.mosqueName, 'Home Mosque');
       expect(record.blockDuration, const Duration(minutes: 7));
       expect(record.toColumns()['was_jumuah'], 1);
-      expect(record.toColumns()['jumuah_location'], 'home_mosque');
+      expect(record.toColumns()['jumuah_location'], 'home');
     });
   });
 

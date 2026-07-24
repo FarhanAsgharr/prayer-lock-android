@@ -8,7 +8,8 @@ library;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:prayer_lock/core/notifications/notification_service.dart';
 import 'package:prayer_lock/core/notifications/prayer_notification_scheduler.dart';
-import 'package:prayer_lock/features/jumuah/domain/entities/jumuah_profile.dart';
+import 'package:prayer_lock/features/jumuah/domain/entities/jumuah_settings.dart';
+import 'package:prayer_lock/features/jumuah/domain/entities/mosque_profile.dart';
 import 'package:prayer_lock/features/jumuah/domain/usecases/friday_detector.dart';
 import 'package:prayer_lock/features/prayer_times/domain/entities/prayer_enums.dart';
 import 'package:prayer_lock/features/settings/domain/entities/app_settings.dart';
@@ -28,14 +29,13 @@ void main() {
 
   AppSettings settingsWithJumuah({
     bool enabled = true,
-    JumuahLocation? location = JumuahLocation.homeMosque,
-    JumuahProfile? home,
+    String? mosqueId = 'home',
   }) =>
       settingsWith().copyWith(
         jumuah: JumuahSettings(
           enabled: enabled,
-          selectedLocation: location,
-          homeMosque: home ?? JumuahProfile.homeMosqueDefault,
+          selectedMosqueId: mosqueId,
+          mosques: MosqueProfile.defaults(),
         ),
       );
 
@@ -133,7 +133,7 @@ void main() {
 
     test('reminders name the mosque the user chose', () {
       final reminders = planWith(
-        settingsWithJumuah(location: JumuahLocation.universityMosque),
+        settingsWithJumuah(mosqueId: 'university'),
       ).where(
         (n) =>
             n.date == friday &&
@@ -185,7 +185,7 @@ void main() {
     });
 
     test('no Jumu\'ah notices before a mosque is chosen', () {
-      final planned = planWith(settingsWithJumuah(location: null));
+      final planned = planWith(settingsWithJumuah(mosqueId: null));
       expect(jumuahNotices(planned), isEmpty);
     });
 

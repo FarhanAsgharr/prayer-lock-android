@@ -98,6 +98,20 @@ class SettingsScreen extends ConsumerWidget {
             ),
 
           ListTile(
+            leading: const Icon(Icons.calendar_month_outlined),
+            title: const Text('Hijri date'),
+            subtitle: Text(
+              settings.hijriAdjustmentDays == 0
+                  ? 'Calculated — adjust if it differs from your local sighting'
+                  : '${settings.hijriAdjustmentDays > 0 ? '+' : ''}'
+                      '${settings.hijriAdjustmentDays} day'
+                      '${settings.hijriAdjustmentDays.abs() == 1 ? '' : 's'}',
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _pickHijriAdjustment(context, ref),
+          ),
+
+          ListTile(
             leading: const Icon(Icons.explore_outlined),
             title: const Text('High latitude rule'),
             subtitle: Text(settings.highLatitudeRule.displayName),
@@ -269,6 +283,29 @@ class SettingsScreen extends ConsumerWidget {
             onChanged: notifier.setNotifyOnWindowEnd,
           ),
 
+          const _SectionHeader('After prayer'),
+
+          SwitchListTile(
+            secondary: const Icon(Icons.repeat),
+            title: const Text('Tasbih reminder'),
+            subtitle: const Text(
+              'Offer SubhanAllah, Alhamdulillah and Allahu Akbar after a '
+              'recorded prayer',
+            ),
+            value: settings.dhikrRemindersEnabled,
+            onChanged: notifier.setDhikrReminders,
+          ),
+
+          SwitchListTile(
+            secondary: const Icon(Icons.menu_book_outlined),
+            title: const Text('Quran reminder'),
+            subtitle: const Text(
+              'Suggest five minutes of reading while you are still sitting',
+            ),
+            value: settings.quranRemindersEnabled,
+            onChanged: notifier.setQuranReminders,
+          ),
+
           const _SectionHeader('Verification'),
 
           SwitchListTile(
@@ -362,10 +399,33 @@ class SettingsScreen extends ConsumerWidget {
     final jumuah = settings.jumuah;
     if (!jumuah.enabled) return 'Off — Dhuhr is used every day';
 
-    final profile = jumuah.activeProfile;
-    if (profile == null) return "Choose where you pray Jumu'ah";
+    final mosque = jumuah.activeMosque;
+    if (mosque == null) return "Choose where you pray Jumu'ah";
 
-    return '${profile.location.displayName} · ${profile.formattedRange}';
+    return '${mosque.displayName} · ${mosque.formattedRange}';
+  }
+
+  /// Let the user align the computed Hijri date with a local announcement.
+  ///
+  /// The tabular calendar can differ from a moon sighting by a day. Rather than
+  /// pretend otherwise, the offset is theirs to set. It never moves a prayer
+  /// time — those are astronomical and exact.
+  Future<void> _pickHijriAdjustment(BuildContext context, WidgetRef ref) async {
+    final choice = await _showOptionSheet<int>(
+      context: context,
+      title: 'Hijri date adjustment',
+      options: const [-2, -1, 0, 1, 2],
+      current: ref.read(settingsProvider).hijriAdjustmentDays,
+      labelFor: (days) => switch (days) {
+        0 => 'As calculated',
+        1 => '1 day later',
+        -1 => '1 day earlier',
+        _ => days > 0 ? '$days days later' : '${days.abs()} days earlier',
+      },
+    );
+    if (choice != null) {
+      await ref.read(settingsProvider.notifier).setHijriAdjustment(choice);
+    }
   }
 
   Future<void> _pickLanguage(BuildContext context, WidgetRef ref) async {

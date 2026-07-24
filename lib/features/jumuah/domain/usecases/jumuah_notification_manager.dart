@@ -13,7 +13,7 @@
 /// risks changing when anything fires.
 library;
 
-import '../entities/jumuah_profile.dart';
+import '../entities/mosque_profile.dart';
 
 /// The Friday-specific text for each notification the planner emits.
 class JumuahNotificationManager {
@@ -29,15 +29,15 @@ class JumuahNotificationManager {
   /// user moving toward a specific place. The last rung says apps are about to
   /// lock, since that is the thing that changes behaviour.
   String reminderBody({
-    required JumuahProfile profile,
+    required MosqueProfile mosque,
     required int minutes,
     required bool blockingEnabled,
   }) {
-    final where = profile.location.displayName;
+    final where = mosque.displayName;
     if (blockingEnabled && minutes <= 5) {
       return 'Heading to $where? Selected apps lock when Jumu\'ah begins.';
     }
-    return 'At $where, ${profile.startsAt.format()}.';
+    return 'At $where, ${mosque.startsAt.format()}.';
   }
 
   /// "Jumu'ah has started"
@@ -45,21 +45,21 @@ class JumuahNotificationManager {
 
   /// Body at the moment the window opens — the "apps are now locked" notice.
   String startedBody({
-    required JumuahProfile profile,
+    required MosqueProfile mosque,
     required bool blockingEnabled,
   }) {
     if (!blockingEnabled) {
-      return 'May Allah accept your prayer at ${profile.location.displayName}.';
+      return 'May Allah accept your prayer at ${mosque.displayName}.';
     }
-    return 'Apps are locked until ${profile.endsAt.format()}.';
+    return 'Apps are locked until ${mosque.endsAt.format()}.';
   }
 
   /// "Jumu'ah time is ending"
   String endingTitle() => "Jumu'ah time is ending";
 
-  String endingBody({required JumuahProfile profile, required int leadMinutes}) =>
+  String endingBody({required MosqueProfile mosque, required int leadMinutes}) =>
       '$leadMinutes minutes left to confirm your Jumu\'ah at '
-      '${profile.location.displayName}.';
+      '${mosque.displayName}.';
 
   /// "Jumu'ah has ended"
   String endedTitle() => "Jumu'ah has ended";

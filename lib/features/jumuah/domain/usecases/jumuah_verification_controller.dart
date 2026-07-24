@@ -18,7 +18,7 @@
 library;
 
 import '../../../prayer_times/domain/entities/prayer_slot.dart';
-import '../entities/jumuah_profile.dart';
+import '../entities/mosque_profile.dart';
 
 /// What the app should do when the user acts on a Jumu'ah slot.
 enum JumuahVerificationOutcome {
@@ -39,13 +39,16 @@ enum JumuahVerificationOutcome {
 class JumuahRecord {
   const JumuahRecord({
     required this.date,
-    required this.location,
+    required this.mosqueId,
+    required this.mosqueName,
     required this.verifiedAt,
     required this.blockDuration,
   });
 
   final DateTime date;
-  final JumuahLocation location;
+  /// The mosque attended, by id and by name at the time.
+  final String mosqueId;
+  final String mosqueName;
   final DateTime verifiedAt;
 
   /// How long apps were blocked for this congregation, for the history screen.
@@ -53,7 +56,8 @@ class JumuahRecord {
 
   Map<String, Object?> toColumns() => {
         'was_jumuah': 1,
-        'jumuah_location': location.wireValue,
+        'jumuah_location': mosqueId,
+        'jumuah_mosque_name': mosqueName,
         'jumuah_block_seconds': blockDuration.inSeconds,
       };
 }
@@ -95,12 +99,13 @@ class JumuahVerificationController {
   JumuahRecord recordFor({
     required PrayerSlot slot,
     required DateTime date,
-    required JumuahProfile profile,
+    required MosqueProfile mosque,
     required DateTime verifiedAt,
   }) =>
       JumuahRecord(
         date: date,
-        location: profile.location,
+        mosqueId: mosque.id,
+        mosqueName: mosque.displayName,
         verifiedAt: verifiedAt,
         // Measured from the window opening to the moment of verification —
         // what the user actually lost, not the configured length.

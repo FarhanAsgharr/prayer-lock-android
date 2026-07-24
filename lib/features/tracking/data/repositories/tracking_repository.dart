@@ -11,6 +11,7 @@ import '../../../../core/sync/sync_queue.dart';
 import '../../../jumuah/domain/usecases/jumuah_verification_controller.dart';
 import '../../../prayer_times/domain/entities/prayer_day.dart';
 import '../../../prayer_times/domain/entities/prayer_enums.dart';
+import '../../domain/entities/friday_analytics.dart';
 import '../../domain/entities/prayer_statistics.dart';
 import '../../domain/usecases/streak_calculator.dart';
 
@@ -105,7 +106,8 @@ class TrackingRepository {
         'excuse_reason': excuseReason,
         'was_combined': wasCombined,
         'was_jumuah': jumuah != null,
-        'jumuah_location': jumuah?.location.wireValue,
+        'jumuah_location': jumuah?.mosqueId,
+        'jumuah_mosque_name': jumuah?.mosqueName,
         'jumuah_block_seconds': jumuah?.blockDuration.inSeconds,
       },
     );
@@ -408,6 +410,96 @@ class TrackingRepository {
     }
 
     return CombinedPrayerCounts(combined: combined, separate: separate);
+  }
+
+  /// Every recorded Friday, most recent first.
+  ///
+  /// Selected by the stored `was_jumuah` flag *or* by the date falling on a
+  /// Friday, so a Friday recorded while Smart Jumu'ah was switched off still
+  /// appears in the history — it was a Friday whether or not the app treated it
+  /// as a congregation.
+  Future<List<FridayRecord>> fridayHistory({int limit = 260}) async {
+    final rows = await _database.query(
+      'prayer_history',
+      where: 'prayer = ?',
+      whereArgs: [PrayerName.dhuhr.wireValue],
+      orderBy: 'prayer_date DESC',
+      // Five years of Fridays. Beyond that the streak arithmetic is the same
+      // and the query cost is not.
+      limit: limit,
+    );
+
+    final records = <FridayRecord>[];
+    for (final row in rows) {
+      final date = DateTime.parse(row['prayer_date']! as String);
+      final wasJumuah = (row['was_jumuah'] as int? ?? 0) == 1;
+
+      if (!wasJumuah && date.weekday != DateTime.friday) continue;
+
+      final blockSeconds = row['jumuah_block_seconds'] as int?;
+      final delayMinutes = row['delay_minutes'] as int?;
+
+      records.add(
+        FridayRecord(
+          date: date,
+          status: PrayerStatus.fromWire(row['status']! as String),
+          wasJumuah: wasJumuah,
+          mosqueName: row['jumuah_mosque_name'] as String?,
+          blockDuration:
+              blockSeconds == null ? null : Duration(seconds: blockSeconds),
+          verificationDelay:
+              delayMinutes == null ? null : Duration(minutes: delayMinutes),
+        ),
+      );
+    }
+
+    return records;
+  }
+
+  /// Per-prayer completion and mean confirmation delay.
+  ///
+  /// `delay_minutes` is only populated for prayers that were actually
+  /// confirmed, so the average is over completions rather than over everything
+  /// — averaging in a missed prayer as a zero delay would flatter the number.
+  Future<List<PrayerPerformance>> prayerPerformance() async {
+    final rows = await _database.rawQuery('''
+      SELECT prayer,
+             SUM(CASE WHEN status IN ('completed', 'qaza_completed', 'late',
+                                      'excused') THEN 1 ELSE 0 END) AS completed,
+             SUM(CASE WHEN status = 'missed' THEN 1 ELSE 0 END) AS missed,
+             AVG(CASE WHEN delay_minutes IS NOT NULL
+                       AND status IN ('completed', 'qaza_completed')
+                      THEN delay_minutes END) AS avg_delay
+      FROM prayer_history
+      GROUP BY prayer
+    ''');
+
+    return [
+      for (final row in rows)
+        PrayerPerformance(
+          prayer: PrayerName.fromWire(row['prayer']! as String),
+          completed: (row['completed'] as int?) ?? 0,
+          missed: (row['missed'] as int?) ?? 0,
+          averageDelay: row['avg_delay'] == null
+              ? null
+              : Duration(
+                  minutes: (row['avg_delay']! as num).round(),
+                ),
+        ),
+    ];
+  }
+
+  /// Mean time from a prayer beginning to the user confirming it.
+  Future<Duration?> averageVerificationTime() async {
+    final result = await _database.rawQuery('''
+      SELECT AVG(delay_minutes) AS avg_delay
+      FROM prayer_history
+      WHERE delay_minutes IS NOT NULL
+        AND status IN ('completed', 'qaza_completed')
+    ''');
+
+    final value = result.first['avg_delay'] as num?;
+    return value == null ? null : Duration(minutes: value.round());
   }
 
   /// Tracked entries for a date, for merging into a recalculated schedule.

@@ -76,6 +76,12 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   mocktail: ^1.0.4
 
+  # Generates the Android launcher icons — every density plus the adaptive
+  # foreground/background layers — from a single source PNG. Regenerating by
+  # hand across five density buckets is exactly the kind of job that silently
+  # leaves one bucket stale.
+  flutter_launcher_icons: ^0.14.4
+
 flutter:
   uses-material-design: true
 
@@ -84,3 +90,30 @@ flutter:
 
   assets:
     - assets/audio/
+    - assets/branding/
+
+# Launcher icon generation. Run after changing the source art:
+#
+#   flutter pub run flutter_launcher_icons
+#
+# The source must be the *badge only* — square, no wordmark. Text is illegible
+# at 48dp and Play's icon guidelines discourage it, so the logo's "PRAYER LOCK"
+# lockup belongs on the store listing and the splash screen, not here.
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: assets/branding/app_icon.png
+
+  # Adaptive icon for Android 8+. The launcher may crop the foreground to a
+  # circle, squircle or rounded square depending on the device, and only the
+  # centre ~66% is guaranteed visible — so the foreground art needs generous
+  # padding or the minarets get clipped.
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: assets/branding/app_icon_foreground.png
+
+  # Android 13+ themed icon: the launcher tints a monochrome layer to match the
+  # user's wallpaper. Without it, the icon ignores themed-icon mode and looks
+  # out of place next to every other app on the home screen.
+  adaptive_icon_monochrome: assets/branding/app_icon_monochrome.png
+
+  min_sdk_android: 24

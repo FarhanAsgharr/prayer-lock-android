@@ -1,11 +1,10 @@
-/// Jumu'ah settings.
+/// Jumu'ah settings: mosques, times, and the Friday behaviours.
 ///
-/// Every value here is a wall-clock time set by a mosque, not something the app
+/// Every time here is a wall-clock time set by a mosque, not something the app
 /// can compute, so this screen is where the user tells it what their mosques
-/// actually do. It shows the consequence of each choice — the resulting window,
-/// and a warning when a configured time falls outside Dhuhr and had to be
-/// clamped — because a Jumu'ah time that is silently ignored looks identical to
-/// one that works.
+/// actually do. It shows the consequence of each choice — and warns when a
+/// configured time falls outside Dhuhr and had to be clamped — because a
+/// Jumu'ah time that is silently ignored looks identical to one that works.
 library;
 
 import 'package:flutter/material.dart';
@@ -14,10 +13,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../../prayer_times/presentation/providers/prayer_times_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
-import '../../domain/entities/jumuah_profile.dart';
+import '../../domain/entities/jumuah_profile.dart' show LocalTimeOfDay;
+import '../../domain/entities/mosque_profile.dart';
 import '../../domain/usecases/friday_detector.dart';
 import '../../domain/usecases/jumuah_scheduler.dart';
 import '../providers/jumuah_providers.dart';
+import '../widgets/jumuah_icon.dart';
+import 'mosque_editor_screen.dart';
 
 class JumuahSettingsScreen extends ConsumerWidget {
   const JumuahSettingsScreen({super.key});
@@ -25,14 +27,21 @@ class JumuahSettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final manager = ref.watch(jumuahManagerProvider);
-    final settings = ref.watch(jumuahStatusProvider);
-    final jumuah = manager.settings;
+    final status = ref.watch(jumuahStatusProvider);
+    final jumuah = ref.watch(settingsProvider).jumuah;
     final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(title: const Text("Jumu'ah")),
+      floatingActionButton: jumuah.enabled
+          ? FloatingActionButton.extended(
+              onPressed: () => _openEditor(context),
+              icon: const Icon(Icons.add),
+              label: const Text('Add mosque'),
+            )
+          : null,
       body: ListView(
-        padding: const EdgeInsets.only(bottom: AppSpacing.xxl),
+        padding: const EdgeInsets.only(bottom: AppSpacing.xxl * 2),
         children: [
           Padding(
             padding: const EdgeInsets.all(AppSpacing.md),
@@ -44,7 +53,7 @@ class JumuahSettingsScreen extends ConsumerWidget {
           ),
 
           SwitchListTile(
-            secondary: const Icon(Icons.mosque_outlined),
+            secondary: const JumuahIcon(size: 24),
             title: const Text("Smart Jumu'ah"),
             subtitle: Text(
               jumuah.enabled
@@ -52,32 +61,13 @@ class JumuahSettingsScreen extends ConsumerWidget {
                   : 'Dhuhr is used every day',
             ),
             value: jumuah.enabled,
-            onChanged: (value) => manager.setEnabled(value),
+            onChanged: manager.setEnabled,
           ),
 
           if (jumuah.enabled) ...[
-            const _SectionHeader('Where you pray'),
+            const _SectionHeader('Your mosques'),
 
-            RadioGroup<JumuahLocation>(
-              groupValue: jumuah.selectedLocation,
-              onChanged: (value) => value == null
-                  ? null
-                  : manager.chooseLocation(value),
-              child: Column(
-                children: [
-                  for (final location in JumuahLocation.values)
-                    RadioListTile<JumuahLocation>(
-                      value: location,
-                      title: Text(location.displayName),
-                      subtitle: Text(
-                        jumuah.profileFor(location).formattedRange,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-
-            if (jumuah.needsLocationChoice)
+            if (jumuah.needsMosqueChoice)
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.md,
@@ -85,122 +75,129 @@ class JumuahSettingsScreen extends ConsumerWidget {
                 ),
                 child: Text(
                   "Choose a mosque so Jumu'ah can replace Dhuhr this Friday.",
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: AppColors.warning,
-                  ),
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(color: AppColors.warning),
                 ),
               ),
 
-            const _SectionHeader('Mosque times'),
+            RadioGroup<String>(
+              groupValue: jumuah.selectedMosqueId,
+              onChanged: (id) => id == null ? null : manager.chooseMosque(id),
+              child: Column(
+                children: [
+                  for (final mosque in jumuah.mosques)
+                    _MosqueTile(
+                      mosque: mosque,
+                      // The last mosque cannot be deleted — an empty list
+                      // would leave the Friday prompt with nothing to offer.
+                      canDelete: jumuah.mosques.length > 1,
+                      onEdit: () => _openEditor(context, mosque: mosque),
+                      onDelete: () => manager.deleteMosque(mosque.id),
+                    ),
+                ],
+              ),
+            ),
 
-            for (final location in JumuahLocation.values)
-              _ProfileEditor(profile: jumuah.profileFor(location)),
+            const _SectionHeader('Friday behaviour'),
+
+            SwitchListTile(
+              secondary: const Icon(Icons.volume_off_outlined),
+              title: const Text('Silence during Jumu\'ah'),
+              subtitle: const Text(
+                'Mute the phone for the congregation, and restore it after',
+              ),
+              value: jumuah.silenceDuringJumuah,
+              onChanged: manager.setSilenceDuringJumuah,
+            ),
+
+            SwitchListTile(
+              secondary: const Icon(Icons.travel_explore_outlined),
+              title: const Text('Ask when I travel'),
+              subtitle: const Text(
+                'Offer a different mosque if you seem to be somewhere else',
+              ),
+              value: jumuah.smartLocationPrompts,
+              onChanged: manager.setSmartLocationPrompts,
+            ),
 
             const _SectionHeader('Reset'),
 
             ListTile(
               leading: const Icon(Icons.restart_alt),
-              title: const Text('Reset mosque times'),
-              subtitle: const Text('Restore 2:00 PM and 1:15 PM defaults'),
-              onTap: () => manager.resetProfiles(),
+              title: const Text('Reset the built-in mosque times'),
+              subtitle: const Text('Mosques you added yourself are kept'),
+              onTap: manager.resetSeededMosques,
             ),
 
             ListTile(
               leading: const Icon(Icons.help_outline),
               title: const Text('Forget where I pray'),
-              subtitle: const Text(
-                "You'll be asked again on the next Friday",
-              ),
-              // Only offered once there is something to forget.
-              enabled: jumuah.selectedLocation != null,
-              onTap: jumuah.selectedLocation == null
+              subtitle: const Text("You'll be asked again on the next Friday"),
+              enabled: jumuah.selectedMosqueId != null,
+              onTap: jumuah.selectedMosqueId == null
                   ? null
-                  : () => manager.resetSelection(),
+                  : manager.resetSelection,
             ),
 
             Padding(
               padding: const EdgeInsets.all(AppSpacing.md),
-              child: _TodayPreview(isFriday: settings.isFriday),
+              child: _TodayPreview(isFriday: status.isFriday),
             ),
           ],
         ],
       ),
     );
   }
+
+  static void _openEditor(BuildContext context, {MosqueProfile? mosque}) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => MosqueEditorScreen(mosque: mosque),
+      ),
+    );
+  }
 }
 
-/// Editable start and end times for one mosque.
-class _ProfileEditor extends ConsumerWidget {
-  const _ProfileEditor({required this.profile});
+class _MosqueTile extends StatelessWidget {
+  const _MosqueTile({
+    required this.mosque,
+    required this.canDelete,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
-  final JumuahProfile profile;
-
-  Future<void> _pick(
-    BuildContext context,
-    WidgetRef ref, {
-    required bool isStart,
-  }) async {
-    final current = isStart ? profile.startsAt : profile.endsAt;
-
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay(hour: current.hour, minute: current.minute),
-      helpText: isStart
-          ? "${profile.location.displayName} — Jumu'ah starts"
-          : '${profile.location.displayName} — verification closes',
-    );
-    if (picked == null) return;
-
-    final next = LocalTimeOfDay(picked.hour, picked.minute);
-    final updated = isStart
-        ? profile.copyWith(
-            startsAt: next,
-            // Keep the window valid: dragging the start past the end would
-            // otherwise produce a negative window that the scheduler discards
-            // silently, and the user would see Dhuhr with no explanation.
-            endsAt: next < profile.endsAt ? profile.endsAt : next.plusMinutes(15),
-          )
-        : profile.copyWith(
-            endsAt: next > profile.startsAt
-                ? next
-                : profile.startsAt.plusMinutes(15),
-          );
-
-    await ref.read(jumuahManagerProvider).updateProfile(updated);
-  }
+  final MosqueProfile mosque;
+  final bool canDelete;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
-      child: Column(
+    return RadioListTile<String>(
+      value: mosque.id,
+      title: Text(mosque.displayName),
+      subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(profile.location.displayName,
-              style: theme.textTheme.titleSmall),
-          const SizedBox(height: AppSpacing.xs),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => _pick(context, ref, isStart: true),
-                  child: Text('Starts ${profile.startsAt.format()}'),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => _pick(context, ref, isStart: false),
-                  child: Text('Ends ${profile.endsAt.format()}'),
-                ),
-              ),
-            ],
-          ),
+          Text(mosque.formattedRange),
+          if (mosque.address != null && mosque.address!.trim().isNotEmpty)
+            Text(
+              mosque.address!,
+              style: theme.textTheme.bodySmall,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+        ],
+      ),
+      isThreeLine: mosque.address != null && mosque.address!.trim().isNotEmpty,
+      secondary: PopupMenuButton<String>(
+        onSelected: (value) => value == 'edit' ? onEdit() : onDelete(),
+        itemBuilder: (context) => [
+          const PopupMenuItem(value: 'edit', child: Text('Edit')),
+          if (canDelete)
+            const PopupMenuItem(value: 'delete', child: Text('Delete')),
         ],
       ),
     );
@@ -223,47 +220,39 @@ class _TodayPreview extends ConsumerWidget {
       final days = next.difference(date).inDays;
 
       return Text(
-        days == 0
-            ? "Today is Friday."
-            : "Today is not Friday. Jumu'ah next applies in "
-                '$days ${days == 1 ? 'day' : 'days'}.',
+        "Today is not Friday. Jumu'ah next applies in "
+        '$days ${days == 1 ? 'day' : 'days'}.',
         style: theme.textTheme.bodySmall,
       );
     }
 
     final windows = ref.watch(todayWindowsProvider);
-    final manager = ref.watch(jumuahManagerProvider);
     final timezone = ref.watch(settingsProvider).location?.timezone;
 
     if (windows == null || timezone == null) {
-      return Text("Today is Friday.", style: theme.textTheme.bodySmall);
+      return Text('Today is Friday.', style: theme.textTheme.bodySmall);
     }
 
-    final result = manager.applyWithResult(windows, timezone: timezone);
+    final result = ref
+        .watch(jumuahManagerProvider)
+        .applyWithResult(windows, timezone: timezone);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          switch (result.application) {
-            JumuahApplication.applied =>
-              "Today Dhuhr is replaced by Jumu'ah.",
-            JumuahApplication.appliedWithClamping =>
-              "Today Dhuhr is replaced by Jumu'ah, adjusted to fit inside "
-                  "Dhuhr's time.",
-            JumuahApplication.invalidProfile =>
-              "Your Jumu'ah time falls outside Dhuhr today, so ordinary Dhuhr "
-                  'is being used.',
-            JumuahApplication.notApplied =>
-              "Jumu'ah is not active today.",
-          },
-          style: theme.textTheme.bodySmall?.copyWith(
-            color: result.application == JumuahApplication.invalidProfile
-                ? AppColors.danger
-                : null,
-          ),
-        ),
-      ],
+    return Text(
+      switch (result.application) {
+        JumuahApplication.applied => "Today Dhuhr is replaced by Jumu'ah.",
+        JumuahApplication.appliedWithClamping =>
+          "Today Dhuhr is replaced by Jumu'ah, adjusted to fit inside Dhuhr's "
+              'time.',
+        JumuahApplication.invalidProfile =>
+          "Your Jumu'ah time falls outside Dhuhr today, so ordinary Dhuhr is "
+              'being used.',
+        JumuahApplication.notApplied => "Jumu'ah is not active today.",
+      },
+      style: theme.textTheme.bodySmall?.copyWith(
+        color: result.application == JumuahApplication.invalidProfile
+            ? AppColors.danger
+            : null,
+      ),
     );
   }
 }
@@ -289,4 +278,19 @@ class _SectionHeader extends StatelessWidget {
               ?.copyWith(color: Theme.of(context).colorScheme.primary),
         ),
       );
+}
+
+/// Shared time-of-day picker used by the mosque editor.
+Future<LocalTimeOfDay?> pickLocalTime(
+  BuildContext context, {
+  required LocalTimeOfDay initial,
+  required String helpText,
+}) async {
+  final picked = await showTimePicker(
+    context: context,
+    initialTime: TimeOfDay(hour: initial.hour, minute: initial.minute),
+    helpText: helpText,
+  );
+  if (picked == null) return null;
+  return LocalTimeOfDay(picked.hour, picked.minute);
 }

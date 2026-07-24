@@ -12,8 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../shared/theme/app_theme.dart';
-import '../../domain/entities/jumuah_profile.dart';
 import '../providers/jumuah_providers.dart';
+import 'jumuah_icon.dart';
 
 /// An inline card on the dashboard, shown only when a choice is needed.
 ///
@@ -41,7 +41,7 @@ class JumuahLocationPrompt extends ConsumerWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.mosque_outlined, color: theme.colorScheme.primary),
+                JumuahIcon(size: 24, color: theme.colorScheme.primary),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
@@ -57,16 +57,16 @@ class JumuahLocationPrompt extends ConsumerWidget {
               style: theme.textTheme.bodySmall,
             ),
             const SizedBox(height: AppSpacing.md),
-            for (final location in JumuahLocation.values) ...[
+            for (final mosque in ref.watch(mosquesProvider)) ...[
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton(
-                  onPressed: () => manager.chooseLocation(location),
+                  onPressed: () => manager.chooseMosque(mosque.id),
                   child: Column(
                     children: [
-                      Text(location.displayName),
+                      Text(mosque.displayName),
                       Text(
-                        manager.settings.profileFor(location).formattedRange,
+                        mosque.formattedRange,
                         style: theme.textTheme.bodySmall,
                       ),
                     ],

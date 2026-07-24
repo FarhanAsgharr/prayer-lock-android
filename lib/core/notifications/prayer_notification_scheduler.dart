@@ -266,7 +266,7 @@ class PrayerNotificationScheduler {
     // On a Friday the Dhuhr window has already been replaced by the mosque's
     // Jumu'ah window, so nothing here checks the weekday — only whether the
     // window it was handed is a congregation, which decides the wording.
-    final jumuah = slot.isJumuah ? settings.jumuah.activeProfile : null;
+    final jumuah = slot.isJumuah ? settings.jumuah.activeMosque : null;
 
     // The adhan. Added first so that if the platform starts rejecting
     // scheduling mid-loop, the most important notice for each prayer is
@@ -279,7 +279,7 @@ class PrayerNotificationScheduler {
           : "It's time for $name",
       body: jumuah != null
           ? _jumuahCopy.startedBody(
-              profile: jumuah,
+              mosque: jumuah,
               blockingEnabled: settings.blockingEnabled,
             )
           : settings.blockingEnabled
@@ -298,7 +298,7 @@ class PrayerNotificationScheduler {
             : '$name in $minutes ${minutes == 1 ? 'minute' : 'minutes'}',
         body: jumuah != null
             ? _jumuahCopy.reminderBody(
-                profile: jumuah,
+                mosque: jumuah,
                 minutes: minutes,
                 blockingEnabled: settings.blockingEnabled,
               )
@@ -332,7 +332,7 @@ class PrayerNotificationScheduler {
             : '$name window ends soon',
         body: jumuah != null
             ? _jumuahCopy.endingBody(
-                profile: jumuah,
+                mosque: jumuah,
                 leadMinutes: endingLead.inMinutes,
               )
             : '${endingLead.inMinutes} minutes left to pray $name '
