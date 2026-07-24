@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The Friday / next-prayer home-screen widget.
+
+  updatePeriodMillis is 0 deliberately. Android clamps it to 30 minutes at
+  best, which is both too slow for a countdown and too frequent for a screen
+  that only changes at prayer boundaries. The widget is instead refreshed by
+  the same alarm chain that drives blocking, so it updates at exactly the
+  instants its content changes and never in between.
+
+  resizeMode horizontal lets a user widen it on a larger launcher grid; the
+  layout is a simple vertical stack so it reflows without a second layout.
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="180dp"
+    android:minHeight="40dp"
+    android:targetCellWidth="3"
+    android:targetCellHeight="1"
+    android:updatePeriodMillis="0"
+    android:initialLayout="@layout/prayer_widget"
+    android:previewLayout="@layout/prayer_widget"
+    android:resizeMode="horizontal"
+    android:description="@string/widget_description"
+    android:widgetCategory="home_screen" />

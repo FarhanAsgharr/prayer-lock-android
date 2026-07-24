@@ -103,6 +103,8 @@ class NativePrayerWindow {
     required this.endsAt,
     required this.qazaEndsAt,
     required this.fulfilled,
+    this.silence = false,
+    this.label,
   });
 
   /// Wire value of the prayer name, e.g. "dhuhr".
@@ -121,6 +123,19 @@ class NativePrayerWindow {
   /// Whether the prayer has already been verified or excused.
   final bool fulfilled;
 
+  /// What to call it in the lock notification — "Jumu'ah", "Dhuhr + Asr".
+  ///
+  /// Sent because the native side only has the wire id, and capitalising that
+  /// says "Dhuhr" during Jumu'ah.
+  final String? label;
+
+  /// Whether the phone should be quietened for this window.
+  ///
+  /// Carried per window rather than read from settings natively, because
+  /// whether a window silences depends on what kind of prayer it is — today
+  /// only Jumu'ah — and the native side has no notion of that.
+  final bool silence;
+
   Map<String, dynamic> toPlatform() => {
         'prayer': prayer,
         'startsAt': startsAt.millisecondsSinceEpoch,
@@ -128,6 +143,44 @@ class NativePrayerWindow {
         'endsAt': endsAt.millisecondsSinceEpoch,
         'qazaEndsAt': qazaEndsAt.millisecondsSinceEpoch,
         'fulfilled': fulfilled,
+        'silence': silence,
+        if (label != null) 'label': label,
+      };
+}
+
+/// One prayer as the home-screen widget displays it.
+///
+/// A display projection, deliberately separate from [NativePrayerWindow]: that
+/// one carries what enforcement needs and nothing readable, this carries what a
+/// person reads and no policy at all. Keeping them apart means a change to the
+/// widget's wording cannot alter what gets blocked.
+@immutable
+class WidgetWindow {
+  const WidgetWindow({
+    required this.name,
+    required this.startsAt,
+    required this.endsAt,
+    this.isJumuah = false,
+    this.detail,
+  });
+
+  /// What to call it — "Fajr", "Dhuhr + Asr", "Jumu'ah".
+  final String name;
+
+  final DateTime startsAt;
+  final DateTime endsAt;
+
+  final bool isJumuah;
+
+  /// A secondary line, currently the mosque on a Friday.
+  final String? detail;
+
+  Map<String, dynamic> toPlatform() => {
+        'name': name,
+        'startsAt': startsAt.millisecondsSinceEpoch,
+        'endsAt': endsAt.millisecondsSinceEpoch,
+        'isJumuah': isJumuah,
+        if (detail != null) 'detail': detail,
       };
 }
 

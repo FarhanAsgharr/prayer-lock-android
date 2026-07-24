@@ -7,9 +7,13 @@ import android.os.Build
 import com.prayerlock.prayer_lock.blocking.AppBlockerService
 import com.prayerlock.prayer_lock.blocking.LockScreenActivity
 import com.prayerlock.prayer_lock.blocking.PermissionHelper
+import com.prayerlock.prayer_lock.blocking.SilenceController
 import com.prayerlock.prayer_lock.scheduling.PrayerAlarmScheduler
 import com.prayerlock.prayer_lock.scheduling.PrayerScheduleStore
 import com.prayerlock.prayer_lock.scheduling.ScheduleMaintenanceWorker
+import com.prayerlock.prayer_lock.widget.PrayerWidgetProvider
+import com.prayerlock.prayer_lock.widget.WidgetContent
+import com.prayerlock.prayer_lock.widget.WidgetStore
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
@@ -123,9 +127,28 @@ class MainActivity : FlutterActivity() {
 
             "clearSchedule" -> {
                 PrayerScheduleStore(applicationContext).clear()
+                WidgetStore(applicationContext).clear()
+                PrayerWidgetProvider.refresh(applicationContext)
                 PrayerAlarmScheduler(applicationContext).cancelAll()
                 ScheduleMaintenanceWorker.cancel(applicationContext)
                 result.success(true)
+            }
+
+            "updateWidget" -> updateWidget(call, result)
+
+            // Redraw without rewriting. What the widget says depends on the
+            // clock as well as the schedule, so it needs redrawing far more
+            // often than its data changes.
+            "refreshWidget" -> {
+                PrayerWidgetProvider.refresh(applicationContext)
+                result.success(true)
+            }
+
+            "canSilence" -> result.success(SilenceController.canSilence(this))
+
+            "requestSilencePermission" -> {
+                startActivity(SilenceController.policyAccessIntent())
+                result.success(null)
             }
 
             "canScheduleExactAlarms" ->
@@ -179,6 +202,7 @@ class MainActivity : FlutterActivity() {
         // Epoch millis at which the prayer window closes. Absent means the lock
         // has no clock-driven end and is released by verification alone.
         val endsAt = call.argument<Number>("endsAtEpochMs")?.toLong() ?: 0L
+        val silence = call.argument<Boolean>("silence") ?: false
 
         val intent = Intent(this, AppBlockerService::class.java)
             .setAction(AppBlockerService.ACTION_START_LOCK)
@@ -188,6 +212,7 @@ class MainActivity : FlutterActivity() {
             )
             .putExtra(AppBlockerService.EXTRA_PRAYER_NAME, prayerName)
             .putExtra(AppBlockerService.EXTRA_ENDS_AT, endsAt)
+            .putExtra(AppBlockerService.EXTRA_SILENCE, silence)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(intent)
@@ -220,6 +245,8 @@ class MainActivity : FlutterActivity() {
                 endsAt = endsAt,
                 qazaEndsAt = (entry["qazaEndsAt"] as? Number)?.toLong() ?: endsAt,
                 fulfilled = entry["fulfilled"] as? Boolean ?: false,
+                silence = entry["silence"] as? Boolean ?: false,
+                label = (entry["label"] as? String)?.takeIf { it.isNotEmpty() },
             )
         }
 
@@ -245,6 +272,36 @@ class MainActivity : FlutterActivity() {
         // Registered here rather than at app start so the repair job only
         // exists once there is actually a schedule for it to repair.
         ScheduleMaintenanceWorker.enqueue(applicationContext)
+
+        result.success(windows.size)
+    }
+
+    /**
+     * Store what the home-screen widget should display, and redraw it.
+     *
+     * Separate from [syncSchedule] because the two carry different things: the
+     * schedule mirror is for enforcement and holds no readable text, while this
+     * is display-only and holds no policy. Called from the same place, so they
+     * stay in step.
+     */
+    private fun updateWidget(call: MethodCall, result: MethodChannel.Result) {
+        val raw = call.argument<List<Map<String, Any?>>>("windows") ?: emptyList()
+
+        val windows = raw.mapNotNull { entry ->
+            val startsAt = (entry["startsAt"] as? Number)?.toLong() ?: return@mapNotNull null
+            val endsAt = (entry["endsAt"] as? Number)?.toLong() ?: return@mapNotNull null
+
+            WidgetContent.Window(
+                name = entry["name"] as? String ?: "Prayer",
+                startsAt = startsAt,
+                endsAt = endsAt,
+                isJumuah = entry["isJumuah"] as? Boolean ?: false,
+                detail = (entry["detail"] as? String)?.takeIf { it.isNotEmpty() },
+            )
+        }
+
+        WidgetStore(applicationContext).save(windows)
+        PrayerWidgetProvider.refresh(applicationContext)
 
         result.success(windows.size)
     }

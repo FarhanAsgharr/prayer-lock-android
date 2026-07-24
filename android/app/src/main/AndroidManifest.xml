@@ -28,6 +28,10 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <!-- Do Not Disturb during a congregation. Cannot be granted by a runtime
+         dialog: the user must enable it in Settings, and the app does nothing
+         at all until they do. -->
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -170,6 +174,23 @@
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
                 <action android:name="com.htc.intent.action.QUICKBOOT_POWERON" />
             </intent-filter>
+        </receiver>
+
+        <!--
+          The home-screen widget. Exported must be true: the launcher is a
+          different process and delivers APPWIDGET_UPDATE to it. It renders
+          from a local SharedPreferences mirror and accepts no data from the
+          broadcast, so there is nothing an outside caller could inject.
+        -->
+        <receiver
+            android:name=".widget.PrayerWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/prayer_widget_info" />
         </receiver>
 
         <meta-data

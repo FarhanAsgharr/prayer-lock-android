@@ -18,6 +18,7 @@ import '../../../islamic_calendar/presentation/widgets/islamic_day_banner.dart';
 import '../../../jumuah/presentation/providers/jumuah_providers.dart';
 import '../../../jumuah/presentation/widgets/jumuah_card.dart';
 import '../../../jumuah/presentation/widgets/jumuah_location_prompt.dart';
+import '../../../jumuah/presentation/widgets/jumuah_travel_prompt.dart';
 import '../widgets/prayer_list_tile.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -65,6 +66,9 @@ class DashboardScreen extends ConsumerWidget {
                       // chosen yet. Placed under the header so it reads as
                       // part of the dashboard rather than as a system dialog.
                       const JumuahLocationPrompt(),
+                      // Only ever one of these shows: the location prompt
+                      // needs no mosque chosen, the travel prompt needs one.
+                      const JumuahTravelPrompt(),
                       // Replaces the ordinary next-prayer card on Fridays;
                       // renders nothing on any other day.
                       const JumuahCard(),

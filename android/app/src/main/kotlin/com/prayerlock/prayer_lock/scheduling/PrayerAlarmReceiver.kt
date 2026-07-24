@@ -8,6 +8,7 @@ import android.os.SystemClock
 import android.util.Log
 import com.prayerlock.prayer_lock.blocking.AppBlockerService
 import com.prayerlock.prayer_lock.blocking.PermissionHelper
+import com.prayerlock.prayer_lock.widget.PrayerWidgetProvider
 
 /**
  * Applies the blocking decision when an alarm fires.
@@ -83,6 +84,11 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
         // would mean the next prayer never engages.
         PrayerAlarmScheduler(context).rearm(schedule, now)
 
+        // These alarms fire at exactly the instants the widget's content
+        // changes, so this is the whole of its refresh strategy — no polling,
+        // no periodic update, nothing running when nothing is happening.
+        PrayerWidgetProvider.refresh(context)
+
         Log.i(TAG, "Evaluated ($action): active=${active?.prayer ?: "none"}")
     }
 
@@ -104,8 +110,12 @@ class PrayerAlarmReceiver : BroadcastReceiver() {
                 AppBlockerService.EXTRA_BLOCKED_PACKAGES,
                 ArrayList(schedule.blockedPackages),
             )
-            .putExtra(AppBlockerService.EXTRA_PRAYER_NAME, displayName(window.prayer))
+            .putExtra(
+                AppBlockerService.EXTRA_PRAYER_NAME,
+                window.label ?: displayName(window.prayer),
+            )
             .putExtra(AppBlockerService.EXTRA_ENDS_AT, window.endsAt)
+            .putExtra(AppBlockerService.EXTRA_SILENCE, window.silence)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             context.startForegroundService(intent)

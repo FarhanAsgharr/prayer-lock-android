@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Rounded card matching the launcher's own widget shape on Android 12+.
+  A plain shape rather than a themed background: system_accent colours are not
+  available before API 31, and a widget that renders as an unreadable block on
+  an older phone is worse than one that is merely plain everywhere.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="20dp" />
+    <solid android:color="@color/widget_background" />
+</shape>

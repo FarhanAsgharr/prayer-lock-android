@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Widget colours, light theme.
+
+  A widget cannot use the app's Flutter theme — it is rendered by the launcher
+  process from a RemoteViews tree — so its palette is duplicated here and kept
+  in step with lib/shared/theme/app_theme.dart by hand. The night variant lives
+  in values-night/colors.xml.
+-->
+<resources>
+    <color name="widget_background">#FFFFFFFF</color>
+    <color name="widget_text_primary">#FF1B1B1F</color>
+    <color name="widget_text_secondary">#FF5F6368</color>
+    <color name="widget_accent">#FF00695C</color>
+</resources>
