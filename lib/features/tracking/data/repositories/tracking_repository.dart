@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:sqflite_sqlcipher/sqflite.dart';
 
 import '../../../../core/sync/sync_queue.dart';
+import '../../../jumuah/domain/usecases/jumuah_verification_controller.dart';
 import '../../../prayer_times/domain/entities/prayer_day.dart';
 import '../../../prayer_times/domain/entities/prayer_enums.dart';
 import '../../domain/entities/prayer_statistics.dart';
@@ -44,6 +45,7 @@ class TrackingRepository {
     DateTime? startedAt,
     String? excuseReason,
     bool wasCombined = false,
+    JumuahRecord? jumuah,
   }) async {
     final id = prayerId(date, entry.prayer);
     final now = DateTime.now().toUtc();
@@ -74,6 +76,7 @@ class TrackingRepository {
       'delay_minutes': delayMinutes,
       'excuse_reason': excuseReason,
       'was_combined': wasCombined ? 1 : 0,
+      ...?jumuah?.toColumns(),
       'synced': 0,
       'updated_at': now.millisecondsSinceEpoch,
     };
@@ -101,6 +104,9 @@ class TrackingRepository {
         'delay_minutes': delayMinutes,
         'excuse_reason': excuseReason,
         'was_combined': wasCombined,
+        'was_jumuah': jumuah != null,
+        'jumuah_location': jumuah?.location.wireValue,
+        'jumuah_block_seconds': jumuah?.blockDuration.inSeconds,
       },
     );
 

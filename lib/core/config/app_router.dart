@@ -14,6 +14,7 @@ import '../../features/dashboard/presentation/screens/analytics_screen.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
 import '../../features/prayer_times/domain/entities/prayer_enums.dart';
+import '../../features/jumuah/presentation/screens/jumuah_settings_screen.dart';
 import '../../features/prayer_times/presentation/screens/prayer_durations_screen.dart';
 import '../../features/sections/presentation/screens/islamic_section_screen.dart';
 import '../../features/sections/presentation/screens/prayer_mode_screen.dart';
@@ -43,6 +44,9 @@ abstract final class Routes {
 
   /// Choosing whether prayers are combined.
   static const String prayerMode = '/settings/prayer-mode';
+
+  /// Friday Jumu'ah configuration.
+  static const String jumuah = '/settings/jumuah';
 }
 
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -87,6 +91,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'prayer-mode',
             builder: (context, state) => const PrayerModeScreen(),
+          ),
+          GoRoute(
+            path: 'jumuah',
+            builder: (context, state) => const JumuahSettingsScreen(),
           ),
         ],
       ),

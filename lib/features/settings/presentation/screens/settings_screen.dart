@@ -13,6 +13,7 @@ import '../../../../core/config/locale_config.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../../blocking/data/datasources/blocking_platform_channel.dart';
 import '../../../prayer_times/domain/entities/prayer_enums.dart';
+import '../../domain/entities/app_settings.dart';
 import '../providers/settings_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -65,6 +66,14 @@ class SettingsScreen extends ConsumerWidget {
             ),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/settings/prayer-mode'),
+          ),
+
+          ListTile(
+            leading: const Icon(Icons.mosque_outlined),
+            title: const Text("Jumu'ah"),
+            subtitle: Text(_jumuahSubtitle(settings)),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/settings/jumuah'),
           ),
 
           ListTile(
@@ -345,6 +354,18 @@ class SettingsScreen extends ConsumerWidget {
     if (choice != null) {
       await ref.read(settingsProvider.notifier).setReminderMinutes(choice);
     }
+  }
+
+  /// One line describing the Friday setup, so the user can see it is
+  /// configured without opening the screen.
+  static String _jumuahSubtitle(AppSettings settings) {
+    final jumuah = settings.jumuah;
+    if (!jumuah.enabled) return 'Off — Dhuhr is used every day';
+
+    final profile = jumuah.activeProfile;
+    if (profile == null) return "Choose where you pray Jumu'ah";
+
+    return '${profile.location.displayName} · ${profile.formattedRange}';
   }
 
   Future<void> _pickLanguage(BuildContext context, WidgetRef ref) async {

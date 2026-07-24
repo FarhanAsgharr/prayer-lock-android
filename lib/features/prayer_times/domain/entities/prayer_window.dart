@@ -56,9 +56,30 @@ class PrayerWindow {
     required this.endsAt,
     required this.boundary,
     this.wasClamped = false,
+    this.labelOverride,
+    this.isJumuah = false,
   });
 
   final PrayerName prayer;
+
+  /// A name to show instead of the prayer's own.
+  ///
+  /// Exists for Jumu'ah, which *is* Dhuhr — the same obligation, the same
+  /// history row, the same contribution to the streak — but is called something
+  /// else and held at a different time. Carrying the name on the window rather
+  /// than branching on the weekday at each call site means the dashboard,
+  /// notifications, lock screen and native mirror all say "Jumu'ah" on Fridays
+  /// without any of them knowing what a Friday is.
+  final String? labelOverride;
+
+  /// Whether this window was replaced by a Jumu'ah profile.
+  ///
+  /// Distinct from [labelOverride] being set, because the flag is what the
+  /// history layer records and the label is only presentation.
+  final bool isJumuah;
+
+  /// What to call this window. Never empty.
+  String get displayName => labelOverride ?? prayer.displayName;
 
   /// Inclusive start, as a UTC instant.
   final DateTime startsAt;

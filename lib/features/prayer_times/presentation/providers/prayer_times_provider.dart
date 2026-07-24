@@ -32,6 +32,7 @@ import '../../domain/entities/prayer_enums.dart';
 import '../../domain/entities/prayer_slot.dart';
 import '../../domain/entities/prayer_window.dart';
 import '../../domain/repositories/prayer_schedule_repository.dart';
+import '../../../jumuah/domain/usecases/jumuah_scheduler.dart';
 import '../../domain/usecases/dynamic_duration_calculator.dart';
 import '../../domain/usecases/prayer_time_calculator.dart';
 
@@ -85,6 +86,9 @@ PrayerSchedule? scheduleFor(AppSettings settings, DateTime date) {
 /// Resolves the following day's Fajr as well, because Isha's window has no end
 /// without it.
 DailyPrayerWindows? windowsFor(AppSettings settings, DateTime date) {
+  final location = settings.location;
+  if (location == null) return null;
+
   final schedule = scheduleFor(settings, date);
   if (schedule == null) return null;
 
@@ -94,9 +98,18 @@ DailyPrayerWindows? windowsFor(AppSettings settings, DateTime date) {
   );
   if (tomorrow == null) return null;
 
-  return DynamicDurationCalculator.fromSchedule(
+  final windows = DynamicDurationCalculator.fromSchedule(
     schedule: schedule,
     nextDayFajr: tomorrow.fajr,
+  );
+
+  // Jumu'ah replaces the Dhuhr window on Fridays. A no-op on every other day,
+  // and when the feature is off or unconfigured, so this is applied
+  // unconditionally rather than behind a weekday check here.
+  return JumuahScheduler.applyTo(
+    windows: windows,
+    settings: settings.jumuah,
+    timezone: location.timezone,
   );
 }
 

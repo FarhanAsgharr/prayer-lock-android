@@ -14,6 +14,7 @@ import '../../../prayer_times/presentation/providers/prayer_times_provider.dart'
 import '../../../blocking/presentation/providers/orchestrator_provider.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../../tracking/presentation/providers/tracking_providers.dart';
+import '../../../jumuah/presentation/widgets/jumuah_location_prompt.dart';
 import '../widgets/prayer_list_tile.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -51,6 +52,10 @@ class DashboardScreen extends ConsumerWidget {
                     children: [
                       _Header(locationLabel: settings.location?.label),
                       const SizedBox(height: AppSpacing.lg),
+                      // Only renders on a Friday when no mosque has been
+                      // chosen yet. Placed under the header so it reads as
+                      // part of the dashboard rather than as a system dialog.
+                      const JumuahLocationPrompt(),
                       const _NextPrayerCard(),
                       const SizedBox(height: AppSpacing.md),
                       _TodayProgress(day: day, now: now),
