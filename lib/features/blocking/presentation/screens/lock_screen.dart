@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../../prayer_times/domain/entities/prayer_enums.dart';
 import '../../../prayer_times/presentation/providers/prayer_times_provider.dart';
@@ -74,7 +75,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
 
                 if (morningProtection) ...[
                   Text(
-                    'Good morning',
+                    AppLocalizations.of(context).lockGoodMorning,
                     style: theme.textTheme.headlineMedium?.copyWith(
                       color: AppColors.darkTextPrimary,
                     ),
@@ -82,7 +83,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
-                    'Please offer Fajr before starting your day.',
+                    AppLocalizations.of(context).lockFajrFirst,
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: AppColors.darkTextSecondary,
                     ),
@@ -90,7 +91,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
                   ),
                 ] else ...[
                   Text(
-                    "It's time for $prayerName",
+                    AppLocalizations.of(context).lockItIsTimeFor(prayerName),
                     style: theme.textTheme.headlineMedium?.copyWith(
                       color: AppColors.darkTextPrimary,
                     ),
@@ -98,8 +99,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
-                    'Please perform your prayer. Your apps will unlock once '
-                    'you confirm.',
+                    AppLocalizations.of(context).lockPerformPrayer,
                     style: theme.textTheme.bodyLarge?.copyWith(
                       color: AppColors.darkTextSecondary,
                     ),
@@ -111,16 +111,16 @@ class _LockScreenState extends ConsumerState<LockScreen> {
 
                 FilledButton.icon(
                   icon: const Icon(Icons.check),
-                  label: const Text('I completed my prayer'),
+                  label: Text(AppLocalizations.of(context).lockCompletedPrayer),
                   onPressed: () => _openVerification(current?.prayer),
                 ),
                 const SizedBox(height: AppSpacing.sm),
 
                 TextButton(
                   onPressed: () => _confirmEmergencyUnlock(context),
-                  child: const Text(
-                    'Emergency unlock',
-                    style: TextStyle(color: AppColors.darkTextSecondary),
+                  child: Text(
+                    AppLocalizations.of(context).lockEmergencyUnlock,
+                    style: const TextStyle(color: AppColors.darkTextSecondary),
                   ),
                 ),
 
@@ -128,8 +128,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
 
                 if (_blockedPackage != null)
                   Text(
-                    '${_friendlyAppName(_blockedPackage!)} is paused until '
-                    'you have prayed.',
+                    AppLocalizations.of(context).lockAppPaused(_friendlyAppName(_blockedPackage!, context)),
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: AppColors.darkTextSecondary,
                       fontSize: 12,
@@ -141,7 +140,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
                 // Stated plainly rather than buried: someone who genuinely
                 // needs help must know instantly that they are not trapped.
                 Text(
-                  'Phone, messages and settings are never blocked.',
+                  AppLocalizations.of(context).lockEssentialsNeverBlocked,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: AppColors.darkTextSecondary,
                     fontSize: 12,
@@ -163,7 +162,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
   /// the user is waiting, so common apps are mapped directly and anything
   /// else falls back to its last path segment — "com.foo.bar" reads as "Bar",
   /// which is imperfect but better than showing a raw identifier.
-  String _friendlyAppName(String packageName) {
+  String _friendlyAppName(String packageName, BuildContext context) {
     const known = {
       'com.instagram.android': 'Instagram',
       'com.zhiliaoapp.musically': 'TikTok',
@@ -180,7 +179,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
     if (match != null) return match;
 
     final segment = packageName.split('.').last;
-    if (segment.isEmpty) return 'That app';
+    if (segment.isEmpty) return AppLocalizations.of(context).lockThatApp;
     return segment[0].toUpperCase() + segment.substring(1);
   }
 
@@ -202,17 +201,14 @@ class _LockScreenState extends ConsumerState<LockScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Emergency unlock?'),
+        title: Text(AppLocalizations.of(context).lockEmergencyTitle),
         content: Text(
-          'This unlocks your apps without verifying your prayer. '
-          'You have ${settings.maxEmergencyUnlocksPerDay} per day.\n\n'
-          'If you need to call someone, the phone and messages apps are '
-          'always available without using this.',
+          AppLocalizations.of(context).lockEmergencyBodyCount(settings.maxEmergencyUnlocksPerDay),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context).actionCancel),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),

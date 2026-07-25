@@ -7,8 +7,10 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../domain/entities/jumuah_profile.dart' show LocalTimeOfDay;
@@ -56,7 +58,7 @@ class _MosqueEditorScreenState extends ConsumerState<MosqueEditorScreen> {
     final picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay(hour: current.hour, minute: current.minute),
-      helpText: isStart ? "Jumu'ah starts" : 'Verification closes',
+      helpText: isStart ? AppLocalizations.of(context).jumuahStartsLabel : AppLocalizations.of(context).jumuahClosesLabel,
     );
     if (picked == null) return;
 
@@ -120,9 +122,12 @@ class _MosqueEditorScreenState extends ConsumerState<MosqueEditorScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditing ? 'Edit mosque' : 'Add mosque'),
+        title: Text(_isEditing ? AppLocalizations.of(context).jumuahEditMosque : AppLocalizations.of(context).jumuahAddMosque),
         actions: [
-          TextButton(onPressed: _save, child: const Text('Save')),
+          TextButton(
+            onPressed: _save,
+            child: Text(AppLocalizations.of(context).actionSave),
+          ),
         ],
       ),
       body: ListView(
@@ -131,11 +136,12 @@ class _MosqueEditorScreenState extends ConsumerState<MosqueEditorScreen> {
           TextField(
             controller: _name,
             textCapitalization: TextCapitalization.words,
-            maxLength: 60,
+            inputFormatters: [LengthLimitingTextInputFormatter(60)],
             decoration: InputDecoration(
-              labelText: 'Mosque name',
+              labelText: AppLocalizations.of(context).jumuahMosqueName,
               hintText: _kind.defaultName,
-              helperText: 'Shown on the Friday card and in notifications',
+              helperText: AppLocalizations.of(context).jumuahMosqueNameHelp,
+              helperMaxLines: 3,
               border: const OutlineInputBorder(),
             ),
           ),
@@ -144,13 +150,20 @@ class _MosqueEditorScreenState extends ConsumerState<MosqueEditorScreen> {
 
           DropdownButtonFormField<MosqueKind>(
             initialValue: _kind,
-            decoration: const InputDecoration(
-              labelText: 'Type',
-              border: OutlineInputBorder(),
+            // Without this the selected item sizes to its own text and
+            // overflows the field on a narrow phone — by 2.5px in English, and
+            // by more in any language whose words are longer.
+            isExpanded: true,
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context).jumuahType,
+              border: const OutlineInputBorder(),
             ),
             items: [
               for (final kind in MosqueKind.values)
-                DropdownMenuItem(value: kind, child: Text(kind.defaultName)),
+                DropdownMenuItem(
+                  value: kind,
+                  child: Text(kind.defaultName, overflow: TextOverflow.ellipsis),
+                ),
             ],
             onChanged: (kind) =>
                 kind == null ? null : setState(() => _kind = kind),
@@ -158,43 +171,49 @@ class _MosqueEditorScreenState extends ConsumerState<MosqueEditorScreen> {
 
           const SizedBox(height: AppSpacing.lg),
 
-          Text("Jumu'ah time", style: theme.textTheme.titleSmall),
+          Text(AppLocalizations.of(context).jumuahTime, style: theme.textTheme.titleSmall),
           const SizedBox(height: AppSpacing.sm),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => _pick(isStart: true),
-                  child: Text('Starts ${_startsAt.format()}'),
-                ),
+          // Stacked rather than side by side. Two time buttons on one row
+          // overflow a narrow phone even in English, and every translation of
+          // "Starts"/"Ends" is longer than the English.
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () => _pick(isStart: true),
+              child: Text(
+                AppLocalizations.of(context).jumuahStartsAt(_startsAt.format()),
+                overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () => _pick(isStart: false),
-                  child: Text('Ends ${_endsAt.format()}'),
-                ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () => _pick(isStart: false),
+              child: Text(
+                AppLocalizations.of(context).jumuahEndsAt(_endsAt.format()),
+                overflow: TextOverflow.ellipsis,
               ),
-            ],
+            ),
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'Apps stay blocked between these times, and this is the window in '
-            'which you can confirm your prayer.',
+            AppLocalizations.of(context).jumuahTimeHelp,
             style: theme.textTheme.bodySmall,
           ),
 
           const SizedBox(height: AppSpacing.lg),
 
-          Text('Optional', style: theme.textTheme.titleSmall),
+          Text(AppLocalizations.of(context).jumuahOptional, style: theme.textTheme.titleSmall),
           const SizedBox(height: AppSpacing.sm),
 
           TextField(
             controller: _address,
-            maxLength: 120,
-            decoration: const InputDecoration(
-              labelText: 'Address',
-              border: OutlineInputBorder(),
+            inputFormatters: [LengthLimitingTextInputFormatter(120)],
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context).jumuahAddress,
+              border: const OutlineInputBorder(),
             ),
           ),
 
@@ -202,12 +221,12 @@ class _MosqueEditorScreenState extends ConsumerState<MosqueEditorScreen> {
 
           TextField(
             controller: _notes,
-            maxLength: 200,
+            inputFormatters: [LengthLimitingTextInputFormatter(200)],
             maxLines: 2,
-            decoration: const InputDecoration(
-              labelText: 'Notes',
-              hintText: 'Parking, which entrance, anything useful',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: AppLocalizations.of(context).jumuahNotes,
+              hintText: AppLocalizations.of(context).jumuahNotesHint,
+              border: const OutlineInputBorder(),
             ),
           ),
 
@@ -218,23 +237,30 @@ class _MosqueEditorScreenState extends ConsumerState<MosqueEditorScreen> {
             leading: const Icon(Icons.my_location),
             title: Text(
               _coordinates == null
-                  ? 'No position saved'
-                  : 'Position saved',
+                  ? AppLocalizations.of(context).jumuahNoPosition
+                  : AppLocalizations.of(context).jumuahPositionSaved,
             ),
             subtitle: Text(
               _coordinates == null
-                  ? 'Used to offer this mosque when you are nearby'
+                  ? AppLocalizations.of(context).jumuahPositionHelp
                   : '${_coordinates!.latitude.toStringAsFixed(3)}, '
                       '${_coordinates!.longitude.toStringAsFixed(3)}',
             ),
-            trailing: _coordinates == null
+          ),
+
+          // Below the tile rather than in its trailing slot: a button beside
+          // two lines of text overflows a narrow phone, and every translation
+          // of "Use current" is longer than the English.
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: _coordinates == null
                 ? TextButton(
                     onPressed: hasLocation ? _useCurrentLocation : null,
-                    child: const Text('Use current'),
+                    child: Text(AppLocalizations.of(context).jumuahUseCurrent),
                   )
                 : TextButton(
                     onPressed: () => setState(() => _coordinates = null),
-                    child: const Text('Clear'),
+                    child: Text(AppLocalizations.of(context).actionClear),
                   ),
           ),
         ],

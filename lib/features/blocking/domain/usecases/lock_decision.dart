@@ -17,41 +17,13 @@ import '../../../prayer_times/domain/entities/prayer_day.dart';
 import '../../../prayer_times/domain/entities/prayer_enums.dart';
 import '../../../prayer_times/domain/entities/prayer_slot.dart';
 import '../../../settings/domain/entities/app_settings.dart';
+import '../entities/lock_reason.dart';
+import '../strategies/blocking_strategy.dart';
 
-/// Why apps are, or are not, locked.
-enum LockReason {
-  /// Blocking is switched off entirely.
-  disabledBySettings,
+// Re-exported so the many call sites that reach for LockReason alongside
+// LockDecision keep one import rather than two.
+export '../entities/lock_reason.dart';
 
-  /// No prayer is currently owed.
-  noPrayerDue,
-
-  /// The prayer has begun but the grace period has not elapsed.
-  withinGracePeriod,
-
-  /// The prayer was already completed or excused.
-  prayerFulfilled,
-
-  /// The user spent an emergency unlock for this session.
-  emergencyUnlocked,
-
-  /// No apps are selected, so a lock would do nothing.
-  noAppsSelected,
-
-  /// Apps should be locked because the prayer's window is open and it has not
-  /// been verified.
-  prayerActive,
-
-  /// Apps should be locked for the remainder of the computed window even though
-  /// the prayer is verified — [UnlockPolicy.fullDuration].
-  durationRemaining,
-
-  /// A prayer's window closed unfulfilled and qaza enforcement is switched on.
-  qazaOutstanding,
-
-  /// Apps should be locked by the post-Fajr morning gate.
-  morningProtection,
-}
 
 @immutable
 class LockDecision {
@@ -151,6 +123,10 @@ class LockDecision {
 }
 
 abstract final class LockDecisionMaker {
+  /// The arrangements used when a caller does not supply their own.
+  static final BlockingRegistry _defaultBlockingRegistry =
+      BlockingRegistry.standard();
+
   /// Decide the lock state for [now].
   ///
   /// [emergencyUnlockedPrayers] holds prayers the user has bought out of with
@@ -161,6 +137,7 @@ abstract final class LockDecisionMaker {
     required PrayerDay? day,
     required DateTime now,
     Set<PrayerName> emergencyUnlockedPrayers = const {},
+    BlockingRegistry? blockingRegistry,
   }) {
     if (!settings.blockingEnabled) {
       return const LockDecision.unlocked(LockReason.disabledBySettings);
@@ -210,22 +187,29 @@ abstract final class LockDecisionMaker {
       );
     }
 
-    // Mode B: the window itself holds the lock, verified or not. Checked before
-    // the "is anything owed" path because a verified prayer is no longer owed
-    // yet must still block under this policy.
-    if (settings.unlockPolicy == UnlockPolicy.fullDuration) {
-      final active = day.activeSlot(now, grouping);
-      if (active != null &&
-          !_isEmergencyUnlocked(active, emergencyUnlockedPrayers) &&
-          !_isWithinGrace(active, now, settings) &&
-          !_isFullyExcused(active)) {
+    // Ask the unlock policy about the open window, before the "is anything
+    // owed" path: a policy that holds through verification has to speak for a
+    // slot that is no longer owed but must still block.
+    //
+    // The universal exclusions are applied here rather than inside each
+    // strategy. An emergency unlock, an exemption and the grace period release
+    // under every arrangement, and duplicating them into three implementations
+    // would be three places for the emergency-unlock rule to drift.
+    final policy = (blockingRegistry ?? _defaultBlockingRegistry)
+        .forPolicy(settings.unlockPolicy);
+
+    final active = day.activeSlot(now, grouping);
+    if (active != null &&
+        !_isEmergencyUnlocked(active, emergencyUnlockedPrayers) &&
+        !_isWithinGrace(active, now, settings) &&
+        !_isFullyExcused(active)) {
+      final verdict = policy.verdictFor(slot: active, now: now);
+      if (verdict.shouldLock) {
         return LockDecision.forSlot(
           shouldLock: true,
-          reason: active.isFulfilled
-              ? LockReason.durationRemaining
-              : LockReason.prayerActive,
+          reason: verdict.reason,
           slot: active,
-          lockUntil: active.windowEndsAt,
+          lockUntil: verdict.lockUntil,
         );
       }
     }

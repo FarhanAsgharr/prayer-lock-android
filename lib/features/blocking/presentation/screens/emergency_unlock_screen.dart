@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../providers/orchestrator_provider.dart';
 
@@ -75,17 +76,16 @@ class _EmergencyUnlockScreenState
                 const SizedBox(height: AppSpacing.md),
                 Text(
                   _granted
-                      ? 'Apps unlocked'
-                      : "You've used all your emergency unlocks today",
+                      ? AppLocalizations.of(context).lockUnlockedTitle
+                      : AppLocalizations.of(context).lockNoUnlocksLeft,
                   style: theme.textTheme.titleLarge,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   _granted
-                      ? 'Your apps are available again. This has been recorded.'
-                      : 'Apps will unlock once you complete and verify your '
-                          'prayer.',
+                      ? AppLocalizations.of(context).lockUnlockedBody
+                      : AppLocalizations.of(context).lockWillUnlockAfter,
                   style: theme.textTheme.bodyMedium,
                   textAlign: TextAlign.center,
                 ),

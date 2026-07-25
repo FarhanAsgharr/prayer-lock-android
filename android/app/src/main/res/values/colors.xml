@@ -12,4 +12,5 @@
     <color name="widget_text_primary">#FF1B1B1F</color>
     <color name="widget_text_secondary">#FF5F6368</color>
     <color name="widget_accent">#FF00695C</color>
+	<color name="ic_launcher_background">#1B5E4A</color>
 </resources>

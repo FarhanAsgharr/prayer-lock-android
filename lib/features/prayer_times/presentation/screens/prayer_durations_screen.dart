@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:timezone/timezone.dart' as tz;
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../../settings/domain/entities/app_settings.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
@@ -19,6 +20,7 @@ import '../../domain/entities/prayer_day.dart';
 import '../../domain/entities/prayer_enums.dart';
 import '../../domain/usecases/dynamic_duration_calculator.dart';
 import '../providers/prayer_times_provider.dart';
+import '../../../../core/di/strategy_providers.dart';
 
 class PrayerDurationsScreen extends ConsumerWidget {
   const PrayerDurationsScreen({super.key});
@@ -30,7 +32,7 @@ class PrayerDurationsScreen extends ConsumerWidget {
     final now = ref.watch(nowProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Prayer durations')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).durationsTitle)),
       body: day == null
           ? const _EmptyState()
           : ListView(
@@ -66,16 +68,21 @@ class PrayerDurationsScreen extends ConsumerWidget {
 ///
 /// Without this the numbers are ambiguous: three hours and thirty-seven minutes
 /// is a deadline under one policy and a sentence under the other.
-class _PolicyBanner extends StatelessWidget {
+class _PolicyBanner extends ConsumerWidget {
   const _PolicyBanner({required this.settings, required this.day});
 
   final AppSettings settings;
   final PrayerDay day;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final isFullDuration = settings.unlockPolicy == UnlockPolicy.fullDuration;
+
+    // Asked of the strategy rather than compared against a policy value: the
+    // total only means something under an arrangement that blocks for the whole
+    // window, and that is the strategy's own definition, not this screen's.
+    final holdsThroughout =
+        ref.watch(blockingStrategyProvider).holdsAfterVerification;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -95,11 +102,10 @@ class _PolicyBanner extends StatelessWidget {
             settings.unlockPolicy.description,
             style: theme.textTheme.bodySmall,
           ),
-          if (isFullDuration) ...[
+          if (holdsThroughout) ...[
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'Today that is ${formatPrayerDuration(day.totalWindowDuration)} '
-              'of blocking in total.',
+              AppLocalizations.of(context).durationsTotalBlocking(formatPrayerDuration(day.totalWindowDuration)),
               style: theme.textTheme.bodySmall?.copyWith(
                 fontWeight: FontWeight.w600,
               ),
@@ -296,13 +302,12 @@ class _SourceFooter extends StatelessWidget {
     final theme = Theme.of(context);
 
     final label = switch (source) {
-      PrayerTimeSource.remote => 'Times confirmed with the prayer time service.',
+      PrayerTimeSource.remote => AppLocalizations.of(context).durationsSourceConfirmed,
       PrayerTimeSource.cache => isStale
-          ? 'Showing saved times. They will be confirmed when you are online.'
-          : 'Showing saved times.',
+          ? AppLocalizations.of(context).durationsSourceCachedOffline
+          : AppLocalizations.of(context).durationsSourceCached,
       PrayerTimeSource.device =>
-        'Times calculated on this device. They will be confirmed when you are '
-            'online.',
+        AppLocalizations.of(context).durationsSourceDevice,
     };
 
     return Row(
@@ -327,11 +332,11 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: Padding(
-        padding: EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Text(
-          'Set your location to see today’s prayer windows.',
+          AppLocalizations.of(context).durationsSetLocation,
           textAlign: TextAlign.center,
         ),
       ),

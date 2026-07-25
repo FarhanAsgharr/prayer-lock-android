@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:timezone/timezone.dart' as tz;
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../../../shared/widgets/countdown_text.dart';
 import '../../../prayer_times/domain/entities/prayer_enums.dart';
@@ -42,7 +43,7 @@ class PrayerListTile extends StatelessWidget {
 
     return Semantics(
       label: '${slot.displayName}, '
-          '${_formatTime(slot.scheduledAt)}, ${_phaseLabel(phase)}'
+          '${_formatTime(slot.scheduledAt)}, ${_phaseLabel(context, phase)}'
           '${remaining != null ? ', ${formatCountdown(remaining)} left' : ''}',
       button: onTap != null,
       child: Material(
@@ -79,8 +80,8 @@ class PrayerListTile extends StatelessWidget {
                       // hours — not merely that it is next.
                       const SizedBox(height: 2),
                       Text(
-                        'Until ${slot.window.boundary.displayName} · '
-                        '${formatPrayerDurationShort(slot.duration)}',
+                        '${AppLocalizations.of(context).tileUntilBoundary(slot.window.boundary.displayName)} · '
+      '${formatPrayerDurationShort(slot.duration)}',
                         style: theme.textTheme.bodySmall?.copyWith(
                           fontSize: 12,
                         ),
@@ -89,28 +90,33 @@ class PrayerListTile extends StatelessWidget {
                         const SizedBox(height: 2),
                         Row(
                           children: [
-                            Text(
-                              _phaseLabel(phase),
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: _phaseColor(phase, theme),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
+                            Flexible(
+                              child: Text(
+                                _phaseLabel(context, phase),
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: _phaseColor(phase, theme),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                             // The countdown the spec requires: how long is left
                             // in the current on-time or qaza window.
-                            if (remaining != null) ...[
-                              Text(
-                                ' · ${formatCountdown(remaining)} left',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: _phaseColor(phase, theme),
-                                  fontSize: 13,
-                                  fontFeatures: const [
-                                    FontFeature.tabularFigures(),
-                                  ],
+                            if (remaining != null)
+                              Flexible(
+                                child: Text(
+                                  ' · ${formatCountdown(remaining)} left',
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: _phaseColor(phase, theme),
+                                    fontSize: 13,
+                                    fontFeatures: const [
+                                      FontFeature.tabularFigures(),
+                                    ],
+                                  ),
                                 ),
                               ),
-                            ],
                           ],
                         ),
                       ],
@@ -143,14 +149,15 @@ class PrayerListTile extends StatelessWidget {
     }
   }
 
-  static String _phaseLabel(PrayerPhase phase) => switch (phase) {
-        PrayerPhase.upcoming => 'Upcoming',
-        PrayerPhase.verifyOnTime => 'Verify now',
-        PrayerPhase.qazaAvailable => 'Qaza available',
-        PrayerPhase.verifiedOnTime => 'Verified on time',
-        PrayerPhase.qazaCompleted => 'Qaza completed',
-        PrayerPhase.missed => 'Missed',
-        PrayerPhase.excused => 'Excused',
+  static String _phaseLabel(BuildContext context, PrayerPhase phase) =>
+      switch (phase) {
+        PrayerPhase.upcoming => AppLocalizations.of(context).tileUpcoming,
+        PrayerPhase.verifyOnTime => AppLocalizations.of(context).tileVerifyNow,
+        PrayerPhase.qazaAvailable => AppLocalizations.of(context).tileQazaAvailable,
+        PrayerPhase.verifiedOnTime => AppLocalizations.of(context).tileVerifiedOnTime,
+        PrayerPhase.qazaCompleted => AppLocalizations.of(context).tileQazaCompleted,
+        PrayerPhase.missed => AppLocalizations.of(context).tileMissed,
+        PrayerPhase.excused => AppLocalizations.of(context).tileExcused,
       };
 
   static Color _phaseColor(PrayerPhase phase, ThemeData theme) =>

@@ -14,6 +14,7 @@ library;
 import 'dart:math' as math;
 
 import '../entities/prayer_enums.dart';
+import '../strategies/calculation_strategy.dart';
 
 /// Sun altitude at sunrise/sunset: the solar disc's upper limb touching the
 /// horizon, including atmospheric refraction.
@@ -41,40 +42,19 @@ class MethodParameters {
   final double maghribAngle;
 }
 
-/// Angles as published by each authority.
-const Map<CalculationMethod, MethodParameters> methodParameters = {
-  CalculationMethod.muslimWorldLeague:
-      MethodParameters(fajrAngle: 18.0, ishaAngle: 17.0),
-  CalculationMethod.egyptian: MethodParameters(fajrAngle: 19.5, ishaAngle: 17.5),
-  CalculationMethod.karachi: MethodParameters(fajrAngle: 18.0, ishaAngle: 18.0),
-  // Umm al-Qura fixes Isha at 90 minutes after Maghrib (120 during Ramadan).
-  CalculationMethod.ummAlQura:
-      MethodParameters(fajrAngle: 18.5, ishaIntervalMinutes: 90),
-  CalculationMethod.dubai: MethodParameters(fajrAngle: 18.2, ishaAngle: 18.2),
-  CalculationMethod.qatar:
-      MethodParameters(fajrAngle: 18.0, ishaIntervalMinutes: 90),
-  CalculationMethod.kuwait: MethodParameters(fajrAngle: 18.0, ishaAngle: 17.5),
-  CalculationMethod.moonsightingCommittee:
-      MethodParameters(fajrAngle: 18.0, ishaAngle: 18.0),
-  CalculationMethod.singapore:
-      MethodParameters(fajrAngle: 20.0, ishaAngle: 18.0),
-  CalculationMethod.turkey: MethodParameters(fajrAngle: 18.0, ishaAngle: 17.0),
-  // Tehran also lifts Maghrib off the horizon to a 4.5 degree depression.
-  CalculationMethod.tehran: MethodParameters(
-    fajrAngle: 17.7,
-    ishaAngle: 14.0,
-    maghribAngle: 4.5,
-  ),
-  CalculationMethod.northAmerica:
-      MethodParameters(fajrAngle: 15.0, ishaAngle: 15.0),
-  // Ja'fari also lifts Maghrib off the horizon: it begins when the sun's
-  // redness fades, at roughly 4 degrees of depression, rather than at sunset.
-  CalculationMethod.jafari: MethodParameters(
-    fajrAngle: 16.0,
-    ishaAngle: 14.0,
-    maghribAngle: 4.0,
-  ),
-};
+/// Angles for one authority, resolved through [CalculationRegistry].
+///
+/// Kept as a function so existing call sites read the same, but the table it
+/// used to be now lives with the rest of that authority's definition — its
+/// remote id included — rather than half here and half in the network layer.
+MethodParameters methodParametersFor(
+  CalculationMethod method, {
+  CalculationRegistry? registry,
+}) =>
+    (registry ?? _defaultCalculationRegistry).parametersFor(method);
+
+final CalculationRegistry _defaultCalculationRegistry =
+    CalculationRegistry.standard();
 
 double _degreesToRadians(double degrees) => degrees * math.pi / 180.0;
 double _radiansToDegrees(double radians) => radians * 180.0 / math.pi;
@@ -269,6 +249,7 @@ class CalculationRequest {
     this.madhab = Madhab.shafi,
     this.highLatitudeRule = HighLatitudeRule.middleOfTheNight,
     this.adjustments = const {},
+    this.calculationRegistry,
   }) {
     if (latitude < -90.0 || latitude > 90.0) {
       throw ArgumentError('latitude out of range: $latitude');
@@ -295,13 +276,23 @@ class CalculationRequest {
 
   /// Per-prayer manual corrections in minutes, matching local mosque practice.
   final Map<PrayerName, int> adjustments;
+
+  /// The authorities available to this request.
+  ///
+  /// Injected so a test — or a build shipping a regional authority — can
+  /// substitute one without reaching into a global. Null means the standard
+  /// set, which is what every production call site wants.
+  final CalculationRegistry? calculationRegistry;
 }
 
 class PrayerTimeCalculator {
   const PrayerTimeCalculator();
 
   PrayerSchedule calculate(CalculationRequest request) {
-    final params = methodParameters[request.method]!;
+    final params = methodParametersFor(
+      request.method,
+      registry: request.calculationRegistry,
+    );
     final shadowFactor = request.madhab.shadowFactor;
 
     // Evaluate the sun at local solar noon rather than at midnight; the

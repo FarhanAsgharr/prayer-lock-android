@@ -216,6 +216,7 @@ class _CustomLabelFieldState extends State<_CustomLabelField> {
         decoration: InputDecoration(
           labelText: AppLocalizations.of(context).islamicSectionEnterOwn,
           helperText: AppLocalizations.of(context).islamicSectionEnterOwnHelp,
+          helperMaxLines: 3,
           border: const OutlineInputBorder(),
         ),
         // Saved as the user types rather than on submit: there is no confirm
@@ -257,12 +258,12 @@ class _SelectedSummary extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           _SummaryRow(
-            label: 'Prayer times',
+            label: AppLocalizations.of(context).sectionSummaryPrayerTimes,
             value: defaults.calculationMethod.displayName,
           ),
-          _SummaryRow(label: 'Asr timing', value: defaults.madhab.displayName),
+          _SummaryRow(label: AppLocalizations.of(context).sectionSummaryAsr, value: defaults.madhab.displayName),
           _SummaryRow(
-            label: 'Prayer grouping',
+            label: AppLocalizations.of(context).sectionSummaryGrouping,
             value: defaults.prayerGrouping.displayName,
           ),
           const SizedBox(height: AppSpacing.sm),

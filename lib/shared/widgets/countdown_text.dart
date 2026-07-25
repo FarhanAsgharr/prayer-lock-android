@@ -3,6 +3,8 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../../l10n/app_localizations.dart';
+
 /// Formats a duration as a countdown.
 ///
 /// Deliberately drops to "12m 04s" under an hour rather than showing
@@ -25,15 +27,16 @@ String formatCountdown(Duration duration) {
 }
 
 /// Formats elapsed time in coarse, human terms.
-String formatElapsed(Duration duration) {
-  if (duration.inMinutes < 1) return 'just now';
-  if (duration.inHours < 1) return '${duration.inMinutes} min ago';
-  if (duration.inDays < 1) {
-    final hours = duration.inHours;
-    return '$hours ${hours == 1 ? 'hour' : 'hours'} ago';
-  }
-  final days = duration.inDays;
-  return '$days ${days == 1 ? 'day' : 'days'} ago';
+///
+/// Takes a context because "3 hours ago" is a sentence, not a number, and the
+/// plural rule differs by language — Arabic has six forms where English has
+/// two. The ARB carries the rule; this only picks the unit.
+String formatElapsed(BuildContext context, Duration duration) {
+  final strings = AppLocalizations.of(context);
+  if (duration.inMinutes < 1) return strings.countdownJustNow;
+  if (duration.inHours < 1) return strings.countdownMinutesAgo(duration.inMinutes);
+  if (duration.inDays < 1) return strings.countdownHoursAgo(duration.inHours);
+  return strings.countdownDaysAgo(duration.inDays);
 }
 
 /// Large countdown display.

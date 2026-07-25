@@ -12,6 +12,7 @@ import 'package:prayer_lock/features/prayer_times/data/datasources/aladhan_praye
 import 'package:prayer_lock/features/prayer_times/data/datasources/prayer_time_provider.dart';
 import 'package:prayer_lock/features/prayer_times/domain/entities/prayer_enums.dart';
 import 'package:prayer_lock/features/settings/domain/entities/app_settings.dart';
+import 'package:prayer_lock/features/prayer_times/domain/strategies/calculation_strategy.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -154,9 +155,10 @@ void main() {
     test('every supported method has an AlAdhan id', () {
       // A missing entry would silently fall back to Muslim World League, so a
       // user who picked Umm al-Qura would get MWL times with no indication.
+      final registry = CalculationRegistry.standard();
       for (final method in CalculationMethod.values) {
         expect(
-          AlAdhanPrayerTimeProvider.methodIds[method],
+          registry.remoteIdFor(method),
           isNotNull,
           reason: '${method.displayName} has no AlAdhan method id',
         );

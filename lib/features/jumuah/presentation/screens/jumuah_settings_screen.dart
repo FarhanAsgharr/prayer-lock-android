@@ -10,6 +10,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../../blocking/data/datasources/blocking_platform_channel.dart';
 import '../../../prayer_times/presentation/providers/prayer_times_provider.dart';
@@ -33,12 +34,12 @@ class JumuahSettingsScreen extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Jumu'ah")),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).jumuahTitle)),
       floatingActionButton: jumuah.enabled
           ? FloatingActionButton.extended(
               onPressed: () => _openEditor(context),
               icon: const Icon(Icons.add),
-              label: const Text('Add mosque'),
+              label: Text(AppLocalizations.of(context).jumuahAddMosque),
             )
           : null,
       body: ListView(
@@ -47,26 +48,25 @@ class JumuahSettingsScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.all(AppSpacing.md),
             child: Text(
-              "On Fridays, Dhuhr is replaced by Jumu'ah at the time your mosque "
-              'holds it. Every other day is unchanged.',
+              AppLocalizations.of(context).jumuahIntro,
               style: theme.textTheme.bodyMedium,
             ),
           ),
 
           SwitchListTile(
             secondary: const JumuahIcon(size: 24),
-            title: const Text("Smart Jumu'ah"),
+            title: Text(AppLocalizations.of(context).jumuahSmart),
             subtitle: Text(
               jumuah.enabled
-                  ? "Jumu'ah replaces Dhuhr on Fridays"
-                  : 'Dhuhr is used every day',
+                  ? AppLocalizations.of(context).jumuahReplacesDhuhr
+                  : AppLocalizations.of(context).jumuahDhuhrEveryDay,
             ),
             value: jumuah.enabled,
             onChanged: manager.setEnabled,
           ),
 
           if (jumuah.enabled) ...[
-            const _SectionHeader('Your mosques'),
+            _SectionHeader(AppLocalizations.of(context).jumuahYourMosques),
 
             if (jumuah.needsMosqueChoice)
               Padding(
@@ -75,7 +75,7 @@ class JumuahSettingsScreen extends ConsumerWidget {
                   vertical: AppSpacing.sm,
                 ),
                 child: Text(
-                  "Choose a mosque so Jumu'ah can replace Dhuhr this Friday.",
+                  AppLocalizations.of(context).jumuahChooseMosque,
                   style: theme.textTheme.bodySmall
                       ?.copyWith(color: AppColors.warning),
                 ),
@@ -99,33 +99,33 @@ class JumuahSettingsScreen extends ConsumerWidget {
               ),
             ),
 
-            const _SectionHeader('Friday behaviour'),
+            _SectionHeader(AppLocalizations.of(context).jumuahFridayBehaviour),
 
             const _SilenceTile(),
 
             SwitchListTile(
               secondary: const Icon(Icons.travel_explore_outlined),
-              title: const Text('Ask when I travel'),
-              subtitle: const Text(
-                'Offer a different mosque if you seem to be somewhere else',
+              title: Text(AppLocalizations.of(context).jumuahAskWhenTravel),
+              subtitle: Text(
+                AppLocalizations.of(context).jumuahAskWhenTravelBody,
               ),
               value: jumuah.smartLocationPrompts,
               onChanged: manager.setSmartLocationPrompts,
             ),
 
-            const _SectionHeader('Reset'),
+            _SectionHeader(AppLocalizations.of(context).jumuahReset),
 
             ListTile(
               leading: const Icon(Icons.restart_alt),
-              title: const Text('Reset the built-in mosque times'),
-              subtitle: const Text('Mosques you added yourself are kept'),
+              title: Text(AppLocalizations.of(context).jumuahResetTimes),
+              subtitle: Text(AppLocalizations.of(context).jumuahResetTimesBody),
               onTap: manager.resetSeededMosques,
             ),
 
             ListTile(
               leading: const Icon(Icons.help_outline),
-              title: const Text('Forget where I pray'),
-              subtitle: const Text("You'll be asked again on the next Friday"),
+              title: Text(AppLocalizations.of(context).jumuahForget),
+              subtitle: Text(AppLocalizations.of(context).jumuahForgetBody),
               enabled: jumuah.selectedMosqueId != null,
               onTap: jumuah.selectedMosqueId == null
                   ? null
@@ -213,8 +213,9 @@ class _TodayPreview extends ConsumerWidget {
       final days = next.difference(date).inDays;
 
       return Text(
-        "Today is not Friday. Jumu'ah next applies in "
-        '$days ${days == 1 ? 'day' : 'days'}.',
+        days == 1
+            ? AppLocalizations.of(context).jumuahNextFridayTomorrow
+            : AppLocalizations.of(context).jumuahNextFridayDays(days),
         style: theme.textTheme.bodySmall,
       );
     }
@@ -223,7 +224,7 @@ class _TodayPreview extends ConsumerWidget {
     final timezone = ref.watch(settingsProvider).location?.timezone;
 
     if (windows == null || timezone == null) {
-      return Text('Today is Friday.', style: theme.textTheme.bodySmall);
+      return Text(AppLocalizations.of(context).jumuahTodayIsFriday, style: theme.textTheme.bodySmall);
     }
 
     final result = ref
@@ -232,14 +233,12 @@ class _TodayPreview extends ConsumerWidget {
 
     return Text(
       switch (result.application) {
-        JumuahApplication.applied => "Today Dhuhr is replaced by Jumu'ah.",
+        JumuahApplication.applied => AppLocalizations.of(context).jumuahAppliedToday,
         JumuahApplication.appliedWithClamping =>
-          "Today Dhuhr is replaced by Jumu'ah, adjusted to fit inside Dhuhr's "
-              'time.',
+          AppLocalizations.of(context).jumuahAppliedClamped,
         JumuahApplication.invalidProfile =>
-          "Your Jumu'ah time falls outside Dhuhr today, so ordinary Dhuhr is "
-              'being used.',
-        JumuahApplication.notApplied => "Jumu'ah is not active today.",
+          AppLocalizations.of(context).jumuahOutsideDhuhr,
+        JumuahApplication.notApplied => AppLocalizations.of(context).jumuahNotActive,
       },
       style: theme.textTheme.bodySmall?.copyWith(
         color: result.application == JumuahApplication.invalidProfile
@@ -338,9 +337,9 @@ class _SilenceTileState extends ConsumerState<_SilenceTile>
       children: [
         SwitchListTile(
           secondary: const Icon(Icons.volume_off_outlined),
-          title: const Text("Silence during Jumu'ah"),
-          subtitle: const Text(
-            'Mute the phone for the congregation, and restore it after',
+          title: Text(AppLocalizations.of(context).jumuahSilence),
+          subtitle: Text(
+            AppLocalizations.of(context).jumuahSilenceBody,
           ),
           value: enabled,
           onChanged: manager.setSilenceDuringJumuah,
@@ -354,7 +353,7 @@ class _SilenceTileState extends ConsumerState<_SilenceTile>
               AppSpacing.md,
             ),
             // The action sits on its own line, left-aligned. Beside the text it
-            // ends up under the "Add mosque" FAB, which is bottom-right — a
+            // ends up under the AppLocalizations.of(context).jumuahAddMosque FAB, which is bottom-right — a
             // button the user cannot reach is worse than no button.
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -370,8 +369,7 @@ class _SilenceTileState extends ConsumerState<_SilenceTile>
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Text(
-                        'Prayer Lock needs Do Not Disturb access before it '
-                        'can mute anything.',
+                        AppLocalizations.of(context).jumuahSilenceNeedsAccess,
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.error,
                         ),
@@ -384,7 +382,7 @@ class _SilenceTileState extends ConsumerState<_SilenceTile>
                   child: TextButton(
                     onPressed: () =>
                         BlockingPlatformChannel().requestSilencePermission(),
-                    child: const Text('Grant access'),
+                    child: Text(AppLocalizations.of(context).jumuahGrantAccess),
                   ),
                 ),
               ],

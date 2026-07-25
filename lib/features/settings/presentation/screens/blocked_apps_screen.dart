@@ -4,6 +4,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../../blocking/data/datasources/blocking_platform_channel.dart';
 import '../../../blocking/domain/entities/blocking_entities.dart';
@@ -49,11 +50,11 @@ class BlockedAppsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Blocked apps'),
+        title: Text(AppLocalizations.of(context).blockedAppsTitle),
         actions: [
           TextButton(
             onPressed: () => _applySuggested(ref),
-            child: const Text('Suggested'),
+            child: Text(AppLocalizations.of(context).blockedAppsSuggested),
           ),
         ],
       ),
@@ -69,12 +70,11 @@ class BlockedAppsScreen extends ConsumerWidget {
             itemCount: installed.length + 1,
             itemBuilder: (context, index) {
               if (index == 0) {
-                return const Padding(
-                  padding: EdgeInsets.all(AppSpacing.md),
+                return Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   child: Text(
-                    'Selected apps will be unavailable from the start of each '
-                    'prayer until you confirm you have prayed.\n\n'
-                    'Phone, messages and settings can never be blocked.',
+                    '${AppLocalizations.of(context).blockedAppsIntro}\n\n'
+                    '${AppLocalizations.of(context).blockedAppsEssentials}',
                   ),
                 );
               }
@@ -146,36 +146,34 @@ class _IosPickerViewState extends ConsumerState<_IosPickerView> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Blocked apps')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).blockedAppsTitle)),
       body: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Choose which apps to pause during prayer. On iPhone, apps are '
-              'selected through Apple\'s Screen Time picker — Prayer Lock '
-              'never sees which apps you pick, only how many.',
+              AppLocalizations.of(context).blockedAppsIosIntro,
               style: theme.textTheme.bodyMedium,
             ),
             const SizedBox(height: AppSpacing.lg),
             if (_selectedCount != null)
               Text(
                 _selectedCount == 0
-                    ? 'No apps selected'
-                    : '$_selectedCount app(s) or categories selected',
+                    ? AppLocalizations.of(context).settingsNoneSelected
+                    : AppLocalizations.of(context).blockedAppsSelectedCount(_selectedCount!),
                 style: theme.textTheme.titleMedium,
                 textAlign: TextAlign.center,
               ),
             const SizedBox(height: AppSpacing.md),
             FilledButton.icon(
               icon: const Icon(Icons.apps),
-              label: const Text('Choose apps'),
+              label: Text(AppLocalizations.of(context).blockedAppsChoose),
               onPressed: _openPicker,
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
-              'Phone, Messages and Settings can never be paused.',
+              AppLocalizations.of(context).blockedAppsEssentials,
               style: theme.textTheme.bodyMedium,
               textAlign: TextAlign.center,
             ),
@@ -200,12 +198,12 @@ class _EmptyView extends StatelessWidget {
             const Icon(Icons.apps, size: 48),
             const SizedBox(height: AppSpacing.md),
             Text(
-              'No apps found',
+              AppLocalizations.of(context).blockedAppsNoneFound,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'App blocking is only available on Android.',
+              AppLocalizations.of(context).blockedAppsAndroidOnly,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
@@ -232,7 +230,7 @@ class _ErrorView extends StatelessWidget {
             const Icon(Icons.error_outline, size: 48, color: AppColors.warning),
             const SizedBox(height: AppSpacing.md),
             Text(
-              'Could not list your apps',
+              AppLocalizations.of(context).blockedAppsListFailed,
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: AppSpacing.sm),

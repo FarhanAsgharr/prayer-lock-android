@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../../blocking/data/datasources/blocking_platform_channel.dart';
 import '../../../blocking/domain/entities/blocking_entities.dart';
@@ -61,6 +62,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final canAdvance = _pageIndex != 0 || settings.location != null;
 
     return Scaffold(
+      // The keyboard overlays rather than resizes. Onboarding pages are
+      // full-height with their own scrolling — the city search has a scrollable
+      // results list — so resizing only squeezes fixed controls into a space
+      // too small for them and overflows, while the list under the keyboard
+      // scrolls perfectly well.
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Column(
           children: [
@@ -85,7 +92,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               child: FilledButton(
                 onPressed: canAdvance ? _next : null,
                 child: Text(
-                  _pageIndex == _pageCount - 1 ? 'Start praying on time' : 'Continue',
+                  _pageIndex == _pageCount - 1 ? AppLocalizations.of(context).onboardingStart : AppLocalizations.of(context).actionContinue,
                 ),
               ),
             ),
@@ -106,7 +113,7 @@ class _ProgressDots extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Semantics(
-      label: 'Step ${index + 1} of $count',
+      label: AppLocalizations.of(context).onboardingStepOf(index + 1, count),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: List.generate(count, (i) {
@@ -170,6 +177,11 @@ class _LocationPageState extends ConsumerState<_LocationPage> {
   String _query = '';
 
   Future<void> _detectLocation() async {
+    // Resolved before any await. Reading localisations after one means reading
+    // them from a context that may already be gone, which is what the analyzer
+    // is warning about — and the failure is a crash on a slow GPS fix.
+    final strings = AppLocalizations.of(context);
+
     setState(() {
       _isDetecting = true;
       _error = null;
@@ -177,9 +189,7 @@ class _LocationPageState extends ConsumerState<_LocationPage> {
 
     try {
       if (!await Geolocator.isLocationServiceEnabled()) {
-        throw const _LocationFailure(
-          'Location services are turned off. Turn them on, or pick a city below.',
-        );
+        throw _LocationFailure(strings.onboardingLocationOff);
       }
 
       var permission = await Geolocator.checkPermission();
@@ -188,9 +198,7 @@ class _LocationPageState extends ConsumerState<_LocationPage> {
       }
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
-        throw const _LocationFailure(
-          'Location permission was declined. You can pick a city below instead.',
-        );
+        throw _LocationFailure(strings.onboardingLocationDenied);
       }
 
       final position = await Geolocator.getCurrentPosition(
@@ -224,7 +232,7 @@ class _LocationPageState extends ConsumerState<_LocationPage> {
     } catch (error) {
       if (mounted) {
         setState(() => _error =
-            'Could not determine your location. Pick a city below instead.');
+            strings.onboardingLocationFailed);
       }
     } finally {
       if (mounted) setState(() => _isDetecting = false);
@@ -237,10 +245,9 @@ class _LocationPageState extends ConsumerState<_LocationPage> {
     final matches = CityCatalog.search(_query);
 
     return _PageScaffold(
-      title: 'Where are you?',
+      title: AppLocalizations.of(context).onboardingWhereAreYou,
       subtitle:
-          'Prayer times depend on your location. Detect it automatically, or '
-          'choose the nearest city.',
+          AppLocalizations.of(context).onboardingWhereBody,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -253,7 +260,7 @@ class _LocationPageState extends ConsumerState<_LocationPage> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.my_location),
-            label: Text(_isDetecting ? 'Detecting…' : 'Use my location'),
+            label: Text(_isDetecting ? AppLocalizations.of(context).onboardingDetecting : AppLocalizations.of(context).onboardingUseLocation),
           ),
           if (_error != null) ...[
             const SizedBox(height: AppSpacing.sm),
@@ -267,10 +274,10 @@ class _LocationPageState extends ConsumerState<_LocationPage> {
           ],
           const SizedBox(height: AppSpacing.md),
           TextField(
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.search),
-              hintText: 'Search for a city',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              prefixIcon: const Icon(Icons.search),
+              hintText: AppLocalizations.of(context).onboardingSearchCity,
+              border: const OutlineInputBorder(),
             ),
             onChanged: (value) => setState(() => _query = value),
           ),
@@ -328,10 +335,9 @@ class _SectionPage extends ConsumerWidget {
     final notifier = ref.read(settingsProvider.notifier);
 
     return _PageScaffold(
-      title: 'Which Islamic section do you follow?',
+      title: AppLocalizations.of(context).onboardingSectionQuestion,
       subtitle:
-          'This sets a starting point for prayer times and how prayers are '
-          'grouped. You can change everything later.',
+          AppLocalizations.of(context).onboardingSectionBody,
       child: IslamicSectionPicker(
         selected: settings.section,
         onSelected: notifier.setSection,
@@ -351,10 +357,9 @@ class _MethodPage extends ConsumerWidget {
     final selected = ref.watch(settingsProvider).calculationMethod;
 
     return _PageScaffold(
-      title: 'Calculation method',
+      title: AppLocalizations.of(context).settingsCalculationMethod,
       subtitle:
-          'Different authorities use different sun angles for Fajr and Isha. '
-          'Choose the one your local mosque follows.',
+          AppLocalizations.of(context).onboardingMethodBody,
       child: RadioGroup<CalculationMethod>(
         groupValue: selected,
         onChanged: (value) => value == null
@@ -413,13 +418,11 @@ class _PermissionsPageState extends ConsumerState<_PermissionsPage>
   @override
   Widget build(BuildContext context) {
     if (!BlockingPlatformChannel.isSupported) {
-      return const _PageScaffold(
-        title: 'App blocking',
+      return _PageScaffold(
+        title: AppLocalizations.of(context).settingsSectionBlocking,
         subtitle:
-            'Restricting other apps is not available on this platform. '
-            'Prayer times, reminders, tracking and verification all work '
-            'normally.',
-        child: SizedBox.shrink(),
+            AppLocalizations.of(context).onboardingBlockingUnavailable,
+        child: const SizedBox.shrink(),
       );
     }
 
@@ -428,19 +431,15 @@ class _PermissionsPageState extends ConsumerState<_PermissionsPage>
     // Android labels on iOS would be wrong, so each platform gets its own copy.
     if (BlockingPlatformChannel.usesSystemPicker) {
       return _PageScaffold(
-        title: 'Allow Screen Time access',
+        title: AppLocalizations.of(context).onboardingScreenTimeTitle,
         subtitle:
-            'Prayer Lock uses Screen Time to pause distracting apps during '
-            'prayer. iPhone asks for this once. You can skip it and enable it '
-            'later in Settings.',
+            AppLocalizations.of(context).onboardingScreenTimeBody,
         child: ListView(
           children: [
             _PermissionTile(
-              title: 'Screen Time',
+              title: AppLocalizations.of(context).onboardingScreenTime,
               description:
-                  'Lets Prayer Lock pause the apps you choose during prayer, '
-                  'and release them once you have prayed. Your app choices stay '
-                  'private — even Prayer Lock cannot see which apps you pick.',
+                  AppLocalizations.of(context).onboardingScreenTimeDetail,
               granted: _permissions.hasUsageStats,
               onRequest: () async {
                 await _channel.requestUsageStatsPermission();
@@ -453,35 +452,31 @@ class _PermissionsPageState extends ConsumerState<_PermissionsPage>
     }
 
     return _PageScaffold(
-      title: 'Allow app blocking',
+      title: AppLocalizations.of(context).onboardingBlockingTitle,
       subtitle:
-          'These permissions let Prayer Lock restrict distracting apps during '
-          'prayer. Without them, blocking cannot work. You can skip this and '
-          'enable it later.',
+          AppLocalizations.of(context).onboardingBlockingBody,
       child: ListView(
         children: [
           _PermissionTile(
-            title: 'Usage access',
-            description: 'Lets the app see which app is currently open.',
+            title: AppLocalizations.of(context).onboardingUsageAccess,
+            description: AppLocalizations.of(context).onboardingUsageAccessBody,
             granted: _permissions.hasUsageStats,
             onRequest: () async {
               await _channel.requestUsageStatsPermission();
             },
           ),
           _PermissionTile(
-            title: 'Display over other apps',
-            description: 'Lets the prayer reminder appear over a blocked app.',
+            title: AppLocalizations.of(context).onboardingOverlay,
+            description: AppLocalizations.of(context).onboardingOverlayBody,
             granted: _permissions.hasOverlay,
             onRequest: () async {
               await _channel.requestOverlayPermission();
             },
           ),
           _PermissionTile(
-            title: 'Ignore battery optimisation',
+            title: AppLocalizations.of(context).onboardingBattery,
             description:
-                'Stops the system pausing the reminder service in the '
-                'background. Strongly recommended on Samsung and Xiaomi '
-                'devices.',
+                AppLocalizations.of(context).onboardingBatteryBody,
             granted: _permissions.batteryOptimizationDisabled,
             onRequest: () async {
               await _channel.requestDisableBatteryOptimization();
@@ -533,7 +528,7 @@ class _PermissionTile extends StatelessWidget {
               ),
             ),
             if (!granted)
-              TextButton(onPressed: onRequest, child: const Text('Allow')),
+              TextButton(onPressed: onRequest, child: Text(AppLocalizations.of(context).onboardingAllow)),
           ],
         ),
       ),

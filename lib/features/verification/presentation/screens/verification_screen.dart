@@ -11,6 +11,7 @@
 /// than logged as a success.
 library;
 
+import '../../../../l10n/app_localizations.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -88,8 +89,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
       final cameras = await availableCameras();
       if (cameras.isEmpty) {
         setState(() => _cameraError =
-            'No camera was found on this device. You can still record this '
-            'prayer without a photo.');
+            AppLocalizations.of(context).verifyNoCamera);
         return;
       }
 
@@ -125,9 +125,8 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
       setState(() {
         _cameraError = switch (error.code) {
           'CameraAccessDenied' =>
-            'Camera permission was declined. Allow it in Settings, or record '
-                'this prayer without a photo.',
-          _ => 'The camera could not be opened (${error.code}).',
+            AppLocalizations.of(context).verifyCameraDenied,
+          _ => AppLocalizations.of(context).verifyCameraFailed(error.code),
         };
       });
     }
@@ -164,7 +163,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
       if (!mounted) return;
       setState(() {
         _isSubmitting = false;
-        _cameraError = 'The photo could not be taken (${error.code}).';
+        _cameraError = AppLocalizations.of(context).verifyPhotoFailed(error.code);
       });
     }
   }
@@ -214,8 +213,8 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
       debugPrint('Failed to record prayer: $error\n$stack');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Could not save your prayer. Please try again.'),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).verifySaveFailed),
           ),
         );
       }
@@ -230,10 +229,9 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
       await ref.read(lockStateProvider.notifier).onPrayerCompleted();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              'The prayer and qaza windows have both passed. This prayer is '
-              'now recorded as missed.',
+              AppLocalizations.of(context).verifyWindowsPassed,
             ),
           ),
         );
@@ -291,12 +289,13 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
 
   @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(settingsProvider);
+    final strategy = ref.watch(verificationStrategyProvider);
 
-    // Verification disabled, or no camera: recording the prayer directly is
-    // the honest path. Blocking someone from marking a prayer they performed
-    // because our camera failed would be indefensible.
-    if (!settings.requireAiVerification || _cameraError != null) {
+    // The arrangement wants no photograph, or the camera failed. Recording the
+    // prayer directly is the honest path either way — blocking someone from
+    // marking a prayer they performed because our camera failed would be
+    // indefensible.
+    if (!strategy.requiresPhoto || _cameraError != null) {
       return _ManualConfirmationView(
         prayer: widget.prayer,
         message: _cameraError,
@@ -309,7 +308,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
-        title: Text('Verify ${widget.prayer.displayName}'),
+        title: Text(AppLocalizations.of(context).verifyTitle(widget.prayer.displayName)),
       ),
       body: FutureBuilder<void>(
         future: _initialisation,
@@ -374,7 +373,7 @@ class _CaptureOverlay extends StatelessWidget {
               ),
               child: Text(
                 rejection?.message ??
-                    'Point the camera at your prayer mat and take a photo.',
+                    AppLocalizations.of(context).verifyPhotoPrompt,
                 style: const TextStyle(color: Colors.white, fontSize: 15),
                 textAlign: TextAlign.center,
               ),
@@ -392,16 +391,15 @@ class _CaptureOverlay extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    const Text(
-                      'Having trouble? You can record this prayer without a '
-                      'photo.',
-                      style: TextStyle(color: Colors.white),
+                    Text(
+                      AppLocalizations.of(context).verifyTrouble,
+                      style: const TextStyle(color: Colors.white),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     TextButton(
                       onPressed: onGiveUp,
-                      child: const Text('Record without a photo'),
+                      child: Text(AppLocalizations.of(context).verifyWithoutPhoto),
                     ),
                   ],
                 ),
@@ -411,7 +409,7 @@ class _CaptureOverlay extends StatelessWidget {
             padding: const EdgeInsets.all(AppSpacing.lg),
             child: Semantics(
               button: true,
-              label: 'Take photo of prayer mat',
+              label: AppLocalizations.of(context).verifyTakePhoto,
               child: GestureDetector(
                 onTap: isSubmitting ? null : onCapture,
                 child: Container(
@@ -459,7 +457,7 @@ class _ManualConfirmationView extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text('Record ${prayer.displayName}')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).verifyRecordTitle(prayer.displayName))),
       body: Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
@@ -468,7 +466,7 @@ class _ManualConfirmationView extends StatelessWidget {
             const Icon(Icons.check_circle_outline, size: 56),
             const SizedBox(height: AppSpacing.md),
             Text(
-              'Did you complete ${prayer.displayName}?',
+              AppLocalizations.of(context).verifyDidYouComplete(prayer.displayName),
               style: theme.textTheme.titleLarge,
               textAlign: TextAlign.center,
             ),
@@ -483,12 +481,12 @@ class _ManualConfirmationView extends StatelessWidget {
             const SizedBox(height: AppSpacing.xl),
             FilledButton(
               onPressed: onConfirm,
-              child: const Text('Yes, I completed it'),
+              child: Text(AppLocalizations.of(context).verifyYesCompleted),
             ),
             const SizedBox(height: AppSpacing.sm),
             OutlinedButton(
               onPressed: () => context.pop(),
-              child: const Text('Not yet'),
+              child: Text(AppLocalizations.of(context).verifyNotYet),
             ),
           ],
         ),

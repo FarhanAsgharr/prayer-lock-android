@@ -1,25 +1,41 @@
 {
   "@@locale": "en",
-
   "prayerFajr": "Fajr",
-  "@prayerFajr": { "description": "The dawn prayer." },
+  "@prayerFajr": {
+    "description": "The dawn prayer."
+  },
   "prayerDhuhr": "Dhuhr",
-  "@prayerDhuhr": { "description": "The midday prayer." },
+  "@prayerDhuhr": {
+    "description": "The midday prayer."
+  },
   "prayerAsr": "Asr",
-  "@prayerAsr": { "description": "The afternoon prayer." },
+  "@prayerAsr": {
+    "description": "The afternoon prayer."
+  },
   "prayerMaghrib": "Maghrib",
-  "@prayerMaghrib": { "description": "The sunset prayer." },
+  "@prayerMaghrib": {
+    "description": "The sunset prayer."
+  },
   "prayerIsha": "Isha",
-  "@prayerIsha": { "description": "The night prayer." },
+  "@prayerIsha": {
+    "description": "The night prayer."
+  },
   "prayerSunrise": "Sunrise",
-  "@prayerSunrise": { "description": "Not a prayer; it closes the Fajr window." },
-
+  "@prayerSunrise": {
+    "description": "Not a prayer; it closes the Fajr window."
+  },
   "combinedPair": "{first} + {second}",
   "@combinedPair": {
     "description": "Two prayers joined into one window, e.g. Dhuhr + Asr.",
-    "placeholders": { "first": {"type": "String"}, "second": {"type": "String"} }
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
   },
-
   "islamicSectionTitle": "Islamic section",
   "@islamicSectionTitle": {
     "description": "Screen title. Deliberately not 'Madhab' — the list includes movements and orientations that are not schools of jurisprudence."
@@ -34,16 +50,18 @@
   "islamicSectionNameYours": "Name your section above",
   "islamicSectionSelected": "Selected: {name}",
   "@islamicSectionSelected": {
-    "placeholders": { "name": {"type": "String"} }
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
   },
   "islamicSectionEditable": "You can change any of these in Settings.",
-
   "sectionFamilySunniTraditions": "Sunni traditions",
   "sectionFamilySunniCommunities": "Sunni communities",
   "sectionFamilyShiaTraditions": "Shia traditions",
   "sectionFamilyOtherCommunities": "Other Muslim communities",
   "sectionFamilyOther": "Other",
-
   "prayerModeTitle": "Prayer mode",
   "prayerModeIntro": "Combining joins two prayers into one window with one lock and one confirmation. Both prayers are still recorded and still count towards your statistics and streak.",
   "prayerModeCombinedSubtitle": "One window, one lock, one confirmation.",
@@ -52,25 +70,1574 @@
   "prayerModeOneConfirmationHelp": "Turn off to confirm each prayer separately even when their windows are joined.",
   "prayerModeSuggestion": "These are the defaults suggested for {section}. Change either switch if your practice differs — nothing here is required.",
   "@prayerModeSuggestion": {
-    "placeholders": { "section": {"type": "String"} }
+    "placeholders": {
+      "section": {
+        "type": "String"
+      }
+    }
   },
   "prayerModeCardCount": "{count, plural, =1{Your day: 1 prayer card} other{Your day: {count} prayer cards}}",
   "@prayerModeCardCount": {
-    "placeholders": { "count": {"type": "int"} }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
-
   "groupingNone": "Five separate prayers",
   "groupingDhuhrAsr": "Combine Dhuhr and Asr",
   "groupingMaghribIsha": "Combine Maghrib and Isha",
   "groupingBoth": "Combine both pairs",
-
   "settingsTitle": "Settings",
   "settingsLanguage": "Language",
   "settingsLanguageSystem": "Match system",
-
   "durationHoursMinutes": "{hours}h {minutes}m",
   "@durationHoursMinutes": {
     "description": "Compact duration for tight layouts.",
-    "placeholders": { "hours": {"type": "int"}, "minutes": {"type": "int"} }
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "appTitle": "Prayer Lock",
+  "@appTitle": {
+    "description": "appTitle"
+  },
+  "actionRetry": "Try again",
+  "@actionRetry": {
+    "description": "actionRetry"
+  },
+  "actionCancel": "Cancel",
+  "@actionCancel": {
+    "description": "actionCancel"
+  },
+  "actionSave": "Save",
+  "@actionSave": {
+    "description": "actionSave"
+  },
+  "actionDelete": "Delete",
+  "@actionDelete": {
+    "description": "actionDelete"
+  },
+  "actionDone": "Done",
+  "@actionDone": {
+    "description": "actionDone"
+  },
+  "actionContinue": "Continue",
+  "@actionContinue": {
+    "description": "actionContinue"
+  },
+  "actionSkip": "Skip",
+  "@actionSkip": {
+    "description": "actionSkip"
+  },
+  "commonNotSet": "Not set",
+  "@commonNotSet": {
+    "description": "commonNotSet"
+  },
+  "commonOff": "Off",
+  "@commonOff": {
+    "description": "commonOff"
+  },
+  "commonNoData": "No data",
+  "@commonNoData": {
+    "description": "commonNoData"
+  },
+  "commonNothingYet": "Nothing here yet.",
+  "@commonNothingYet": {
+    "description": "commonNothingYet"
+  },
+  "commonLoadFailed": "Could not load: {error}",
+  "@commonLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    },
+    "description": "commonLoadFailed"
+  },
+  "dashboardTodaysPrayers": "TODAY'S PRAYERS",
+  "@dashboardTodaysPrayers": {
+    "description": "dashboardTodaysPrayers"
+  },
+  "dashboardItIsTimeFor": "IT IS TIME FOR",
+  "@dashboardItIsTimeFor": {
+    "description": "dashboardItIsTimeFor"
+  },
+  "dashboardNext": "NEXT: {prayer}",
+  "@dashboardNext": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    },
+    "description": "dashboardNext"
+  },
+  "dashboardWhatIsNext": "what is next",
+  "@dashboardWhatIsNext": {
+    "description": "dashboardWhatIsNext"
+  },
+  "dashboardCompletedOfTotal": "{completed} of {total}",
+  "@dashboardCompletedOfTotal": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    },
+    "description": "dashboardCompletedOfTotal"
+  },
+  "dashboardCompleted": "Completed",
+  "@dashboardCompleted": {
+    "description": "dashboardCompleted"
+  },
+  "dashboardRemaining": "Remaining",
+  "@dashboardRemaining": {
+    "description": "dashboardRemaining"
+  },
+  "dashboardYourPrayers": "Your prayers",
+  "@dashboardYourPrayers": {
+    "description": "dashboardYourPrayers"
+  },
+  "dashboardConfirmPrayer": "I completed this prayer",
+  "@dashboardConfirmPrayer": {
+    "description": "dashboardConfirmPrayer"
+  },
+  "dashboardVerifyQaza": "Verify qaza prayer",
+  "@dashboardVerifyQaza": {
+    "description": "dashboardVerifyQaza"
+  },
+  "dashboardMarkExcused": "Mark as excused",
+  "@dashboardMarkExcused": {
+    "description": "dashboardMarkExcused"
+  },
+  "dashboardBothRecorded": "Both prayers are recorded when you confirm.",
+  "@dashboardBothRecorded": {
+    "description": "dashboardBothRecorded"
+  },
+  "dashboardQazaExplain": "The on-time window has passed. Verifying now records this as a qaza (make-up) prayer.",
+  "@dashboardQazaExplain": {
+    "description": "dashboardQazaExplain"
+  },
+  "dashboardFajrBeforeSunrise": "Fajr must be prayed before sunrise. After sunrise it is recorded as late.",
+  "@dashboardFajrBeforeSunrise": {
+    "description": "dashboardFajrBeforeSunrise"
+  },
+  "dashboardSetLocation": "Set your location",
+  "@dashboardSetLocation": {
+    "description": "dashboardSetLocation"
+  },
+  "dashboardSetLocationBody": "Prayer times depend on where you are. Choose a location to get started.",
+  "@dashboardSetLocationBody": {
+    "description": "dashboardSetLocationBody"
+  },
+  "dashboardChooseLocation": "Choose location",
+  "@dashboardChooseLocation": {
+    "description": "dashboardChooseLocation"
+  },
+  "tileUntilBoundary": "Until {boundary}",
+  "@tileUntilBoundary": {
+    "placeholders": {
+      "boundary": {
+        "type": "String"
+      }
+    },
+    "description": "tileUntilBoundary"
+  },
+  "tileVerifyNow": "Verify now",
+  "@tileVerifyNow": {
+    "description": "tileVerifyNow"
+  },
+  "tileQazaAvailable": "Qaza available",
+  "@tileQazaAvailable": {
+    "description": "tileQazaAvailable"
+  },
+  "tileVerifiedOnTime": "Verified on time",
+  "@tileVerifiedOnTime": {
+    "description": "tileVerifiedOnTime"
+  },
+  "tileQazaCompleted": "Qaza completed",
+  "@tileQazaCompleted": {
+    "description": "tileQazaCompleted"
+  },
+  "tileLeft": "{duration} left",
+  "@tileLeft": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    },
+    "description": "tileLeft"
+  },
+  "lockGoodMorning": "Good morning",
+  "@lockGoodMorning": {
+    "description": "lockGoodMorning"
+  },
+  "lockFajrFirst": "Please offer Fajr before starting your day.",
+  "@lockFajrFirst": {
+    "description": "lockFajrFirst"
+  },
+  "lockItIsTimeFor": "It's time for {prayer}",
+  "@lockItIsTimeFor": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    },
+    "description": "lockItIsTimeFor"
+  },
+  "lockPerformPrayer": "Please perform your prayer. Your apps will unlock once you confirm.",
+  "@lockPerformPrayer": {
+    "description": "lockPerformPrayer"
+  },
+  "lockCompletedPrayer": "I completed my prayer",
+  "@lockCompletedPrayer": {
+    "description": "lockCompletedPrayer"
+  },
+  "lockEmergencyUnlock": "Emergency unlock",
+  "@lockEmergencyUnlock": {
+    "description": "lockEmergencyUnlock"
+  },
+  "lockAppPaused": "{app} is paused until you have prayed.",
+  "@lockAppPaused": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    },
+    "description": "lockAppPaused"
+  },
+  "lockThatApp": "That app",
+  "@lockThatApp": {
+    "description": "lockThatApp"
+  },
+  "lockEssentialsNeverBlocked": "Phone, messages and settings are never blocked.",
+  "@lockEssentialsNeverBlocked": {
+    "description": "lockEssentialsNeverBlocked"
+  },
+  "lockEmergencyTitle": "Emergency unlock?",
+  "@lockEmergencyTitle": {
+    "description": "lockEmergencyTitle"
+  },
+  "lockEmergencyBody": "This unlocks your apps without verifying your prayer. If you need to call someone, the phone and messages apps are always available without using this.",
+  "@lockEmergencyBody": {
+    "description": "lockEmergencyBody"
+  },
+  "lockUnlockedTitle": "Apps unlocked",
+  "@lockUnlockedTitle": {
+    "description": "lockUnlockedTitle"
+  },
+  "lockUnlockedBody": "Your apps are available again. This has been recorded.",
+  "@lockUnlockedBody": {
+    "description": "lockUnlockedBody"
+  },
+  "lockNoUnlocksLeft": "You've used all your emergency unlocks today",
+  "@lockNoUnlocksLeft": {
+    "description": "lockNoUnlocksLeft"
+  },
+  "lockWillUnlockAfter": "Apps will unlock once you complete and verify your prayer.",
+  "@lockWillUnlockAfter": {
+    "description": "lockWillUnlockAfter"
+  },
+  "verifyTitle": "Verify {prayer}",
+  "@verifyTitle": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    },
+    "description": "verifyTitle"
+  },
+  "verifyRecordTitle": "Record {prayer}",
+  "@verifyRecordTitle": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    },
+    "description": "verifyRecordTitle"
+  },
+  "verifyDidYouComplete": "Did you complete {prayer}?",
+  "@verifyDidYouComplete": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    },
+    "description": "verifyDidYouComplete"
+  },
+  "verifyYesCompleted": "Yes, I completed it",
+  "@verifyYesCompleted": {
+    "description": "verifyYesCompleted"
+  },
+  "verifyNotYet": "Not yet",
+  "@verifyNotYet": {
+    "description": "verifyNotYet"
+  },
+  "verifyPhotoPrompt": "Point the camera at your prayer mat and take a photo.",
+  "@verifyPhotoPrompt": {
+    "description": "verifyPhotoPrompt"
+  },
+  "verifyManualPrompt": "Confirm that you have prayed.",
+  "@verifyManualPrompt": {
+    "description": "verifyManualPrompt"
+  },
+  "verifyTakePhoto": "Take photo of prayer mat",
+  "@verifyTakePhoto": {
+    "description": "verifyTakePhoto"
+  },
+  "verifyWithoutPhoto": "Record without a photo",
+  "@verifyWithoutPhoto": {
+    "description": "verifyWithoutPhoto"
+  },
+  "verifyTrouble": "Having trouble? You can record this prayer without a photo.",
+  "@verifyTrouble": {
+    "description": "verifyTrouble"
+  },
+  "verifyNoCamera": "No camera was found on this device. You can still record this prayer without a photo.",
+  "@verifyNoCamera": {
+    "description": "verifyNoCamera"
+  },
+  "verifyCameraDenied": "Camera permission was declined. Allow it in Settings, or record this prayer without a photo.",
+  "@verifyCameraDenied": {
+    "description": "verifyCameraDenied"
+  },
+  "verifyCameraFailed": "The camera could not be opened ({code}).",
+  "@verifyCameraFailed": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    },
+    "description": "verifyCameraFailed"
+  },
+  "verifyPhotoFailed": "The photo could not be taken ({code}).",
+  "@verifyPhotoFailed": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    },
+    "description": "verifyPhotoFailed"
+  },
+  "verifySaveFailed": "Could not save your prayer. Please try again.",
+  "@verifySaveFailed": {
+    "description": "verifySaveFailed"
+  },
+  "verifyWindowsPassed": "The prayer and qaza windows have both passed. This prayer is now recorded as missed.",
+  "@verifyWindowsPassed": {
+    "description": "verifyWindowsPassed"
+  },
+  "verifyNoSchedule": "Cannot complete prayer: no schedule available",
+  "@verifyNoSchedule": {
+    "description": "verifyNoSchedule"
+  },
+  "qazaTitle": "Make-up prayers",
+  "@qazaTitle": {
+    "description": "qazaTitle"
+  },
+  "qazaOne": "One prayer to make up",
+  "@qazaOne": {
+    "description": "qazaOne"
+  },
+  "qazaMany": "{count} prayers to make up",
+  "@qazaMany": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    },
+    "description": "qazaMany"
+  },
+  "qazaHint": "Pray them when you can, then mark them here. The oldest is first.",
+  "@qazaHint": {
+    "description": "qazaHint"
+  },
+  "qazaMarked": "{prayer} marked as made up.",
+  "@qazaMarked": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    },
+    "description": "qazaMarked"
+  },
+  "qazaAlreadyMarked": "That prayer was already marked as made up.",
+  "@qazaAlreadyMarked": {
+    "description": "qazaAlreadyMarked"
+  },
+  "qazaNothing": "Nothing to make up",
+  "@qazaNothing": {
+    "description": "qazaNothing"
+  },
+  "qazaNothingBody": "Every prayer whose window has closed was accounted for.",
+  "@qazaNothingBody": {
+    "description": "qazaNothingBody"
+  },
+  "qazaLoadFailed": "Your make-up prayers could not be loaded.",
+  "@qazaLoadFailed": {
+    "description": "qazaLoadFailed"
+  },
+  "analyticsTitle": "Your prayers",
+  "@analyticsTitle": {
+    "description": "analyticsTitle"
+  },
+  "analyticsDayStreak": "day streak",
+  "@analyticsDayStreak": {
+    "description": "analyticsDayStreak"
+  },
+  "analyticsLongestStreak": "longest streak",
+  "@analyticsLongestStreak": {
+    "description": "analyticsLongestStreak"
+  },
+  "analyticsAllTimeCompletion": "all-time completion",
+  "@analyticsAllTimeCompletion": {
+    "description": "analyticsAllTimeCompletion"
+  },
+  "analyticsPrayersFulfilled": "prayers fulfilled",
+  "@analyticsPrayersFulfilled": {
+    "description": "analyticsPrayersFulfilled"
+  },
+  "analyticsOnTime": "on time",
+  "@analyticsOnTime": {
+    "description": "analyticsOnTime"
+  },
+  "analyticsQazaMakeUp": "qaza (make-up)",
+  "@analyticsQazaMakeUp": {
+    "description": "analyticsQazaMakeUp"
+  },
+  "analyticsMissed": "missed",
+  "@analyticsMissed": {
+    "description": "analyticsMissed"
+  },
+  "analyticsThisWeek": "THIS WEEK",
+  "@analyticsThisWeek": {
+    "description": "analyticsThisWeek"
+  },
+  "analyticsCompletionRate": "COMPLETION RATE",
+  "@analyticsCompletionRate": {
+    "description": "analyticsCompletionRate"
+  },
+  "analyticsByPrayer": "BY PRAYER",
+  "@analyticsByPrayer": {
+    "description": "analyticsByPrayer"
+  },
+  "analyticsRangeWeek": "This week",
+  "@analyticsRangeWeek": {
+    "description": "analyticsRangeWeek"
+  },
+  "analyticsRangeMonth": "This month",
+  "@analyticsRangeMonth": {
+    "description": "analyticsRangeMonth"
+  },
+  "analyticsRangeYear": "This year",
+  "@analyticsRangeYear": {
+    "description": "analyticsRangeYear"
+  },
+  "analyticsVerificationHistory": "Verification history",
+  "@analyticsVerificationHistory": {
+    "description": "analyticsVerificationHistory"
+  },
+  "analyticsLockHistory": "Lock history",
+  "@analyticsLockHistory": {
+    "description": "analyticsLockHistory"
+  },
+  "analyticsEmergencyUnlocks": "Emergency unlocks",
+  "@analyticsEmergencyUnlocks": {
+    "description": "analyticsEmergencyUnlocks"
+  },
+  "analyticsMostMissed": "{prayer} is the prayer you miss most. A little extra focus there will lift your whole week.",
+  "@analyticsMostMissed": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    },
+    "description": "analyticsMostMissed"
+  },
+  "analyticsParked": "{count} record(s) could not be uploaded.",
+  "@analyticsParked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    },
+    "description": "analyticsParked"
+  },
+  "analyticsPending": "{count} record(s) waiting to sync.",
+  "@analyticsPending": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    },
+    "description": "analyticsPending"
+  },
+  "analyticsReleasedWithoutDetection": "Released without detection",
+  "@analyticsReleasedWithoutDetection": {
+    "description": "analyticsReleasedWithoutDetection"
+  },
+  "analyticsNotVerified": "Not verified",
+  "@analyticsNotVerified": {
+    "description": "analyticsNotVerified"
+  },
+  "analyticsNoPrayersYet": "No prayers recorded yet",
+  "@analyticsNoPrayersYet": {
+    "description": "analyticsNoPrayersYet"
+  },
+  "analyticsChartSummary": "Prayer completion over {days} days: {fulfilled} of {assessed} prayers fulfilled",
+  "@analyticsChartSummary": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "fulfilled": {
+        "type": "int"
+      },
+      "assessed": {
+        "type": "int"
+      }
+    },
+    "description": "analyticsChartSummary"
+  },
+  "settingsSectionPrayerTimes": "Prayer times",
+  "@settingsSectionPrayerTimes": {
+    "description": "settingsSectionPrayerTimes"
+  },
+  "settingsLocation": "Location",
+  "@settingsLocation": {
+    "description": "settingsLocation"
+  },
+  "settingsCalculationMethod": "Calculation method",
+  "@settingsCalculationMethod": {
+    "description": "settingsCalculationMethod"
+  },
+  "settingsIslamicSection": "Islamic section",
+  "@settingsIslamicSection": {
+    "description": "settingsIslamicSection"
+  },
+  "settingsPrayerMode": "Prayer mode",
+  "@settingsPrayerMode": {
+    "description": "settingsPrayerMode"
+  },
+  "settingsPrayerCards": "{mode} — {count} prayer cards",
+  "@settingsPrayerCards": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    },
+    "description": "settingsPrayerCards"
+  },
+  "settingsJumuah": "Jumu'ah",
+  "@settingsJumuah": {
+    "description": "settingsJumuah"
+  },
+  "settingsAsrTiming": "Asr timing",
+  "@settingsAsrTiming": {
+    "description": "settingsAsrTiming"
+  },
+  "settingsResetSectionDefaults": "Reset to section defaults",
+  "@settingsResetSectionDefaults": {
+    "description": "settingsResetSectionDefaults"
+  },
+  "settingsReturnToSuggested": "Return to what {section} suggests",
+  "@settingsReturnToSuggested": {
+    "placeholders": {
+      "section": {
+        "type": "String"
+      }
+    },
+    "description": "settingsReturnToSuggested"
+  },
+  "settingsHijriDate": "Hijri date",
+  "@settingsHijriDate": {
+    "description": "settingsHijriDate"
+  },
+  "settingsHijriCalculated": "Calculated — adjust if it differs from your local sighting",
+  "@settingsHijriCalculated": {
+    "description": "settingsHijriCalculated"
+  },
+  "settingsHijriAdjustment": "Hijri date adjustment",
+  "@settingsHijriAdjustment": {
+    "description": "settingsHijriAdjustment"
+  },
+  "settingsHijriAsCalculated": "As calculated",
+  "@settingsHijriAsCalculated": {
+    "description": "settingsHijriAsCalculated"
+  },
+  "settingsHijriDayLater": "1 day later",
+  "@settingsHijriDayLater": {
+    "description": "settingsHijriDayLater"
+  },
+  "settingsHijriDayEarlier": "1 day earlier",
+  "@settingsHijriDayEarlier": {
+    "description": "settingsHijriDayEarlier"
+  },
+  "settingsHijriDaysLater": "{days} days later",
+  "@settingsHijriDaysLater": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    },
+    "description": "settingsHijriDaysLater"
+  },
+  "settingsHijriDaysEarlier": "{days} days earlier",
+  "@settingsHijriDaysEarlier": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    },
+    "description": "settingsHijriDaysEarlier"
+  },
+  "settingsHighLatitude": "High latitude rule",
+  "@settingsHighLatitude": {
+    "description": "settingsHighLatitude"
+  },
+  "settingsSectionReminders": "Reminders",
+  "@settingsSectionReminders": {
+    "description": "settingsSectionReminders"
+  },
+  "settingsRemindBefore": "Remind me before prayer",
+  "@settingsRemindBefore": {
+    "description": "settingsRemindBefore"
+  },
+  "settingsMinutesBefore": "{minutes} minutes before",
+  "@settingsMinutesBefore": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    },
+    "description": "settingsMinutesBefore"
+  },
+  "settingsAtPrayerTime": "At prayer time",
+  "@settingsAtPrayerTime": {
+    "description": "settingsAtPrayerTime"
+  },
+  "settingsPlayAdhan": "Play adhan",
+  "@settingsPlayAdhan": {
+    "description": "settingsPlayAdhan"
+  },
+  "settingsPlayAdhanBody": "Sound the call to prayer at prayer time",
+  "@settingsPlayAdhanBody": {
+    "description": "settingsPlayAdhanBody"
+  },
+  "settingsSectionBlocking": "App blocking",
+  "@settingsSectionBlocking": {
+    "description": "settingsSectionBlocking"
+  },
+  "settingsBlockingUnavailable": "Blocking other apps is not available on this platform. Prayer times, reminders, tracking and verification all work normally.",
+  "@settingsBlockingUnavailable": {
+    "description": "settingsBlockingUnavailable"
+  },
+  "settingsBlockDuringPrayer": "Block apps during prayer",
+  "@settingsBlockDuringPrayer": {
+    "description": "settingsBlockDuringPrayer"
+  },
+  "settingsBlockedApps": "Blocked apps",
+  "@settingsBlockedApps": {
+    "description": "settingsBlockedApps"
+  },
+  "settingsNoneSelected": "None selected",
+  "@settingsNoneSelected": {
+    "description": "settingsNoneSelected"
+  },
+  "settingsCountSelected": "{count} selected",
+  "@settingsCountSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    },
+    "description": "settingsCountSelected"
+  },
+  "settingsGracePeriod": "Grace period",
+  "@settingsGracePeriod": {
+    "description": "settingsGracePeriod"
+  },
+  "settingsGraceBody": "{minutes} minutes after the adhan before apps lock",
+  "@settingsGraceBody": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    },
+    "description": "settingsGraceBody"
+  },
+  "settingsLockImmediately": "Lock immediately",
+  "@settingsLockImmediately": {
+    "description": "settingsLockImmediately"
+  },
+  "settingsLockAfterMinutes": "Lock after {minutes} minutes",
+  "@settingsLockAfterMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    },
+    "description": "settingsLockAfterMinutes"
+  },
+  "settingsWhenAppsUnlock": "When apps unlock",
+  "@settingsWhenAppsUnlock": {
+    "description": "settingsWhenAppsUnlock"
+  },
+  "settingsPrayerDurations": "Prayer durations",
+  "@settingsPrayerDurations": {
+    "description": "settingsPrayerDurations"
+  },
+  "settingsPrayerDurationsBody": "See how long each prayer window lasts today",
+  "@settingsPrayerDurationsBody": {
+    "description": "settingsPrayerDurationsBody"
+  },
+  "settingsMorningProtection": "Morning protection",
+  "@settingsMorningProtection": {
+    "description": "settingsMorningProtection"
+  },
+  "settingsMorningProtectionBody": "Keep apps locked after Fajr begins until you have prayed",
+  "@settingsMorningProtectionBody": {
+    "description": "settingsMorningProtectionBody"
+  },
+  "settingsBlockUntilQaza": "Keep apps locked until qaza is made",
+  "@settingsBlockUntilQaza": {
+    "description": "settingsBlockUntilQaza"
+  },
+  "settingsBlockUntilQazaBody": "A missed prayer keeps apps blocked for the rest of the day until you make it up",
+  "@settingsBlockUntilQazaBody": {
+    "description": "settingsBlockUntilQazaBody"
+  },
+  "settingsMakeUpPrayers": "Make-up prayers",
+  "@settingsMakeUpPrayers": {
+    "description": "settingsMakeUpPrayers"
+  },
+  "settingsMakeUpPrayersBody": "Prayers you still owe",
+  "@settingsMakeUpPrayersBody": {
+    "description": "settingsMakeUpPrayersBody"
+  },
+  "settingsSectionSource": "Prayer time source",
+  "@settingsSectionSource": {
+    "description": "settingsSectionSource"
+  },
+  "settingsConfirmOnline": "Confirm times online",
+  "@settingsConfirmOnline": {
+    "description": "settingsConfirmOnline"
+  },
+  "settingsConfirmOnlineBody": "Check prayer times against an online service when possible. Times are always calculated on this device as well, so the app works fully offline either way.",
+  "@settingsConfirmOnlineBody": {
+    "description": "settingsConfirmOnlineBody"
+  },
+  "settingsNotifyWindowEnd": "Notify when a window ends",
+  "@settingsNotifyWindowEnd": {
+    "description": "settingsNotifyWindowEnd"
+  },
+  "settingsNotifyWindowEndBody": "Warn before a prayer window closes, and confirm when apps unlock",
+  "@settingsNotifyWindowEndBody": {
+    "description": "settingsNotifyWindowEndBody"
+  },
+  "settingsSectionAfterPrayer": "After prayer",
+  "@settingsSectionAfterPrayer": {
+    "description": "settingsSectionAfterPrayer"
+  },
+  "settingsTasbih": "Tasbih reminder",
+  "@settingsTasbih": {
+    "description": "settingsTasbih"
+  },
+  "settingsTasbihBody": "Offer SubhanAllah, Alhamdulillah and Allahu Akbar after a recorded prayer",
+  "@settingsTasbihBody": {
+    "description": "settingsTasbihBody"
+  },
+  "settingsQuranReminder": "Quran reminder",
+  "@settingsQuranReminder": {
+    "description": "settingsQuranReminder"
+  },
+  "settingsQuranReminderBody": "Suggest five minutes of reading while you are still sitting",
+  "@settingsQuranReminderBody": {
+    "description": "settingsQuranReminderBody"
+  },
+  "settingsSectionVerification": "Verification",
+  "@settingsSectionVerification": {
+    "description": "settingsSectionVerification"
+  },
+  "settingsPhotoVerification": "Photo verification",
+  "@settingsPhotoVerification": {
+    "description": "settingsPhotoVerification"
+  },
+  "settingsPhotoVerificationBody": "Take a photo of your prayer mat to unlock apps",
+  "@settingsPhotoVerificationBody": {
+    "description": "settingsPhotoVerificationBody"
+  },
+  "settingsPhotoPrivacy": "Photos are analysed and immediately discarded. They are never saved to your device, uploaded to storage, or shared.",
+  "@settingsPhotoPrivacy": {
+    "description": "settingsPhotoPrivacy"
+  },
+  "settingsSectionGeneral": "General",
+  "@settingsSectionGeneral": {
+    "description": "settingsSectionGeneral"
+  },
+  "blockedAppsTitle": "Blocked apps",
+  "@blockedAppsTitle": {
+    "description": "blockedAppsTitle"
+  },
+  "blockedAppsIntro": "Selected apps will be unavailable from the start of each prayer until you confirm you have prayed.",
+  "@blockedAppsIntro": {
+    "description": "blockedAppsIntro"
+  },
+  "blockedAppsEssentials": "Phone, messages and settings can never be blocked.",
+  "@blockedAppsEssentials": {
+    "description": "blockedAppsEssentials"
+  },
+  "blockedAppsNoneFound": "No apps found",
+  "@blockedAppsNoneFound": {
+    "description": "blockedAppsNoneFound"
+  },
+  "blockedAppsAndroidOnly": "App blocking is only available on Android.",
+  "@blockedAppsAndroidOnly": {
+    "description": "blockedAppsAndroidOnly"
+  },
+  "blockedAppsListFailed": "Could not list your apps",
+  "@blockedAppsListFailed": {
+    "description": "blockedAppsListFailed"
+  },
+  "blockedAppsSuggested": "Suggested",
+  "@blockedAppsSuggested": {
+    "description": "blockedAppsSuggested"
+  },
+  "blockedAppsChoose": "Choose apps",
+  "@blockedAppsChoose": {
+    "description": "blockedAppsChoose"
+  },
+  "blockedAppsSelectedCount": "{count} app(s) or categories selected",
+  "@blockedAppsSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    },
+    "description": "blockedAppsSelectedCount"
+  },
+  "blockedAppsIosIntro": "Choose which apps to pause during prayer. On iPhone, apps are chosen in Apple's Screen Time picker — Prayer Lock never sees which apps you pick, only how many.",
+  "@blockedAppsIosIntro": {
+    "description": "blockedAppsIosIntro"
+  },
+  "durationsTitle": "Prayer durations",
+  "@durationsTitle": {
+    "description": "durationsTitle"
+  },
+  "durationsTotalBlocking": "Today that is {duration} of blocking in total.",
+  "@durationsTotalBlocking": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    },
+    "description": "durationsTotalBlocking"
+  },
+  "durationsSetLocation": "Set your location to see today's prayer windows.",
+  "@durationsSetLocation": {
+    "description": "durationsSetLocation"
+  },
+  "durationsSourceConfirmed": "Times confirmed with the prayer time service.",
+  "@durationsSourceConfirmed": {
+    "description": "durationsSourceConfirmed"
+  },
+  "durationsSourceCachedOffline": "Showing saved times. They will be confirmed when you are online.",
+  "@durationsSourceCachedOffline": {
+    "description": "durationsSourceCachedOffline"
+  },
+  "durationsSourceCached": "Showing saved times.",
+  "@durationsSourceCached": {
+    "description": "durationsSourceCached"
+  },
+  "durationsSourceDevice": "Times calculated on this device. They will be confirmed when you are online.",
+  "@durationsSourceDevice": {
+    "description": "durationsSourceDevice"
+  },
+  "jumuahTitle": "Jumu'ah",
+  "@jumuahTitle": {
+    "description": "jumuahTitle"
+  },
+  "jumuahLabel": "JUMU'AH",
+  "@jumuahLabel": {
+    "description": "jumuahLabel"
+  },
+  "jumuahIntro": "On Fridays, Dhuhr is replaced by Jumu'ah at the time your mosque holds it. Every other day is unchanged.",
+  "@jumuahIntro": {
+    "description": "jumuahIntro"
+  },
+  "jumuahSmart": "Smart Jumu'ah",
+  "@jumuahSmart": {
+    "description": "jumuahSmart"
+  },
+  "jumuahReplacesDhuhr": "Jumu'ah replaces Dhuhr on Fridays",
+  "@jumuahReplacesDhuhr": {
+    "description": "jumuahReplacesDhuhr"
+  },
+  "jumuahDhuhrEveryDay": "Dhuhr is used every day",
+  "@jumuahDhuhrEveryDay": {
+    "description": "jumuahDhuhrEveryDay"
+  },
+  "jumuahYourMosques": "Your mosques",
+  "@jumuahYourMosques": {
+    "description": "jumuahYourMosques"
+  },
+  "jumuahChooseMosque": "Choose a mosque so Jumu'ah can replace Dhuhr this Friday.",
+  "@jumuahChooseMosque": {
+    "description": "jumuahChooseMosque"
+  },
+  "jumuahFridayBehaviour": "Friday behaviour",
+  "@jumuahFridayBehaviour": {
+    "description": "jumuahFridayBehaviour"
+  },
+  "jumuahAskWhenTravel": "Ask when I travel",
+  "@jumuahAskWhenTravel": {
+    "description": "jumuahAskWhenTravel"
+  },
+  "jumuahAskWhenTravelBody": "Offer a different mosque if you seem to be somewhere else",
+  "@jumuahAskWhenTravelBody": {
+    "description": "jumuahAskWhenTravelBody"
+  },
+  "jumuahSilence": "Silence during Jumu'ah",
+  "@jumuahSilence": {
+    "description": "jumuahSilence"
+  },
+  "jumuahSilenceBody": "Mute the phone for the congregation, and restore it after",
+  "@jumuahSilenceBody": {
+    "description": "jumuahSilenceBody"
+  },
+  "jumuahSilenceNeedsAccess": "Prayer Lock needs Do Not Disturb access before it can mute anything.",
+  "@jumuahSilenceNeedsAccess": {
+    "description": "jumuahSilenceNeedsAccess"
+  },
+  "jumuahGrantAccess": "Grant access",
+  "@jumuahGrantAccess": {
+    "description": "jumuahGrantAccess"
+  },
+  "jumuahReset": "Reset",
+  "@jumuahReset": {
+    "description": "jumuahReset"
+  },
+  "jumuahResetTimes": "Reset the built-in mosque times",
+  "@jumuahResetTimes": {
+    "description": "jumuahResetTimes"
+  },
+  "jumuahResetTimesBody": "Mosques you added yourself are kept",
+  "@jumuahResetTimesBody": {
+    "description": "jumuahResetTimesBody"
+  },
+  "jumuahForget": "Forget where I pray",
+  "@jumuahForget": {
+    "description": "jumuahForget"
+  },
+  "jumuahForgetBody": "You'll be asked again on the next Friday",
+  "@jumuahForgetBody": {
+    "description": "jumuahForgetBody"
+  },
+  "jumuahAddMosque": "Add mosque",
+  "@jumuahAddMosque": {
+    "description": "jumuahAddMosque"
+  },
+  "jumuahEditMosque": "Edit mosque",
+  "@jumuahEditMosque": {
+    "description": "jumuahEditMosque"
+  },
+  "jumuahMosqueName": "Mosque name",
+  "@jumuahMosqueName": {
+    "description": "jumuahMosqueName"
+  },
+  "jumuahMosqueNameHelp": "Shown on the Friday card and in notifications",
+  "@jumuahMosqueNameHelp": {
+    "description": "jumuahMosqueNameHelp"
+  },
+  "jumuahTime": "Jumu'ah time",
+  "@jumuahTime": {
+    "description": "jumuahTime"
+  },
+  "jumuahStartsAt": "Starts {time}",
+  "@jumuahStartsAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    },
+    "description": "jumuahStartsAt"
+  },
+  "jumuahEndsAt": "Ends {time}",
+  "@jumuahEndsAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    },
+    "description": "jumuahEndsAt"
+  },
+  "jumuahTimeHelp": "Apps stay blocked between these times, and this is the window in which you can confirm your prayer.",
+  "@jumuahTimeHelp": {
+    "description": "jumuahTimeHelp"
+  },
+  "jumuahNotesHint": "Parking, which entrance, anything useful",
+  "@jumuahNotesHint": {
+    "description": "jumuahNotesHint"
+  },
+  "jumuahNotes": "Notes",
+  "@jumuahNotes": {
+    "description": "jumuahNotes"
+  },
+  "jumuahNoPosition": "No position saved",
+  "@jumuahNoPosition": {
+    "description": "jumuahNoPosition"
+  },
+  "jumuahPositionSaved": "Position saved",
+  "@jumuahPositionSaved": {
+    "description": "jumuahPositionSaved"
+  },
+  "jumuahPositionHelp": "Used to offer this mosque when you are nearby",
+  "@jumuahPositionHelp": {
+    "description": "jumuahPositionHelp"
+  },
+  "jumuahUseCurrent": "Use current",
+  "@jumuahUseCurrent": {
+    "description": "jumuahUseCurrent"
+  },
+  "jumuahIPrayed": "I prayed Jumu'ah",
+  "@jumuahIPrayed": {
+    "description": "jumuahIPrayed"
+  },
+  "jumuahConfirmedLate": "Confirmed late",
+  "@jumuahConfirmedLate": {
+    "description": "jumuahConfirmedLate"
+  },
+  "jumuahMissed": "Missed — pray Dhuhr instead",
+  "@jumuahMissed": {
+    "description": "jumuahMissed"
+  },
+  "jumuahLeftToConfirm": "{duration} left to confirm",
+  "@jumuahLeftToConfirm": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    },
+    "description": "jumuahLeftToConfirm"
+  },
+  "jumuahStartsIn": "Starts in {duration}",
+  "@jumuahStartsIn": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    },
+    "description": "jumuahStartsIn"
+  },
+  "jumuahWhereToday": "Where will you pray Jumu'ah today?",
+  "@jumuahWhereToday": {
+    "description": "jumuahWhereToday"
+  },
+  "jumuahWhereTodayBody": "We'll use this every Friday. You can change it in Settings.",
+  "@jumuahWhereTodayBody": {
+    "description": "jumuahWhereTodayBody"
+  },
+  "jumuahTravelTitle": "Praying somewhere else today?",
+  "@jumuahTravelTitle": {
+    "description": "jumuahTravelTitle"
+  },
+  "jumuahTravelBody": "You're about {near} from {mosque}, and {far} from your usual mosque.",
+  "@jumuahTravelBody": {
+    "placeholders": {
+      "near": {
+        "type": "String"
+      },
+      "mosque": {
+        "type": "String"
+      },
+      "far": {
+        "type": "String"
+      }
+    },
+    "description": "jumuahTravelBody"
+  },
+  "jumuahTravelStay": "No, stay as I am",
+  "@jumuahTravelStay": {
+    "description": "jumuahTravelStay"
+  },
+  "jumuahTravelUse": "Use it today",
+  "@jumuahTravelUse": {
+    "description": "jumuahTravelUse"
+  },
+  "jumuahKilometres": "{value} km",
+  "@jumuahKilometres": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    },
+    "description": "jumuahKilometres"
+  },
+  "jumuahNextFridayDays": "Today is not Friday. Jumu'ah next applies in {days} days.",
+  "@jumuahNextFridayDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    },
+    "description": "jumuahNextFridayDays"
+  },
+  "jumuahNextFridayTomorrow": "Today is not Friday. Jumu'ah applies tomorrow.",
+  "@jumuahNextFridayTomorrow": {
+    "description": "jumuahNextFridayTomorrow"
+  },
+  "jumuahTodayIsFriday": "Today is Friday.",
+  "@jumuahTodayIsFriday": {
+    "description": "jumuahTodayIsFriday"
+  },
+  "jumuahAppliedToday": "Today Dhuhr is replaced by Jumu'ah.",
+  "@jumuahAppliedToday": {
+    "description": "jumuahAppliedToday"
+  },
+  "jumuahAppliedClamped": "Today Dhuhr is replaced by Jumu'ah, adjusted to fit inside Dhuhr's window.",
+  "@jumuahAppliedClamped": {
+    "description": "jumuahAppliedClamped"
+  },
+  "jumuahOutsideDhuhr": "Your Jumu'ah time falls outside Dhuhr today, so ordinary Dhuhr is being used.",
+  "@jumuahOutsideDhuhr": {
+    "description": "jumuahOutsideDhuhr"
+  },
+  "jumuahNotActive": "Jumu'ah is not active today.",
+  "@jumuahNotActive": {
+    "description": "jumuahNotActive"
+  },
+  "onboardingStepOf": "Step {index} of {count}",
+  "@onboardingStepOf": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    },
+    "description": "onboardingStepOf"
+  },
+  "onboardingStart": "Start praying on time",
+  "@onboardingStart": {
+    "description": "onboardingStart"
+  },
+  "onboardingWhereAreYou": "Where are you?",
+  "@onboardingWhereAreYou": {
+    "description": "onboardingWhereAreYou"
+  },
+  "onboardingWhereBody": "Prayer times depend on your location. Detect it automatically, or choose the nearest city.",
+  "@onboardingWhereBody": {
+    "description": "onboardingWhereBody"
+  },
+  "onboardingUseLocation": "Use my location",
+  "@onboardingUseLocation": {
+    "description": "onboardingUseLocation"
+  },
+  "onboardingDetecting": "Detecting…",
+  "@onboardingDetecting": {
+    "description": "onboardingDetecting"
+  },
+  "onboardingSearchCity": "Search for a city",
+  "@onboardingSearchCity": {
+    "description": "onboardingSearchCity"
+  },
+  "onboardingLocationOff": "Location services are turned off. Turn them on, or pick a city below.",
+  "@onboardingLocationOff": {
+    "description": "onboardingLocationOff"
+  },
+  "onboardingLocationDenied": "Location permission was declined. You can pick a city below instead.",
+  "@onboardingLocationDenied": {
+    "description": "onboardingLocationDenied"
+  },
+  "onboardingLocationFailed": "Could not determine your location. Pick a city below instead.",
+  "@onboardingLocationFailed": {
+    "description": "onboardingLocationFailed"
+  },
+  "onboardingSectionQuestion": "Which Islamic section do you follow?",
+  "@onboardingSectionQuestion": {
+    "description": "onboardingSectionQuestion"
+  },
+  "onboardingSectionBody": "This sets a starting point for prayer times and how prayers are grouped. You can change everything later.",
+  "@onboardingSectionBody": {
+    "description": "onboardingSectionBody"
+  },
+  "onboardingMethodBody": "Different authorities use different sun angles for Fajr and Isha. Choose the one your local mosque follows.",
+  "@onboardingMethodBody": {
+    "description": "onboardingMethodBody"
+  },
+  "onboardingBlockingTitle": "Allow app blocking",
+  "@onboardingBlockingTitle": {
+    "description": "onboardingBlockingTitle"
+  },
+  "onboardingBlockingBody": "These permissions let Prayer Lock restrict distracting apps during prayer. Without them, blocking cannot work. You can skip this and enable it later.",
+  "@onboardingBlockingBody": {
+    "description": "onboardingBlockingBody"
+  },
+  "onboardingUsageAccess": "Usage access",
+  "@onboardingUsageAccess": {
+    "description": "onboardingUsageAccess"
+  },
+  "onboardingUsageAccessBody": "Lets the app see which app is currently open.",
+  "@onboardingUsageAccessBody": {
+    "description": "onboardingUsageAccessBody"
+  },
+  "onboardingOverlay": "Display over other apps",
+  "@onboardingOverlay": {
+    "description": "onboardingOverlay"
+  },
+  "onboardingOverlayBody": "Lets the prayer reminder appear over a blocked app.",
+  "@onboardingOverlayBody": {
+    "description": "onboardingOverlayBody"
+  },
+  "onboardingBattery": "Ignore battery optimisation",
+  "@onboardingBattery": {
+    "description": "onboardingBattery"
+  },
+  "onboardingBatteryBody": "Stops the system pausing the reminder service in the background. Strongly recommended on Samsung and Xiaomi devices.",
+  "@onboardingBatteryBody": {
+    "description": "onboardingBatteryBody"
+  },
+  "onboardingAllow": "Allow",
+  "@onboardingAllow": {
+    "description": "onboardingAllow"
+  },
+  "onboardingScreenTimeTitle": "Allow Screen Time access",
+  "@onboardingScreenTimeTitle": {
+    "description": "onboardingScreenTimeTitle"
+  },
+  "onboardingScreenTimeBody": "Prayer Lock uses Screen Time to pause distracting apps during prayer. iPhone asks for this once. You can skip it and enable it later in Settings.",
+  "@onboardingScreenTimeBody": {
+    "description": "onboardingScreenTimeBody"
+  },
+  "onboardingScreenTime": "Screen Time",
+  "@onboardingScreenTime": {
+    "description": "onboardingScreenTime"
+  },
+  "onboardingScreenTimeDetail": "Lets Prayer Lock pause the apps you choose during prayer, and release them once you have prayed. Your app choices stay private — even Prayer Lock cannot see which apps you pick.",
+  "@onboardingScreenTimeDetail": {
+    "description": "onboardingScreenTimeDetail"
+  },
+  "onboardingBlockingUnavailable": "Restricting other apps is not available on this platform. Prayer times, reminders, tracking and verification all work normally.",
+  "@onboardingBlockingUnavailable": {
+    "description": "onboardingBlockingUnavailable"
+  },
+  "dhikrPrayerRecorded": "Prayer recorded",
+  "@dhikrPrayerRecorded": {
+    "description": "dhikrPrayerRecorded"
+  },
+  "dhikrSubhanAllahMeaning": "Glory be to Allah",
+  "@dhikrSubhanAllahMeaning": {
+    "description": "dhikrSubhanAllahMeaning"
+  },
+  "dhikrAlhamdulillahMeaning": "All praise is for Allah",
+  "@dhikrAlhamdulillahMeaning": {
+    "description": "dhikrAlhamdulillahMeaning"
+  },
+  "dhikrAllahuAkbarMeaning": "Allah is the greatest",
+  "@dhikrAllahuAkbarMeaning": {
+    "description": "dhikrAllahuAkbarMeaning"
+  },
+  "dhikrOfCount": "of {count}",
+  "@dhikrOfCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    },
+    "description": "dhikrOfCount"
+  },
+  "dhikrComplete": "Tasbih complete",
+  "@dhikrComplete": {
+    "description": "dhikrComplete"
+  },
+  "dhikrTapToCount": "Tap to count",
+  "@dhikrTapToCount": {
+    "description": "dhikrTapToCount"
+  },
+  "dhikrQuranPrompt": "Read the Quran for five minutes?",
+  "@dhikrQuranPrompt": {
+    "description": "dhikrQuranPrompt"
+  },
+  "dhikrQuranBody": "Open your usual Quran app or copy — this is just a reminder while you are still sitting.",
+  "@dhikrQuranBody": {
+    "description": "dhikrQuranBody"
+  },
+  "calendarSacredMonth": "sacred month",
+  "@calendarSacredMonth": {
+    "description": "calendarSacredMonth"
+  },
+  "calendarSehriEndsIn": "Sehri ends in",
+  "@calendarSehriEndsIn": {
+    "description": "calendarSehriEndsIn"
+  },
+  "calendarIftarIn": "Iftar in",
+  "@calendarIftarIn": {
+    "description": "calendarIftarIn"
+  },
+  "calendarAfterIsha": "after Isha",
+  "@calendarAfterIsha": {
+    "description": "calendarAfterIsha"
+  },
+  "calendarRamadanDay": "Ramadan · Day {day}",
+  "@calendarRamadanDay": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    },
+    "description": "calendarRamadanDay"
+  },
+  "calendarOddNight": "One of the odd nights of the last ten",
+  "@calendarOddNight": {
+    "description": "calendarOddNight"
+  },
+  "calendarLastTen": "The last ten nights",
+  "@calendarLastTen": {
+    "description": "calendarLastTen"
+  },
+  "calendarEidPrayer": "Eid prayer",
+  "@calendarEidPrayer": {
+    "description": "calendarEidPrayer"
+  },
+  "calendarAfterSunrise": "after sunrise",
+  "@calendarAfterSunrise": {
+    "description": "calendarAfterSunrise"
+  },
+  "countdownJustNow": "just now",
+  "@countdownJustNow": {
+    "description": "countdownJustNow"
+  },
+  "countdownMinutesAgo": "{minutes} min ago",
+  "@countdownMinutesAgo": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    },
+    "description": "countdownMinutesAgo"
+  },
+  "countdownHoursAgo": "{hours} h ago",
+  "@countdownHoursAgo": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    },
+    "description": "countdownHoursAgo"
+  },
+  "countdownDaysAgo": "{days} d ago",
+  "@countdownDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    },
+    "description": "countdownDaysAgo"
+  },
+  "tileUpcoming": "Upcoming",
+  "@tileUpcoming": {
+    "description": "tileUpcoming"
+  },
+  "tileMissed": "Missed",
+  "@tileMissed": {
+    "description": "tileMissed"
+  },
+  "tileExcused": "Excused",
+  "@tileExcused": {
+    "description": "tileExcused"
+  },
+  "lockEmergencyBodyCount": "This unlocks your apps without verifying your prayer. You have {count} per day.\n\nIf you need to call someone, the phone and messages apps are always available without using this.",
+  "@lockEmergencyBodyCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    },
+    "description": "lockEmergencyBodyCount"
+  },
+  "analyticsQazaShort": "Qaza",
+  "@analyticsQazaShort": {
+    "description": "analyticsQazaShort"
+  },
+  "analyticsVerified": "Verified",
+  "@analyticsVerified": {
+    "description": "analyticsVerified"
+  },
+  "jumuahChooseMosqueTitle": "Choose where you pray Jumu'ah",
+  "@jumuahChooseMosqueTitle": {
+    "description": "jumuahChooseMosqueTitle"
+  },
+  "jumuahOptional": "Optional",
+  "@jumuahOptional": {
+    "description": "jumuahOptional"
+  },
+  "jumuahAddress": "Address",
+  "@jumuahAddress": {
+    "description": "jumuahAddress"
+  },
+  "actionClear": "Clear",
+  "@actionClear": {
+    "description": "actionClear"
+  },
+  "jumuahType": "Type",
+  "@jumuahType": {
+    "description": "jumuahType"
+  },
+  "statPercentDetail": "{label}: {percent} percent, {detail}",
+  "@statPercentDetail": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "int"
+      },
+      "detail": {
+        "type": "String"
+      }
+    },
+    "description": "statPercentDetail"
+  },
+  "tileSemantics": "{prayer}, {time}, {phase}",
+  "@tileSemantics": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "phase": {
+        "type": "String"
+      }
+    },
+    "description": "tileSemantics"
+  },
+  "analyticsStatsFailed": "Could not load your statistics.",
+  "@analyticsStatsFailed": {
+    "description": "analyticsStatsFailed"
+  },
+  "analyticsLockActive": "{prayer} — active",
+  "@analyticsLockActive": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    },
+    "description": "analyticsLockActive"
+  },
+  "analyticsLockEnded": "{prayer} — {reason}",
+  "@analyticsLockEnded": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      }
+    },
+    "description": "analyticsLockEnded"
+  },
+  "analyticsUnlockNumbered": "Unlock #{sequence} — {reason}",
+  "@analyticsUnlockNumbered": {
+    "placeholders": {
+      "sequence": {
+        "type": "int"
+      },
+      "reason": {
+        "type": "String"
+      }
+    },
+    "description": "analyticsUnlockNumbered"
+  },
+  "analyticsUnlockPlain": "Emergency unlock #{sequence}",
+  "@analyticsUnlockPlain": {
+    "placeholders": {
+      "sequence": {
+        "type": "int"
+      }
+    },
+    "description": "analyticsUnlockPlain"
+  },
+  "lockEndVerified": "unlocked after prayer",
+  "@lockEndVerified": {
+    "description": "lockEndVerified"
+  },
+  "lockEndEmergency": "emergency unlock",
+  "@lockEndEmergency": {
+    "description": "lockEndEmergency"
+  },
+  "lockEndWindowExpired": "prayer window ended",
+  "@lockEndWindowExpired": {
+    "description": "lockEndWindowExpired"
+  },
+  "lockEndDisabled": "blocking turned off",
+  "@lockEndDisabled": {
+    "description": "lockEndDisabled"
+  },
+  "lockEndRestarted": "app restarted",
+  "@lockEndRestarted": {
+    "description": "lockEndRestarted"
+  },
+  "dashboardNextUpper": "NEXT: {prayer}",
+  "@dashboardNextUpper": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    },
+    "description": "dashboardNextUpper"
+  },
+  "dhikrSubhanAllah": "SubhanAllah",
+  "@dhikrSubhanAllah": {
+    "description": "dhikrSubhanAllah"
+  },
+  "dhikrAlhamdulillah": "Alhamdulillah",
+  "@dhikrAlhamdulillah": {
+    "description": "dhikrAlhamdulillah"
+  },
+  "dhikrAllahuAkbar": "Allahu Akbar",
+  "@dhikrAllahuAkbar": {
+    "description": "dhikrAllahuAkbar"
+  },
+  "sectionSummaryPrayerTimes": "Prayer times",
+  "@sectionSummaryPrayerTimes": {
+    "description": "sectionSummaryPrayerTimes"
+  },
+  "sectionSummaryAsr": "Asr timing",
+  "@sectionSummaryAsr": {
+    "description": "sectionSummaryAsr"
+  },
+  "sectionSummaryGrouping": "Prayer grouping",
+  "@sectionSummaryGrouping": {
+    "description": "sectionSummaryGrouping"
+  },
+  "jumuahStartsLabel": "Jumu'ah starts",
+  "@jumuahStartsLabel": {
+    "description": "jumuahStartsLabel"
+  },
+  "jumuahClosesLabel": "Verification closes",
+  "@jumuahClosesLabel": {
+    "description": "jumuahClosesLabel"
+  },
+  "settingsHijriDayOffset": "{days} day",
+  "@settingsHijriDayOffset": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    },
+    "description": "settingsHijriDayOffset"
   }
 }

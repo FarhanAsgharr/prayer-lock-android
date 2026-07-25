@@ -62,6 +62,21 @@ class IslamicSectionRegistry {
   static final IslamicSectionRegistry instance =
       IslamicSectionRegistry(_builtInStrategies);
 
+  /// The sections the app ships with.
+  ///
+  /// Named to match the other four registries so the dependency-injection file
+  /// reads uniformly; [instance] remains for the call sites that predate it.
+  factory IslamicSectionRegistry.standard() =>
+      IslamicSectionRegistry(_builtInStrategies);
+
+  /// The strategy for [section], or null when none is registered.
+  ///
+  /// Distinct from [defaultsFor], which substitutes neutral defaults. A caller
+  /// that needs to know whether the app has an opinion about a section — rather
+  /// than just what to do — asks this.
+  IslamicSectionStrategy? forSection(IslamicSection section) =>
+      _strategies[section];
+
   /// Defaults for [section].
   ///
   /// A section with no registered strategy falls back to the neutral defaults

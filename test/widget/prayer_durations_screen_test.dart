@@ -16,6 +16,7 @@ import 'package:prayer_lock/features/prayer_times/presentation/providers/prayer_
 import 'package:prayer_lock/features/prayer_times/presentation/screens/prayer_durations_screen.dart';
 import 'package:prayer_lock/features/settings/domain/entities/app_settings.dart';
 import 'package:prayer_lock/features/settings/presentation/providers/settings_provider.dart';
+import 'package:prayer_lock/core/config/locale_config.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 
 import '../support/prayer_fixtures.dart';
@@ -38,7 +39,14 @@ Widget _harness({
       prayerTimeSourceProvider.overrideWithValue(PrayerTimeSource.device),
       prayerTimesAreStaleProvider.overrideWithValue(true),
     ],
-    child: const MaterialApp(home: PrayerDurationsScreen()),
+    // The screen reads localised strings, so the delegates must be installed
+    // exactly as the real app installs them.
+    child: const MaterialApp(
+      locale: Locale('en'),
+      supportedLocales: LocaleConfig.supportedLocales,
+      localizationsDelegates: LocaleConfig.delegates,
+      home: PrayerDurationsScreen(),
+    ),
   );
 }
 
@@ -192,7 +200,14 @@ void main() {
           prayerDayProvider.overrideWithValue(null),
           nowProvider.overrideWithValue(_frozenNow),
         ],
-        child: const MaterialApp(home: PrayerDurationsScreen()),
+        // The screen reads localised strings, so the delegates must be installed
+    // exactly as the real app installs them.
+    child: const MaterialApp(
+      locale: Locale('en'),
+      supportedLocales: LocaleConfig.supportedLocales,
+      localizationsDelegates: LocaleConfig.delegates,
+      home: PrayerDurationsScreen(),
+    ),
       ),
     );
     await tester.pumpAndSettle();

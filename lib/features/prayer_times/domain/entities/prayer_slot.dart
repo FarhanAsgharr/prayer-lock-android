@@ -24,6 +24,7 @@ library;
 import 'package:flutter/foundation.dart';
 
 import '../../../sections/domain/entities/prayer_grouping.dart';
+import '../strategies/prayer_mode_strategy.dart';
 import 'prayer_day.dart';
 import 'prayer_enums.dart';
 import 'prayer_window.dart';
@@ -166,61 +167,24 @@ class PrayerSlot {
 
 /// Builds the slots for a day under a grouping.
 ///
-/// Pure and separate from [PrayerDay] so the same day can be projected under a
-/// different grouping without rebuilding it — which is what lets the settings
-/// screen preview a mode the user has not committed to.
+/// Kept as the call site every consumer already uses, but it no longer contains
+/// the rule: it resolves a [PrayerModeStrategy] and delegates. That indirection
+/// is the point — the projection now lives in one replaceable object rather
+/// than in a function every caller reaches for directly.
 abstract final class PrayerSlotBuilder {
+  /// The registry used when a caller does not supply one.
+  ///
+  /// A default rather than a required argument because `day.slots(grouping)` is
+  /// called from widgets, and threading a registry through every widget to
+  /// reach the standard set would be ceremony with no benefit. Callers that
+  /// need a substituted arrangement — tests, regional builds — pass their own.
+  static final PrayerModeRegistry _defaultRegistry =
+      PrayerModeRegistry.standard();
+
   static List<PrayerSlot> build({
     required PrayerDay day,
     required PrayerGrouping grouping,
-  }) {
-    final slots = <PrayerSlot>[];
-    final consumed = <PrayerName>{};
-
-    for (final entry in day.entries) {
-      if (consumed.contains(entry.prayer)) continue;
-
-      final pair = grouping.pairFor(entry.prayer);
-      if (pair == null) {
-        slots.add(PrayerSlot.single(entry));
-        continue;
-      }
-
-      // Jumu'ah never joins a pair. Its window is a short, mosque-set slot —
-      // typically half an hour — and absorbing Asr into it would either extend
-      // the congregation to Maghrib or swallow Asr inside fifteen minutes.
-      // Neither is what a user who combines Dhuhr with Asr is asking for, so
-      // on Fridays the two stand alone.
-      if (entry.window.isJumuah ||
-          day.entries.any(
-            (candidate) =>
-                pair.contains(candidate.prayer) && candidate.window.isJumuah,
-          )) {
-        slots.add(PrayerSlot.single(entry));
-        continue;
-      }
-
-      // Only the first prayer of a pair opens a slot; the second is absorbed.
-      // Guarding on this rather than on position means a grouping naming a
-      // pair whose prayers are not both present cannot produce a half-slot.
-      if (entry.prayer != pair.first) {
-        slots.add(PrayerSlot.single(entry));
-        continue;
-      }
-
-      final second = day.entries
-          .where((candidate) => candidate.prayer == pair.second)
-          .firstOrNull;
-
-      if (second == null) {
-        slots.add(PrayerSlot.single(entry));
-        continue;
-      }
-
-      slots.add(PrayerSlot(prayers: [entry, second], pair: pair));
-      consumed.addAll([entry.prayer, second.prayer]);
-    }
-
-    return List.unmodifiable(slots);
-  }
+    PrayerModeRegistry? registry,
+  }) =>
+      (registry ?? _defaultRegistry).forGrouping(grouping).slotsFor(day);
 }

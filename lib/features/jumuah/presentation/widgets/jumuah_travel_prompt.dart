@@ -13,6 +13,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../providers/jumuah_providers.dart';
 
@@ -54,7 +55,7 @@ class JumuahTravelPrompt extends ConsumerWidget {
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
-                    'Praying somewhere else today?',
+                    AppLocalizations.of(context).jumuahTravelTitle,
                     style: theme.textTheme.titleMedium?.copyWith(
                       color: theme.colorScheme.onSecondaryContainer,
                     ),
@@ -66,9 +67,7 @@ class JumuahTravelPrompt extends ConsumerWidget {
             Text(
               // Both distances, because the suggestion is only convincing if
               // the user can see the comparison that produced it.
-              "You're about ${_km(suggestion.distanceKm)} from "
-              '${suggestion.mosque.displayName}, and '
-              '${_km(suggestion.selectedDistanceKm)} from your usual mosque.',
+              AppLocalizations.of(context).jumuahTravelBody(_km(context, suggestion.distanceKm), suggestion.mosque.displayName, _km(context, suggestion.selectedDistanceKm)),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSecondaryContainer,
               ),
@@ -88,7 +87,7 @@ class JumuahTravelPrompt extends ConsumerWidget {
                 TextButton(
                   onPressed: () =>
                       ref.read(_dismissedProvider.notifier).state = true,
-                  child: const Text('No, stay as I am'),
+                  child: Text(AppLocalizations.of(context).jumuahTravelStay),
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 FilledButton(
@@ -97,7 +96,7 @@ class JumuahTravelPrompt extends ConsumerWidget {
                     await manager.useMosqueForToday(suggestion.mosque.id);
                     ref.read(_dismissedProvider.notifier).state = true;
                   },
-                  child: const Text('Use it today'),
+                  child: Text(AppLocalizations.of(context).jumuahTravelUse),
                 ),
               ],
             ),
@@ -110,6 +109,8 @@ class JumuahTravelPrompt extends ConsumerWidget {
   /// Whole kilometres below ten, otherwise rounded — a fix accurate to a
   /// kilometre does not support "18.4 km", and printing it would imply a
   /// precision this does not have.
-  static String _km(double value) =>
-      value < 10 ? '${value.round()} km' : '${(value / 5).round() * 5} km';
+  static String _km(BuildContext context, double value) {
+    final rounded = value < 10 ? value.round() : (value / 5).round() * 5;
+    return AppLocalizations.of(context).jumuahKilometres('$rounded');
+  }
 }

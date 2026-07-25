@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../data/repositories/qaza_repository.dart';
 import '../providers/tracking_providers.dart';
@@ -25,7 +26,7 @@ class QazaScreen extends ConsumerWidget {
     final ledger = ref.watch(qazaLedgerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Make-up prayers')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).qazaTitle)),
       body: ledger.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => _ErrorState(
@@ -58,13 +59,13 @@ class _Ledger extends ConsumerWidget {
       children: [
         Text(
           records.length == 1
-              ? 'One prayer to make up'
-              : '${records.length} prayers to make up',
+              ? AppLocalizations.of(context).qazaOne
+              : AppLocalizations.of(context).qazaMany(records.length),
           style: theme.textTheme.titleMedium,
         ),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          'Pray them when you can, then mark them here. The oldest is first.',
+          AppLocalizations.of(context).qazaHint,
           style: theme.textTheme.bodySmall,
         ),
         const SizedBox(height: AppSpacing.md),
@@ -107,10 +108,10 @@ class _QazaTileState extends ConsumerState<_QazaTile> {
         SnackBar(
           content: Text(
             cleared
-                ? '${widget.record.prayer.displayName} marked as made up.'
+                ? AppLocalizations.of(context).qazaMarked(widget.record.prayer.displayName)
                 // Already cleared elsewhere — reporting success twice for one
                 // prayer would misrepresent the record.
-                : 'That prayer was already marked as made up.',
+                : AppLocalizations.of(context).qazaAlreadyMarked,
           ),
         ),
       );
@@ -184,10 +185,10 @@ class _ClearState extends StatelessWidget {
               color: theme.colorScheme.primary,
             ),
             const SizedBox(height: AppSpacing.md),
-            Text('Nothing to make up', style: theme.textTheme.titleMedium),
+            Text(AppLocalizations.of(context).qazaNothing, style: theme.textTheme.titleMedium),
             const SizedBox(height: AppSpacing.xs),
             Text(
-              'Every prayer whose window has closed was accounted for.',
+              AppLocalizations.of(context).qazaNothingBody,
               style: theme.textTheme.bodySmall,
               textAlign: TextAlign.center,
             ),
@@ -211,12 +212,12 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              'Your make-up prayers could not be loaded.',
+            Text(
+              AppLocalizations.of(context).qazaLoadFailed,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.md),
-            FilledButton(onPressed: onRetry, child: const Text('Try again')),
+            FilledButton(onPressed: onRetry, child: Text(AppLocalizations.of(context).actionRetry)),
           ],
         ),
       ),

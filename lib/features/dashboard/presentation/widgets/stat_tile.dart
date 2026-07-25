@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/theme/app_theme.dart';
 
 /// A single headline figure with a label and optional icon.
@@ -87,7 +88,7 @@ class RateBar extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Semantics(
-        label: '$label: ${(rate * 100).round()} percent, $detail',
+        label: AppLocalizations.of(context).statPercentDetail(label, (rate * 100).round(), detail),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

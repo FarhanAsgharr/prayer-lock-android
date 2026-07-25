@@ -72,6 +72,11 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  # End-to-end tests. Runs the real app against a real engine, so it exercises
+  # the paths unit tests cannot: the router, the encrypted database, the
+  # platform channels, and app restart.
+  integration_test:
+    sdk: flutter
 
   flutter_lints: ^6.0.0
   mocktail: ^1.0.4
@@ -108,7 +113,9 @@ flutter_launcher_icons:
   # circle, squircle or rounded square depending on the device, and only the
   # centre ~66% is guaranteed visible — so the foreground art needs generous
   # padding or the minarets get clipped.
-  adaptive_icon_background: "#FFFFFF"
+  # Brand green, not white: the foreground mark is white, so a white
+  # background would make it vanish in adaptive and themed launchers.
+  adaptive_icon_background: "#1B5E4A"
   adaptive_icon_foreground: assets/branding/app_icon_foreground.png
 
   # Android 13+ themed icon: the launcher tints a monochrome layer to match the

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../../../shared/widgets/countdown_text.dart';
 import '../../../prayer_times/domain/entities/prayer_day.dart';
@@ -77,7 +78,7 @@ class DashboardScreen extends ConsumerWidget {
                       _TodayProgress(day: day, now: now),
                       const SizedBox(height: AppSpacing.lg),
                       Text(
-                        "TODAY'S PRAYERS",
+                        AppLocalizations.of(context).dashboardTodaysPrayers,
                         style: Theme.of(context).textTheme.labelLarge,
                       ),
                       const SizedBox(height: AppSpacing.sm),
@@ -157,7 +158,7 @@ class DashboardScreen extends ConsumerWidget {
               if (slot.isCombined) ...[
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  'Both prayers are recorded when you confirm.',
+                  AppLocalizations.of(context).dashboardBothRecorded,
                   style: Theme.of(sheetContext).textTheme.bodySmall,
                   textAlign: TextAlign.center,
                 ),
@@ -165,8 +166,7 @@ class DashboardScreen extends ConsumerWidget {
               if (isQaza) ...[
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  'The on-time window has passed. Verifying now records this '
-                  'as a qaza (make-up) prayer.',
+                  AppLocalizations.of(context).dashboardQazaExplain,
                   style: Theme.of(sheetContext).textTheme.bodyMedium,
                   textAlign: TextAlign.center,
                 ),
@@ -175,7 +175,7 @@ class DashboardScreen extends ConsumerWidget {
               FilledButton.icon(
                 icon: const Icon(Icons.camera_alt_outlined),
                 label: Text(
-                  isQaza ? 'Verify qaza prayer' : 'I completed this prayer',
+                  isQaza ? AppLocalizations.of(context).dashboardVerifyQaza : AppLocalizations.of(context).dashboardConfirmPrayer,
                 ),
                 onPressed: () {
                   Navigator.of(sheetContext).pop();
@@ -203,7 +203,7 @@ class DashboardScreen extends ConsumerWidget {
                   await ref.read(lockStateProvider.notifier).onPrayerCompleted();
                   navigator.pop();
                 },
-                child: const Text('Mark as excused'),
+                child: Text(AppLocalizations.of(context).dashboardMarkExcused),
               ),
             ],
           ),
@@ -228,7 +228,7 @@ class _Header extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Prayer Lock', style: theme.textTheme.headlineMedium),
+              Text(AppLocalizations.of(context).appTitle, style: theme.textTheme.headlineMedium),
               if (locationLabel != null) ...[
                 const SizedBox(height: 2),
                 Row(
@@ -248,7 +248,7 @@ class _Header extends StatelessWidget {
         ),
         IconButton(
           icon: const Icon(Icons.bar_chart_outlined),
-          tooltip: 'Your prayers',
+          tooltip: AppLocalizations.of(context).dashboardYourPrayers,
           onPressed: () => context.push('/analytics'),
         ),
         IconButton(
@@ -268,7 +268,7 @@ class _NextPrayerCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
-    // The Jumu'ah card already answers "what is next" on a Friday, and two
+    // The Jumu'ah card already answers AppLocalizations.of(context).dashboardWhatIsNext on a Friday, and two
     // cards competing to say it would be worse than either alone.
     if (ref.watch(isJumuahTodayProvider)) return const SizedBox.shrink();
 
@@ -284,7 +284,7 @@ class _NextPrayerCard extends ConsumerWidget {
           child: Column(
             children: [
               Text(
-                'IT IS TIME FOR',
+                AppLocalizations.of(context).dashboardItIsTimeFor,
                 style: theme.textTheme.labelLarge?.copyWith(
                   color: theme.colorScheme.primary,
                 ),
@@ -299,7 +299,7 @@ class _NextPrayerCard extends ConsumerWidget {
               const SizedBox(height: AppSpacing.lg),
               FilledButton.icon(
                 icon: const Icon(Icons.check),
-                label: const Text('I completed this prayer'),
+                label: Text(AppLocalizations.of(context).dashboardConfirmPrayer),
                 onPressed: () =>
                     context.push('/verify/${current.prayer.wireValue}'),
               ),
@@ -319,7 +319,7 @@ class _NextPrayerCard extends ConsumerWidget {
         child: Column(
           children: [
             Text(
-              'NEXT: ${next.entry.prayer.displayName.toUpperCase()}',
+              AppLocalizations.of(context).dashboardNextUpper(next.entry.prayer.displayName.toUpperCase()),
               style: theme.textTheme.labelLarge,
             ),
             const SizedBox(height: AppSpacing.sm),
@@ -351,14 +351,14 @@ class _TodayProgress extends StatelessWidget {
             Expanded(
               child: _Stat(
                 value: '$completed of $total',
-                label: 'Completed',
+                label: AppLocalizations.of(context).dashboardCompleted,
               ),
             ),
             Container(width: 1, height: 36, color: theme.dividerColor),
             Expanded(
               child: _Stat(
                 value: '${day.remainingCount}',
-                label: 'Remaining',
+                label: AppLocalizations.of(context).dashboardRemaining,
               ),
             ),
           ],
@@ -396,7 +396,7 @@ class _SunriseNote extends ConsumerWidget {
     if (day == null) return const SizedBox.shrink();
 
     return Text(
-      'Fajr must be prayed before sunrise. After sunrise it is recorded as late.',
+      AppLocalizations.of(context).dashboardFajrBeforeSunrise,
       style: Theme.of(context).textTheme.bodyMedium,
       textAlign: TextAlign.center,
     );
@@ -418,20 +418,19 @@ class _LocationRequiredView extends StatelessWidget {
               const Icon(Icons.place_outlined, size: 48),
               const SizedBox(height: AppSpacing.md),
               Text(
-                'Set your location',
+                AppLocalizations.of(context).dashboardSetLocation,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: AppSpacing.sm),
               Text(
-                'Prayer times depend on where you are. '
-                'Choose a location to get started.',
+                AppLocalizations.of(context).dashboardSetLocationBody,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
               const SizedBox(height: AppSpacing.lg),
               FilledButton(
                 onPressed: () => context.push('/onboarding'),
-                child: const Text('Choose location'),
+                child: Text(AppLocalizations.of(context).dashboardChooseLocation),
               ),
             ],
           ),
