@@ -33,6 +33,7 @@ import '../../../jumuah/presentation/providers/jumuah_providers.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 import '../../domain/entities/verification_result.dart';
 import '../providers/verification_provider.dart';
+import '../../../../core/utils/app_log.dart';
 
 class VerificationScreen extends ConsumerStatefulWidget {
   const VerificationScreen({super.key, required this.prayer});
@@ -184,7 +185,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
     if (day == null) {
       // Should not happen — a location is required to reach this screen — but
       // if it does, get the user out rather than stranding them here.
-      debugPrint('Cannot complete prayer: no schedule available');
+      logDiagnostic('Cannot complete prayer: no schedule available');
       if (mounted) context.go('/');
       return;
     }
@@ -210,7 +211,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
     } catch (error, stack) {
       // The single most important write. If it fails, surface it and stop,
       // rather than releasing the lock for a prayer that was not recorded.
-      debugPrint('Failed to record prayer: $error\n$stack');
+      logDiagnostic('Failed to record prayer: $error\n$stack');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -253,7 +254,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
               message: result.message,
             );
       } catch (error) {
-        debugPrint('Failed to record verification (non-fatal): $error');
+        logDiagnostic('Failed to record verification (non-fatal): $error');
       }
     }
 
@@ -263,7 +264,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
           .read(notificationServiceProvider)
           .cancelQazaNotice(date, widget.prayer);
     } catch (error) {
-      debugPrint('Failed to cancel qaza notice (non-fatal): $error');
+      logDiagnostic('Failed to cancel qaza notice (non-fatal): $error');
     }
 
     // Release immediately rather than waiting up to thirty seconds for the
@@ -272,7 +273,7 @@ class _VerificationScreenState extends ConsumerState<VerificationScreen>
     try {
       await ref.read(lockStateProvider.notifier).onPrayerCompleted();
     } catch (error) {
-      debugPrint('Failed to release lock immediately (non-fatal): $error');
+      logDiagnostic('Failed to release lock immediately (non-fatal): $error');
       // The orchestrator's periodic tick will release it shortly, since the
       // prayer is now recorded as complete.
     }

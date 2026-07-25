@@ -16,7 +16,6 @@
 /// plus an uncached tomorrow still yields a complete answer.
 library;
 
-import 'package:flutter/foundation.dart';
 
 import '../../../../core/network/retry_policy.dart';
 import '../../../settings/domain/entities/app_settings.dart';
@@ -29,6 +28,7 @@ import '../../domain/usecases/prayer_time_calculator.dart';
 import '../datasources/device_prayer_time_provider.dart';
 import '../datasources/prayer_schedule_cache.dart';
 import '../datasources/prayer_time_provider.dart';
+import '../../../../core/utils/app_log.dart';
 
 class PrayerScheduleRepositoryImpl implements PrayerScheduleRepository {
   PrayerScheduleRepositoryImpl({
@@ -258,7 +258,7 @@ class PrayerScheduleRepositoryImpl implements PrayerScheduleRepository {
           return fetched;
         }
 
-        debugPrint(
+        logDiagnostic(
           'Discarding non-monotonic prayer times from ${_remote.id} '
           'for ${date.toIso8601String()}',
         );
@@ -289,7 +289,7 @@ class PrayerScheduleRepositoryImpl implements PrayerScheduleRepository {
     // A permanent failure — unsupported location, bad configuration — starts
     // the same cooldown. Retrying it on the next tick would fail identically.
     _remoteFailedAt = DateTime.now().toUtc();
-    debugPrint('Prayer time provider ${_remote.id} failed: ${error.message}');
+    logDiagnostic('Prayer time provider ${_remote.id} failed: ${error.message}');
   }
 
   static bool _isRetryable(Object error) =>

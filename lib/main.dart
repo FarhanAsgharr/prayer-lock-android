@@ -25,6 +25,7 @@ import 'features/blocking/presentation/providers/orchestrator_provider.dart';
 import 'features/blocking/presentation/screens/lock_screen.dart';
 import 'features/settings/presentation/providers/settings_provider.dart';
 import 'shared/theme/app_theme.dart';
+import 'core/utils/app_log.dart';
 
 /// Loads the timezone database.
 ///
@@ -50,7 +51,7 @@ Future<void> main() async {
   // Open the encrypted database up front. Key derivation is deliberately slow,
   // so doing it lazily would stall whichever screen queried first.
   final database = await AppDatabase.open();
-  debugPrint('Encrypted database ready');
+  logDiagnostic('Encrypted database ready');
 
   runApp(
     ProviderScope(

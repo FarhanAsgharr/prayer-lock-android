@@ -30,6 +30,7 @@ import '../../features/prayer_times/domain/repositories/prayer_schedule_reposito
 import '../../features/prayer_times/presentation/providers/prayer_times_provider.dart';
 import '../../features/settings/domain/entities/app_settings.dart';
 import '../../features/settings/presentation/providers/settings_provider.dart';
+import '../../core/utils/app_log.dart';
 
 /// What the refresher observed last time it ran, so it can tell what changed.
 @immutable
@@ -256,7 +257,7 @@ class DailyScheduleRefresher {
 
       _lastFingerprint = fingerprint;
 
-      debugPrint(
+      logDiagnostic(
         'Prayer schedule refreshed (${trigger.name}): '
         '$written day(s) written'
         '${invalidateCache ? ', cache invalidated' : ''}',
@@ -271,7 +272,7 @@ class DailyScheduleRefresher {
       // A failed refresh must never take the app down or stop enforcement.
       // The previously cached days remain valid, and the on-device calculator
       // covers anything they do not.
-      debugPrint('Prayer schedule refresh failed: $error\n$stackTrace');
+      logDiagnostic('Prayer schedule refresh failed: $error\n$stackTrace');
       return null;
     } finally {
       _isRefreshing = false;

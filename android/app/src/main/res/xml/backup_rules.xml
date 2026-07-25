@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Auto Backup rules (Android 11 and below, android:fullBackupContent).
+
+  Prayer history and settings are worth backing up so a user who changes phones
+  keeps their streak. Two things are deliberately EXCLUDED:
+
+    * flutter_secure_storage's keystore-backed prefs — they hold the SQLCipher
+      database key. Backing the key up to the cloud would defeat the point of
+      encrypting the database at rest.
+    * the native schedule mirror (prayer_lock_schedule) — it is a disposable
+      projection Dart rebuilds on launch, and a stale copy restored onto a new
+      device would just be overwritten.
+-->
+<full-backup-content>
+    <exclude domain="sharedpref" path="FlutterSecureStorage.xml" />
+    <exclude domain="sharedpref" path="prayer_lock_schedule.xml" />
+    <exclude domain="sharedpref" path="prayer_lock_silence.xml" />
+</full-backup-content>

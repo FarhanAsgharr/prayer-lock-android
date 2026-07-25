@@ -16,6 +16,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../features/prayer_times/domain/entities/prayer_enums.dart';
+import '../../core/utils/app_log.dart';
 
 /// Channels are declared once and reused. Android caches channel settings at
 /// creation time, so importance and sound cannot be changed later without a
@@ -276,10 +277,10 @@ class NotificationService {
       // Report and continue. One rejected notification — an unavailable sound,
       // a revoked exact-alarm permission — must never cost the user their
       // entire week of reminders.
-      debugPrint('Could not schedule notification $id: ${error.code}');
+      logDiagnostic('Could not schedule notification $id: ${error.code}');
       return false;
     } on ArgumentError catch (error) {
-      debugPrint('Invalid notification $id: $error');
+      logDiagnostic('Invalid notification $id: $error');
       return false;
     }
   }

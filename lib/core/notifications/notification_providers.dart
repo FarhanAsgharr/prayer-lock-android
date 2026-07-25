@@ -6,7 +6,6 @@
 /// stopped working" bug gets shipped.
 library;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/settings/domain/entities/app_settings.dart';
@@ -14,6 +13,7 @@ import '../../features/settings/presentation/providers/settings_provider.dart';
 import 'adhan_player.dart';
 import 'notification_service.dart';
 import 'prayer_notification_scheduler.dart';
+import '../../core/utils/app_log.dart';
 
 final notificationServiceProvider = Provider<NotificationService>((ref) {
   final service = NotificationService();
@@ -111,7 +111,7 @@ class NotificationSync {
     scheduledCount = planned.length;
     _lastScheduledAt = DateTime.now().toUtc();
 
-    debugPrint(
+    logDiagnostic(
       'Scheduled ${planned.length} prayer notifications '
       '(${settings.location?.label ?? 'no location'})',
     );

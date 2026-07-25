@@ -31,6 +31,7 @@ import '../../../tracking/presentation/providers/tracking_providers.dart';
 import '../../data/datasources/blocking_platform_channel.dart';
 import '../../domain/entities/blocking_entities.dart';
 import '../../domain/usecases/lock_decision.dart';
+import '../../../../core/utils/app_log.dart';
 
 /// Current enforcement state, for the UI.
 @immutable
@@ -148,7 +149,7 @@ class LockOrchestrator extends Notifier<LockState> {
       sessionId: orphan['id']! as String,
       endReason: 'app_restarted',
     );
-    debugPrint('Closed orphaned lock session ${orphan['id']}');
+    logDiagnostic('Closed orphaned lock session ${orphan['id']}');
   }
 
   /// Converge the device onto the state the rules require.
@@ -251,7 +252,7 @@ class LockOrchestrator extends Notifier<LockState> {
       }
     } catch (error) {
       // A widget that could not be redrawn must never break enforcement.
-      debugPrint('Widget update failed: $error');
+      logDiagnostic('Widget update failed: $error');
     }
   }
 
@@ -302,7 +303,7 @@ class LockOrchestrator extends Notifier<LockState> {
       } catch (error) {
         // One unreadable day must not abort the whole mirror; the days that
         // did resolve are still worth arming.
-        debugPrint('Skipping native mirror for $target: $error');
+        logDiagnostic('Skipping native mirror for $target: $error');
         continue;
       }
 
@@ -367,7 +368,7 @@ class LockOrchestrator extends Notifier<LockState> {
       morningProtection: settings.morningProtectionEnabled,
     );
 
-    debugPrint('Mirrored $stored prayer windows to the native scheduler');
+    logDiagnostic('Mirrored $stored prayer windows to the native scheduler');
   }
 
   /// Push each prayer's blocking window to iOS DeviceActivity.
@@ -420,7 +421,7 @@ class LockOrchestrator extends Notifier<LockState> {
     _lastIosWindowKey = key;
 
     await _channel.scheduleWindows(windows);
-    debugPrint('Scheduled ${windows.length} iOS blocking windows');
+    logDiagnostic('Scheduled ${windows.length} iOS blocking windows');
   }
 
   /// Local (hour, minute) for a UTC instant at the given IANA timezone.
@@ -449,7 +450,7 @@ class LockOrchestrator extends Notifier<LockState> {
       // calculator needs nothing but the settings, so it is always available as
       // a floor — and a lock driven by locally computed times is far better
       // than no lock at all.
-      debugPrint('Falling back to on-device schedule: $error');
+      logDiagnostic('Falling back to on-device schedule: $error');
       return _deviceDay(settings, date);
     }
   }
@@ -532,7 +533,7 @@ class LockOrchestrator extends Notifier<LockState> {
         windowDuration: decision.windowDuration,
       );
 
-      debugPrint(
+      logDiagnostic(
         'Lock engaged for ${prayer.displayName}'
         '${decision.lockUntil == null ? '' : ' until ${decision.lockUntil}'}',
       );
@@ -552,7 +553,7 @@ class LockOrchestrator extends Notifier<LockState> {
             ? 'App blocking needs permission that has been turned off.'
             : error.message,
       );
-      debugPrint('Could not engage lock: ${error.code}');
+      logDiagnostic('Could not engage lock: ${error.code}');
     }
   }
 
@@ -578,7 +579,7 @@ class LockOrchestrator extends Notifier<LockState> {
     }
 
     state = LockState(isLocked: false, reason: reason);
-    debugPrint('Lock released: ${reason.name}');
+    logDiagnostic('Lock released: ${reason.name}');
   }
 
   static String _endReasonFor(LockReason reason) => switch (reason) {
