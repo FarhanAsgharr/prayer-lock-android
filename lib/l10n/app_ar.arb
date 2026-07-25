@@ -1,15 +1,12 @@
 {
   "@@locale": "ar",
-
   "prayerFajr": "الفجر",
   "prayerDhuhr": "الظهر",
   "prayerAsr": "العصر",
   "prayerMaghrib": "المغرب",
   "prayerIsha": "العشاء",
   "prayerSunrise": "الشروق",
-
   "combinedPair": "{first} + {second}",
-
   "islamicSectionTitle": "المذهب أو الطريقة",
   "islamicSectionIntro": "يحدد اختيارك نقطة انطلاق لأوقات الصلاة وطريقة جمعها. كل ما يغيّره يبقى قابلاً للتعديل، ولا شيء هنا فتوى دينية.",
   "islamicSectionEnterOwn": "اكتب انتماءك الإسلامي",
@@ -18,13 +15,11 @@
   "islamicSectionNameYours": "اكتب اسم انتمائك أعلاه",
   "islamicSectionSelected": "المحدد: {name}",
   "islamicSectionEditable": "يمكنك تغيير أي من هذه الإعدادات لاحقًا.",
-
   "sectionFamilySunniTraditions": "المذاهب السنية",
   "sectionFamilySunniCommunities": "الجماعات السنية",
   "sectionFamilyShiaTraditions": "المذاهب الشيعية",
   "sectionFamilyOtherCommunities": "جماعات إسلامية أخرى",
   "sectionFamilyOther": "أخرى",
-
   "prayerModeTitle": "نمط الصلاة",
   "prayerModeIntro": "الجمع يدمج صلاتين في نافذة واحدة بقفل واحد وتأكيد واحد. تُسجَّل الصلاتان كلتاهما وتُحتسبان في إحصاءاتك وسلسلتك.",
   "prayerModeCombinedSubtitle": "نافذة واحدة، قفل واحد، تأكيد واحد.",
@@ -33,15 +28,713 @@
   "prayerModeOneConfirmationHelp": "أوقفه لتأكيد كل صلاة على حدة حتى مع جمع النوافذ.",
   "prayerModeSuggestion": "هذه هي الإعدادات المقترحة لـ {section}. غيّر أيًّا من الخيارين إذا اختلفت ممارستك — لا شيء هنا إلزامي.",
   "prayerModeCardCount": "{count, plural, zero{يومك: لا بطاقات صلاة} one{يومك: بطاقة صلاة واحدة} two{يومك: بطاقتا صلاة} few{يومك: {count} بطاقات صلاة} many{يومك: {count} بطاقة صلاة} other{يومك: {count} بطاقة صلاة}}",
-
   "groupingNone": "خمس صلوات منفصلة",
   "groupingDhuhrAsr": "جمع الظهر والعصر",
   "groupingMaghribIsha": "جمع المغرب والعشاء",
   "groupingBoth": "جمع الاثنين معًا",
-
   "settingsTitle": "الإعدادات",
   "settingsLanguage": "اللغة",
   "settingsLanguageSystem": "حسب النظام",
-
-  "durationHoursMinutes": "{hours} س {minutes} د"
+  "durationHoursMinutes": "{hours} س {minutes} د",
+  "appTitle": "قفل الصلاة",
+  "actionRetry": "أعد المحاولة",
+  "actionCancel": "إلغاء",
+  "actionSave": "حفظ",
+  "actionDelete": "حذف",
+  "actionDone": "تم",
+  "actionContinue": "متابعة",
+  "actionSkip": "تخطي",
+  "commonNotSet": "غير محدد",
+  "commonOff": "مغلق",
+  "commonNoData": "لا توجد بيانات",
+  "commonNothingYet": "لا يوجد شيء بعد.",
+  "commonLoadFailed": "تعذر التحميل: {error}",
+  "@commonLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardTodaysPrayers": "صلوات اليوم",
+  "dashboardItIsTimeFor": "حان وقت",
+  "dashboardNext": "التالية: {prayer}",
+  "@dashboardNext": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardWhatIsNext": "ما التالي",
+  "dashboardCompletedOfTotal": "{completed} من {total}",
+  "@dashboardCompletedOfTotal": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardCompleted": "مكتملة",
+  "dashboardRemaining": "متبقية",
+  "dashboardYourPrayers": "صلواتك",
+  "dashboardConfirmPrayer": "أكملت هذه الصلاة",
+  "dashboardVerifyQaza": "تأكيد صلاة القضاء",
+  "dashboardMarkExcused": "تسجيل كعذر",
+  "dashboardBothRecorded": "تُسجَّل الصلاتان عند التأكيد.",
+  "dashboardQazaExplain": "انتهى وقت الأداء. التأكيد الآن يسجلها صلاة قضاء.",
+  "dashboardFajrBeforeSunrise": "يجب أداء الفجر قبل الشروق. بعد الشروق تُسجَّل متأخرة.",
+  "dashboardSetLocation": "حدد موقعك",
+  "dashboardSetLocationBody": "تعتمد أوقات الصلاة على موقعك. اختر موقعًا للبدء.",
+  "dashboardChooseLocation": "اختر الموقع",
+  "tileUntilBoundary": "حتى {boundary}",
+  "@tileUntilBoundary": {
+    "placeholders": {
+      "boundary": {
+        "type": "String"
+      }
+    }
+  },
+  "tileVerifyNow": "أكّد الآن",
+  "tileQazaAvailable": "القضاء متاح",
+  "tileVerifiedOnTime": "أُكِّدت في وقتها",
+  "tileQazaCompleted": "أُدِّي القضاء",
+  "tileLeft": "بقي {duration}",
+  "@tileLeft": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "lockGoodMorning": "صباح الخير",
+  "lockFajrFirst": "أدِّ صلاة الفجر قبل أن تبدأ يومك.",
+  "lockItIsTimeFor": "حان وقت {prayer}",
+  "@lockItIsTimeFor": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    }
+  },
+  "lockPerformPrayer": "أدِّ صلاتك. ستُفتح تطبيقاتك بمجرد التأكيد.",
+  "lockCompletedPrayer": "أكملت صلاتي",
+  "lockEmergencyUnlock": "فتح للطوارئ",
+  "lockAppPaused": "{app} متوقف حتى تصلي.",
+  "@lockAppPaused": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "lockThatApp": "ذلك التطبيق",
+  "lockEssentialsNeverBlocked": "الهاتف والرسائل والإعدادات لا تُحجب أبدًا.",
+  "lockEmergencyTitle": "فتح للطوارئ؟",
+  "lockEmergencyBody": "يفتح هذا تطبيقاتك دون تأكيد صلاتك. إن احتجت للاتصال بأحد، فالهاتف والرسائل متاحان دائمًا دون استخدام هذا.",
+  "lockUnlockedTitle": "التطبيقات مفتوحة",
+  "lockUnlockedBody": "تطبيقاتك متاحة مرة أخرى. تم تسجيل ذلك.",
+  "lockNoUnlocksLeft": "استخدمت كل عمليات الفتح الطارئ لهذا اليوم",
+  "lockWillUnlockAfter": "ستُفتح التطبيقات بعد أن تكمل صلاتك وتؤكدها.",
+  "verifyTitle": "تأكيد {prayer}",
+  "@verifyTitle": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    }
+  },
+  "verifyRecordTitle": "تسجيل {prayer}",
+  "@verifyRecordTitle": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    }
+  },
+  "verifyDidYouComplete": "هل أكملت {prayer}؟",
+  "@verifyDidYouComplete": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    }
+  },
+  "verifyYesCompleted": "نعم، أكملتها",
+  "verifyNotYet": "ليس بعد",
+  "verifyPhotoPrompt": "وجّه الكاميرا إلى سجادة الصلاة والتقط صورة.",
+  "verifyManualPrompt": "أكّد أنك صليت.",
+  "verifyTakePhoto": "التقط صورة لسجادة الصلاة",
+  "verifyWithoutPhoto": "سجّل بدون صورة",
+  "verifyTrouble": "تواجه صعوبة؟ يمكنك تسجيل هذه الصلاة دون صورة.",
+  "verifyNoCamera": "لم يُعثر على كاميرا في هذا الجهاز. لا يزال بإمكانك تسجيل الصلاة دون صورة.",
+  "verifyCameraDenied": "رُفض إذن الكاميرا. اسمح به من الإعدادات، أو سجّل الصلاة دون صورة.",
+  "verifyCameraFailed": "تعذر فتح الكاميرا ({code}).",
+  "@verifyCameraFailed": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "verifyPhotoFailed": "تعذر التقاط الصورة ({code}).",
+  "@verifyPhotoFailed": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "verifySaveFailed": "تعذر حفظ صلاتك. أعد المحاولة.",
+  "verifyWindowsPassed": "انتهى وقتا الأداء والقضاء. تُسجَّل هذه الصلاة الآن كفائتة.",
+  "verifyNoSchedule": "تعذر إكمال الصلاة: لا يوجد جدول متاح",
+  "qazaTitle": "صلوات القضاء",
+  "qazaOne": "صلاة واحدة للقضاء",
+  "qazaMany": "{count} صلوات للقضاء",
+  "@qazaMany": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "qazaHint": "صلِّها متى استطعت ثم سجّلها هنا. الأقدم أولًا.",
+  "qazaMarked": "سُجِّلت {prayer} كقضاء.",
+  "@qazaMarked": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    }
+  },
+  "qazaAlreadyMarked": "سبق تسجيل تلك الصلاة كقضاء.",
+  "qazaNothing": "لا شيء للقضاء",
+  "qazaNothingBody": "كل صلاة انتهى وقتها تم حسابها.",
+  "qazaLoadFailed": "تعذر تحميل صلوات القضاء.",
+  "analyticsTitle": "صلواتك",
+  "analyticsDayStreak": "أيام متتالية",
+  "analyticsLongestStreak": "أطول تتابع",
+  "analyticsAllTimeCompletion": "الإنجاز الكلي",
+  "analyticsPrayersFulfilled": "صلوات مؤداة",
+  "analyticsOnTime": "في وقتها",
+  "analyticsQazaMakeUp": "قضاء",
+  "analyticsMissed": "فائتة",
+  "analyticsThisWeek": "هذا الأسبوع",
+  "analyticsCompletionRate": "معدل الإنجاز",
+  "analyticsByPrayer": "حسب الصلاة",
+  "analyticsRangeWeek": "هذا الأسبوع",
+  "analyticsRangeMonth": "هذا الشهر",
+  "analyticsRangeYear": "هذه السنة",
+  "analyticsVerificationHistory": "سجل التأكيدات",
+  "analyticsLockHistory": "سجل الأقفال",
+  "analyticsEmergencyUnlocks": "عمليات الفتح الطارئ",
+  "analyticsMostMissed": "{prayer} هي أكثر صلاة تفوتك. قليل من التركيز عليها يرفع أسبوعك كله.",
+  "@analyticsMostMissed": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsParked": "تعذر رفع {count} من السجلات.",
+  "@analyticsParked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "analyticsPending": "{count} من السجلات بانتظار المزامنة.",
+  "@analyticsPending": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "analyticsReleasedWithoutDetection": "أُفرِج دون كشف",
+  "analyticsNotVerified": "غير مؤكدة",
+  "analyticsNoPrayersYet": "لم تُسجَّل صلوات بعد",
+  "analyticsChartSummary": "إنجاز الصلاة خلال {days} يومًا: {fulfilled} من {assessed} صلوات مؤداة",
+  "@analyticsChartSummary": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "fulfilled": {
+        "type": "int"
+      },
+      "assessed": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsSectionPrayerTimes": "أوقات الصلاة",
+  "settingsLocation": "الموقع",
+  "settingsCalculationMethod": "طريقة الحساب",
+  "settingsIslamicSection": "المذهب الإسلامي",
+  "settingsPrayerMode": "نمط الصلاة",
+  "settingsPrayerCards": "{mode} — {count} بطاقات صلاة",
+  "@settingsPrayerCards": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsJumuah": "الجمعة",
+  "settingsAsrTiming": "توقيت العصر",
+  "settingsResetSectionDefaults": "إعادة ضبط إلى إعدادات المذهب",
+  "settingsReturnToSuggested": "العودة إلى ما يقترحه {section}",
+  "@settingsReturnToSuggested": {
+    "placeholders": {
+      "section": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsHijriDate": "التاريخ الهجري",
+  "settingsHijriCalculated": "محسوب — عدّله إن اختلف عن رؤيتك المحلية",
+  "settingsHijriAdjustment": "تعديل التاريخ الهجري",
+  "settingsHijriAsCalculated": "كما هو محسوب",
+  "settingsHijriDayLater": "يوم واحد لاحقًا",
+  "settingsHijriDayEarlier": "يوم واحد سابقًا",
+  "settingsHijriDaysLater": "{days} أيام لاحقًا",
+  "@settingsHijriDaysLater": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsHijriDaysEarlier": "{days} أيام سابقًا",
+  "@settingsHijriDaysEarlier": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsHighLatitude": "قاعدة خطوط العرض العالية",
+  "settingsSectionReminders": "التذكيرات",
+  "settingsRemindBefore": "ذكّرني قبل الصلاة",
+  "settingsMinutesBefore": "{minutes} دقيقة قبل",
+  "@settingsMinutesBefore": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsAtPrayerTime": "عند وقت الصلاة",
+  "settingsPlayAdhan": "تشغيل الأذان",
+  "settingsPlayAdhanBody": "أطلق الأذان عند وقت الصلاة",
+  "settingsSectionBlocking": "حجب التطبيقات",
+  "settingsBlockingUnavailable": "حجب التطبيقات غير متاح على هذه المنصة. أوقات الصلاة والتذكيرات والتتبع والتأكيد تعمل كلها بشكل طبيعي.",
+  "settingsBlockDuringPrayer": "احجب التطبيقات أثناء الصلاة",
+  "settingsBlockedApps": "التطبيقات المحجوبة",
+  "settingsNoneSelected": "لم يُحدَّد شيء",
+  "settingsCountSelected": "{count} محدد",
+  "@settingsCountSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsGracePeriod": "مهلة السماح",
+  "settingsGraceBody": "{minutes} دقيقة بعد الأذان قبل قفل التطبيقات",
+  "@settingsGraceBody": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsLockImmediately": "اقفل فورًا",
+  "settingsLockAfterMinutes": "اقفل بعد {minutes} دقيقة",
+  "@settingsLockAfterMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsWhenAppsUnlock": "متى تُفتح التطبيقات",
+  "settingsPrayerDurations": "مدد الصلاة",
+  "settingsPrayerDurationsBody": "اطّلع على مدة كل نافذة صلاة اليوم",
+  "settingsMorningProtection": "حماية الصباح",
+  "settingsMorningProtectionBody": "أبقِ التطبيقات مقفلة بعد دخول الفجر حتى تصلي",
+  "settingsBlockUntilQaza": "أبقِ التطبيقات مقفلة حتى يُقضى",
+  "settingsBlockUntilQazaBody": "الصلاة الفائتة تُبقي التطبيقات محجوبة بقية اليوم حتى تقضيها",
+  "settingsMakeUpPrayers": "صلوات القضاء",
+  "settingsMakeUpPrayersBody": "الصلوات التي ما زالت عليك",
+  "settingsSectionSource": "مصدر أوقات الصلاة",
+  "settingsConfirmOnline": "أكّد الأوقات عبر الإنترنت",
+  "settingsConfirmOnlineBody": "تحقق من أوقات الصلاة عبر خدمة إنترنت متى أمكن. تُحسب الأوقات دائمًا على هذا الجهاز أيضًا، فيعمل التطبيق دون اتصال في الحالتين.",
+  "settingsNotifyWindowEnd": "نبّهني عند انتهاء النافذة",
+  "settingsNotifyWindowEndBody": "نبّه قبل انتهاء وقت الصلاة، وأكّد عند فتح التطبيقات",
+  "settingsSectionAfterPrayer": "بعد الصلاة",
+  "settingsTasbih": "تذكير التسبيح",
+  "settingsTasbihBody": "اعرض سبحان الله والحمد لله والله أكبر بعد صلاة مسجلة",
+  "settingsQuranReminder": "تذكير القرآن",
+  "settingsQuranReminderBody": "اقترح خمس دقائق من القراءة وأنت ما زلت جالسًا",
+  "settingsSectionVerification": "التأكيد",
+  "settingsPhotoVerification": "التأكيد بالصورة",
+  "settingsPhotoVerificationBody": "التقط صورة لسجادة صلاتك لفتح التطبيقات",
+  "settingsPhotoPrivacy": "تُحلَّل الصور وتُحذف فورًا. لا تُحفظ على جهازك ولا تُرفع ولا تُشارك أبدًا.",
+  "settingsSectionGeneral": "عام",
+  "blockedAppsTitle": "التطبيقات المحجوبة",
+  "blockedAppsIntro": "التطبيقات المحددة ستكون غير متاحة من بداية كل صلاة حتى تؤكد أنك صليت.",
+  "blockedAppsEssentials": "الهاتف والرسائل والإعدادات لا يمكن حجبها أبدًا.",
+  "blockedAppsNoneFound": "لم يُعثر على تطبيقات",
+  "blockedAppsAndroidOnly": "حجب التطبيقات متاح على أندرويد فقط.",
+  "blockedAppsListFailed": "تعذر عرض تطبيقاتك",
+  "blockedAppsSuggested": "مقترح",
+  "blockedAppsChoose": "اختر التطبيقات",
+  "blockedAppsSelectedCount": "{count} تطبيق أو فئة محددة",
+  "@blockedAppsSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "blockedAppsIosIntro": "اختر التطبيقات التي توقفها أثناء الصلاة. على آيفون تُختار من أداة وقت الشاشة من أبل — لا يرى قفل الصلاة أي تطبيقات اخترت، بل عددها فقط.",
+  "durationsTitle": "مدد الصلاة",
+  "durationsTotalBlocking": "اليوم هذا يعني {duration} من الحجب إجمالًا.",
+  "@durationsTotalBlocking": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "durationsSetLocation": "حدد موقعك لعرض نوافذ صلاة اليوم.",
+  "durationsSourceConfirmed": "تم تأكيد الأوقات مع خدمة أوقات الصلاة.",
+  "durationsSourceCachedOffline": "تُعرض الأوقات المحفوظة. ستُؤكَّد عند الاتصال.",
+  "durationsSourceCached": "تُعرض الأوقات المحفوظة.",
+  "durationsSourceDevice": "حُسبت الأوقات على هذا الجهاز. ستُؤكَّد عند الاتصال.",
+  "jumuahTitle": "الجمعة",
+  "jumuahLabel": "الجمعة",
+  "jumuahIntro": "أيام الجمعة تُستبدل الظهر بالجمعة في الوقت الذي يقيمها فيه مسجدك. بقية الأيام دون تغيير.",
+  "jumuahSmart": "الجمعة الذكية",
+  "jumuahReplacesDhuhr": "الجمعة تحل محل الظهر أيام الجمعة",
+  "jumuahDhuhrEveryDay": "تُستخدم الظهر كل يوم",
+  "jumuahYourMosques": "مساجدك",
+  "jumuahChooseMosque": "اختر مسجدًا لتحل الجمعة محل الظهر هذه الجمعة.",
+  "jumuahFridayBehaviour": "سلوك يوم الجمعة",
+  "jumuahAskWhenTravel": "اسألني عند السفر",
+  "jumuahAskWhenTravelBody": "اعرض مسجدًا آخر إن بدا أنك في مكان مختلف",
+  "jumuahSilence": "الإسكات أثناء الجمعة",
+  "jumuahSilenceBody": "اكتم الهاتف أثناء الجماعة وأعده بعدها",
+  "jumuahSilenceNeedsAccess": "يحتاج قفل الصلاة إذن عدم الإزعاج قبل أن يتمكن من الكتم.",
+  "jumuahGrantAccess": "امنح الإذن",
+  "jumuahReset": "إعادة ضبط",
+  "jumuahResetTimes": "أعد ضبط أوقات المساجد المدمجة",
+  "jumuahResetTimesBody": "المساجد التي أضفتها تبقى",
+  "jumuahForget": "انسَ أين أصلي",
+  "jumuahForgetBody": "سيُسأل مجددًا يوم الجمعة القادم",
+  "jumuahAddMosque": "أضف مسجدًا",
+  "jumuahEditMosque": "تعديل المسجد",
+  "jumuahMosqueName": "اسم المسجد",
+  "jumuahMosqueNameHelp": "يظهر على بطاقة الجمعة وفي الإشعارات",
+  "jumuahTime": "وقت الجمعة",
+  "jumuahStartsAt": "يبدأ {time}",
+  "@jumuahStartsAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "jumuahEndsAt": "ينتهي {time}",
+  "@jumuahEndsAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "jumuahTimeHelp": "تبقى التطبيقات محجوبة بين هذين الوقتين، وهذه هي النافذة التي تؤكد فيها صلاتك.",
+  "jumuahNotesHint": "المواقف، أي مدخل، أي شيء مفيد",
+  "jumuahNotes": "ملاحظات",
+  "jumuahNoPosition": "لم يُحفظ موقع",
+  "jumuahPositionSaved": "حُفظ الموقع",
+  "jumuahPositionHelp": "يُستخدم لعرض هذا المسجد عندما تكون قريبًا",
+  "jumuahUseCurrent": "استخدم الحالي",
+  "jumuahIPrayed": "صليت الجمعة",
+  "jumuahConfirmedLate": "أُكِّدت متأخرة",
+  "jumuahMissed": "فائتة — صلِّ الظهر بدلًا",
+  "jumuahLeftToConfirm": "بقي {duration} للتأكيد",
+  "@jumuahLeftToConfirm": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "jumuahStartsIn": "يبدأ بعد {duration}",
+  "@jumuahStartsIn": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "jumuahWhereToday": "أين ستصلي الجمعة اليوم؟",
+  "jumuahWhereTodayBody": "سنستخدم هذا كل جمعة. يمكنك تغييره من الإعدادات.",
+  "jumuahTravelTitle": "هل تصلي في مكان آخر اليوم؟",
+  "jumuahTravelBody": "أنت على بعد {near} من {mosque}، و{far} من مسجدك المعتاد.",
+  "@jumuahTravelBody": {
+    "placeholders": {
+      "near": {
+        "type": "String"
+      },
+      "mosque": {
+        "type": "String"
+      },
+      "far": {
+        "type": "String"
+      }
+    }
+  },
+  "jumuahTravelStay": "لا، أبقِ كما أنا",
+  "jumuahTravelUse": "استخدمه اليوم",
+  "jumuahKilometres": "{value} كم",
+  "@jumuahKilometres": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "jumuahNextFridayDays": "اليوم ليس الجمعة. تنطبق الجمعة بعد {days} أيام.",
+  "@jumuahNextFridayDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "jumuahNextFridayTomorrow": "اليوم ليس الجمعة. تنطبق الجمعة غدًا.",
+  "jumuahTodayIsFriday": "اليوم هو الجمعة.",
+  "jumuahAppliedToday": "اليوم تحل الجمعة محل الظهر.",
+  "jumuahAppliedClamped": "اليوم تحل الجمعة محل الظهر، مع تعديلها لتقع داخل نافذة الظهر.",
+  "jumuahOutsideDhuhr": "وقت جمعتك يقع خارج الظهر اليوم، لذا تُستخدم الظهر العادية.",
+  "jumuahNotActive": "الجمعة غير مفعّلة اليوم.",
+  "onboardingStepOf": "الخطوة {index} من {count}",
+  "@onboardingStepOf": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingStart": "ابدأ الصلاة في وقتها",
+  "onboardingWhereAreYou": "أين أنت؟",
+  "onboardingWhereBody": "تعتمد أوقات الصلاة على موقعك. اكتشفه تلقائيًا أو اختر أقرب مدينة.",
+  "onboardingUseLocation": "استخدم موقعي",
+  "onboardingDetecting": "جارٍ التحديد…",
+  "onboardingSearchCity": "ابحث عن مدينة",
+  "onboardingLocationOff": "خدمات الموقع مغلقة. شغّلها أو اختر مدينة أدناه.",
+  "onboardingLocationDenied": "رُفض إذن الموقع. يمكنك اختيار مدينة أدناه بدلًا من ذلك.",
+  "onboardingLocationFailed": "تعذر تحديد موقعك. اختر مدينة أدناه بدلًا من ذلك.",
+  "onboardingSectionQuestion": "أي مذهب إسلامي تتبع؟",
+  "onboardingSectionBody": "يحدد هذا نقطة انطلاق لأوقات الصلاة وكيفية تجميعها. يمكنك تغيير كل شيء لاحقًا.",
+  "onboardingMethodBody": "تستخدم الجهات المختلفة زوايا شمس مختلفة للفجر والعشاء. اختر ما يتبعه مسجدك المحلي.",
+  "onboardingBlockingTitle": "اسمح بحجب التطبيقات",
+  "onboardingBlockingBody": "تتيح هذه الأذونات لقفل الصلاة تقييد التطبيقات المشتتة أثناء الصلاة. بدونها لا يعمل الحجب. يمكنك التخطي وتفعيلها لاحقًا.",
+  "onboardingUsageAccess": "الوصول إلى الاستخدام",
+  "onboardingUsageAccessBody": "يتيح للتطبيق معرفة أي تطبيق مفتوح حاليًا.",
+  "onboardingOverlay": "العرض فوق التطبيقات الأخرى",
+  "onboardingOverlayBody": "يتيح ظهور تذكير الصلاة فوق تطبيق محجوب.",
+  "onboardingBattery": "تجاهل تحسين البطارية",
+  "onboardingBatteryBody": "يمنع النظام من إيقاف خدمة التذكير في الخلفية. يُنصح به بشدة على أجهزة سامسونج وشاومي.",
+  "onboardingAllow": "اسمح",
+  "onboardingScreenTimeTitle": "اسمح بالوصول إلى وقت الشاشة",
+  "onboardingScreenTimeBody": "يستخدم قفل الصلاة وقت الشاشة لإيقاف التطبيقات المشتتة أثناء الصلاة. يطلب آيفون هذا مرة واحدة. يمكنك التخطي وتفعيله لاحقًا من الإعدادات.",
+  "onboardingScreenTime": "وقت الشاشة",
+  "onboardingScreenTimeDetail": "يتيح لقفل الصلاة إيقاف التطبيقات التي تختارها أثناء الصلاة وتحريرها بعد أن تصلي. تبقى اختياراتك خاصة — حتى قفل الصلاة لا يرى ما تختاره.",
+  "onboardingBlockingUnavailable": "تقييد التطبيقات الأخرى غير متاح على هذه المنصة. أوقات الصلاة والتذكيرات والتتبع والتأكيد تعمل كلها بشكل طبيعي.",
+  "dhikrPrayerRecorded": "سُجِّلت الصلاة",
+  "dhikrSubhanAllahMeaning": "سبحان الله",
+  "dhikrAlhamdulillahMeaning": "الحمد لله",
+  "dhikrAllahuAkbarMeaning": "الله أكبر",
+  "dhikrOfCount": "من {count}",
+  "@dhikrOfCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dhikrComplete": "اكتمل التسبيح",
+  "dhikrTapToCount": "اضغط للعد",
+  "dhikrQuranPrompt": "هل تقرأ القرآن خمس دقائق؟",
+  "dhikrQuranBody": "افتح تطبيق أو نسخة القرآن المعتادة — هذا مجرد تذكير وأنت ما زلت جالسًا.",
+  "calendarSacredMonth": "شهر حرام",
+  "calendarSehriEndsIn": "ينتهي السحور بعد",
+  "calendarIftarIn": "الإفطار بعد",
+  "calendarAfterIsha": "بعد العشاء",
+  "calendarRamadanDay": "رمضان · اليوم {day}",
+  "@calendarRamadanDay": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarOddNight": "إحدى الليالي الوترية من العشر الأواخر",
+  "calendarLastTen": "العشر الأواخر",
+  "calendarEidPrayer": "صلاة العيد",
+  "calendarAfterSunrise": "بعد الشروق",
+  "countdownJustNow": "الآن",
+  "countdownMinutesAgo": "قبل {minutes} دقيقة",
+  "@countdownMinutesAgo": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "countdownHoursAgo": "قبل {hours} ساعة",
+  "@countdownHoursAgo": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "countdownDaysAgo": "قبل {days} يوم",
+  "@countdownDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "tileUpcoming": "قادمة",
+  "tileMissed": "فائتة",
+  "tileExcused": "معذور",
+  "lockEmergencyBodyCount": "يفتح هذا تطبيقاتك دون تأكيد صلاتك. لديك {count} في اليوم.\n\nإن احتجت للاتصال بأحد، فالهاتف والرسائل متاحان دائمًا دون استخدام هذا.",
+  "@lockEmergencyBodyCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "analyticsQazaShort": "قضاء",
+  "analyticsVerified": "مؤكدة",
+  "jumuahChooseMosqueTitle": "اختر أين تصلي الجمعة",
+  "jumuahOptional": "اختياري",
+  "jumuahAddress": "العنوان",
+  "actionClear": "مسح",
+  "jumuahType": "النوع",
+  "statPercentDetail": "{label}: {percent} بالمئة، {detail}",
+  "@statPercentDetail": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "int"
+      },
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "tileSemantics": "{prayer}، {time}، {phase}",
+  "@tileSemantics": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "phase": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsStatsFailed": "تعذر تحميل إحصاءاتك.",
+  "analyticsLockActive": "{prayer} — نشط",
+  "@analyticsLockActive": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsLockEnded": "{prayer} — {reason}",
+  "@analyticsLockEnded": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsUnlockNumbered": "فتح رقم {sequence} — {reason}",
+  "@analyticsUnlockNumbered": {
+    "placeholders": {
+      "sequence": {
+        "type": "int"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsUnlockPlain": "فتح طارئ رقم {sequence}",
+  "@analyticsUnlockPlain": {
+    "placeholders": {
+      "sequence": {
+        "type": "int"
+      }
+    }
+  },
+  "lockEndVerified": "فُتح بعد الصلاة",
+  "lockEndEmergency": "فتح طارئ",
+  "lockEndWindowExpired": "انتهى وقت الصلاة",
+  "lockEndDisabled": "أُوقف الحجب",
+  "lockEndRestarted": "أُعيد تشغيل التطبيق",
+  "dashboardNextUpper": "التالية: {prayer}",
+  "@dashboardNextUpper": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    }
+  },
+  "dhikrSubhanAllah": "سبحان الله",
+  "dhikrAlhamdulillah": "الحمد لله",
+  "dhikrAllahuAkbar": "الله أكبر",
+  "sectionSummaryPrayerTimes": "أوقات الصلاة",
+  "sectionSummaryAsr": "توقيت العصر",
+  "sectionSummaryGrouping": "تجميع الصلوات",
+  "jumuahStartsLabel": "تبدأ الجمعة",
+  "jumuahClosesLabel": "يغلق التأكيد",
+  "settingsHijriDayOffset": "{days} يوم",
+  "@settingsHijriDayOffset": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  }
 }

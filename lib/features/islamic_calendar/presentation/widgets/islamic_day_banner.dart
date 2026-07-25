@@ -8,6 +8,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../../../shared/widgets/countdown_text.dart';
 import '../../../prayer_times/presentation/providers/prayer_times_provider.dart';
@@ -36,7 +37,7 @@ class HijriDateLine extends ConsumerWidget {
         if (hijri.month.isSacred) ...[
           const SizedBox(width: AppSpacing.xs),
           Text(
-            '· sacred month',
+            '· ${AppLocalizations.of(context).calendarSacredMonth}',
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.primary,
             ),
@@ -99,27 +100,27 @@ class _RamadanStrip extends ConsumerWidget {
 
     final (String label, String value) = switch (status.phase) {
       FastPhase.sehri when sehri != null => (
-          'Sehri ends in',
+          AppLocalizations.of(context).calendarSehriEndsIn,
           formatCountdown(sehri),
         ),
       FastPhase.fasting when iftar != null => (
-          'Iftar in',
+          AppLocalizations.of(context).calendarIftarIn,
           formatCountdown(iftar),
         ),
-      _ => ('Taraweeh', 'after Isha'),
+      _ => ('Taraweeh', AppLocalizations.of(context).calendarAfterIsha),
     };
 
     return _Strip(
       icon: Icons.nightlight_round,
       colour: theme.colorScheme.primary,
-      title: 'Ramadan · Day ${status.dayOfRamadan}',
+      title: AppLocalizations.of(context).calendarRamadanDay(status.dayOfRamadan),
       trailingLabel: label,
       trailingValue: value,
       // The last ten nights are worth calling out; the odd ones especially.
       footnote: status.isPossibleLaylatulQadr
-          ? 'One of the odd nights of the last ten'
+          ? AppLocalizations.of(context).calendarOddNight
           : status.isLastTen
-              ? 'The last ten nights'
+              ? AppLocalizations.of(context).calendarLastTen
               : null,
     );
   }
@@ -136,10 +137,10 @@ class _EidStrip extends StatelessWidget {
       icon: Icons.celebration_outlined,
       colour: AppColors.accent,
       title: status.name ?? 'Eid',
-      trailingLabel: status.eidPrayerFrom == null ? null : 'Eid prayer',
+      trailingLabel: status.eidPrayerFrom == null ? null : AppLocalizations.of(context).calendarEidPrayer,
       trailingValue: status.eidPrayerFrom == null
           ? null
-          : 'after sunrise',
+          : AppLocalizations.of(context).calendarAfterSunrise,
       footnote: status.callsForTakbeer ? 'Takbeer' : null,
     );
   }

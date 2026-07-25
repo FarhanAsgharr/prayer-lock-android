@@ -1,4 +1,4 @@
-/// "Where will you pray Jumu'ah today?"
+/// AppLocalizations.of(context).jumuahWhereToday
 ///
 /// Shown on the first Friday, once, and then never again — the answer is
 /// remembered and reused every Friday after. That is the whole design: asking
@@ -11,6 +11,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../providers/jumuah_providers.dart';
 import 'jumuah_icon.dart';
@@ -45,7 +46,7 @@ class JumuahLocationPrompt extends ConsumerWidget {
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
-                    "Where will you pray Jumu'ah today?",
+                    AppLocalizations.of(context).jumuahWhereToday,
                     style: theme.textTheme.titleMedium,
                   ),
                 ),
@@ -53,7 +54,7 @@ class JumuahLocationPrompt extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
-              "We'll use this every Friday. You can change it in Settings.",
+              AppLocalizations.of(context).jumuahWhereTodayBody,
               style: theme.textTheme.bodySmall,
             ),
             const SizedBox(height: AppSpacing.md),

@@ -1,15 +1,12 @@
 {
   "@@locale": "ur",
-
   "prayerFajr": "فجر",
   "prayerDhuhr": "ظہر",
   "prayerAsr": "عصر",
   "prayerMaghrib": "مغرب",
   "prayerIsha": "عشاء",
   "prayerSunrise": "طلوعِ آفتاب",
-
   "combinedPair": "{first} + {second}",
-
   "islamicSectionTitle": "اسلامی مسلک",
   "islamicSectionIntro": "آپ کا مسلک نمازوں کے اوقات اور ان کے جمع ہونے کا ابتدائی نقطہ طے کرتا ہے۔ جو کچھ بھی بدلتا ہے وہ قابلِ تبدیل رہتا ہے، اور یہاں کوئی چیز شرعی فتویٰ نہیں۔",
   "islamicSectionEnterOwn": "اپنا اسلامی مسلک لکھیں",
@@ -18,13 +15,11 @@
   "islamicSectionNameYours": "اوپر اپنے مسلک کا نام لکھیں",
   "islamicSectionSelected": "منتخب: {name}",
   "islamicSectionEditable": "آپ ان میں سے کوئی بھی ترتیب بعد میں بدل سکتے ہیں۔",
-
   "sectionFamilySunniTraditions": "سنی مسالک",
   "sectionFamilySunniCommunities": "سنی جماعتیں",
   "sectionFamilyShiaTraditions": "شیعہ مسالک",
   "sectionFamilyOtherCommunities": "دیگر مسلم جماعتیں",
   "sectionFamilyOther": "دیگر",
-
   "prayerModeTitle": "نماز کا انداز",
   "prayerModeIntro": "جمع کرنے سے دو نمازیں ایک ونڈو، ایک لاک اور ایک تصدیق میں آ جاتی ہیں۔ دونوں نمازیں پھر بھی ریکارڈ ہوتی ہیں اور آپ کے اعدادوشمار اور سلسلے میں شمار ہوتی ہیں۔",
   "prayerModeCombinedSubtitle": "ایک ونڈو، ایک لاک، ایک تصدیق۔",
@@ -33,15 +28,713 @@
   "prayerModeOneConfirmationHelp": "ونڈو جمع ہونے کے باوجود ہر نماز الگ تصدیق کرنے کے لیے بند کریں۔",
   "prayerModeSuggestion": "یہ {section} کے لیے تجویز کردہ ترتیبات ہیں۔ اگر آپ کا عمل مختلف ہے تو کوئی بھی سوئچ بدل دیں — یہاں کچھ بھی لازمی نہیں۔",
   "prayerModeCardCount": "{count, plural, one{آپ کا دن: 1 نماز کارڈ} other{آپ کا دن: {count} نماز کارڈ}}",
-
   "groupingNone": "پانچ الگ نمازیں",
   "groupingDhuhrAsr": "ظہر اور عصر جمع کریں",
   "groupingMaghribIsha": "مغرب اور عشاء جمع کریں",
   "groupingBoth": "دونوں جوڑے جمع کریں",
-
   "settingsTitle": "ترتیبات",
   "settingsLanguage": "زبان",
   "settingsLanguageSystem": "سسٹم کے مطابق",
-
-  "durationHoursMinutes": "{hours} گھنٹے {minutes} منٹ"
+  "durationHoursMinutes": "{hours} گھنٹے {minutes} منٹ",
+  "appTitle": "پریئر لاک",
+  "actionRetry": "دوبارہ کوشش کریں",
+  "actionCancel": "منسوخ کریں",
+  "actionSave": "محفوظ کریں",
+  "actionDelete": "حذف کریں",
+  "actionDone": "مکمل",
+  "actionContinue": "جاری رکھیں",
+  "actionSkip": "چھوڑ دیں",
+  "commonNotSet": "مقرر نہیں",
+  "commonOff": "بند",
+  "commonNoData": "کوئی ڈیٹا نہیں",
+  "commonNothingYet": "ابھی یہاں کچھ نہیں ہے۔",
+  "commonLoadFailed": "لوڈ نہیں ہو سکا: {error}",
+  "@commonLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardTodaysPrayers": "آج کی نمازیں",
+  "dashboardItIsTimeFor": "وقت ہو گیا ہے",
+  "dashboardNext": "اگلی: {prayer}",
+  "@dashboardNext": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    }
+  },
+  "dashboardWhatIsNext": "آگے کیا ہے",
+  "dashboardCompletedOfTotal": "{total} میں سے {completed}",
+  "@dashboardCompletedOfTotal": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboardCompleted": "مکمل",
+  "dashboardRemaining": "باقی",
+  "dashboardYourPrayers": "آپ کی نمازیں",
+  "dashboardConfirmPrayer": "میں نے یہ نماز پڑھ لی",
+  "dashboardVerifyQaza": "قضا نماز کی تصدیق کریں",
+  "dashboardMarkExcused": "معذور کے طور پر نشان زد کریں",
+  "dashboardBothRecorded": "تصدیق پر دونوں نمازیں درج ہو جائیں گی۔",
+  "dashboardQazaExplain": "وقت گزر چکا ہے۔ اب تصدیق کرنے سے یہ قضا نماز کے طور پر درج ہوگی۔",
+  "dashboardFajrBeforeSunrise": "فجر طلوعِ آفتاب سے پہلے پڑھنی ہے۔ اس کے بعد تاخیر شمار ہوگی۔",
+  "dashboardSetLocation": "اپنا مقام مقرر کریں",
+  "dashboardSetLocationBody": "نماز کے اوقات آپ کے مقام پر منحصر ہیں۔ شروع کرنے کے لیے مقام منتخب کریں۔",
+  "dashboardChooseLocation": "مقام منتخب کریں",
+  "tileUntilBoundary": "{boundary} تک",
+  "@tileUntilBoundary": {
+    "placeholders": {
+      "boundary": {
+        "type": "String"
+      }
+    }
+  },
+  "tileVerifyNow": "ابھی تصدیق کریں",
+  "tileQazaAvailable": "قضا دستیاب",
+  "tileVerifiedOnTime": "وقت پر تصدیق شدہ",
+  "tileQazaCompleted": "قضا مکمل",
+  "tileLeft": "{duration} باقی",
+  "@tileLeft": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "lockGoodMorning": "صبح بخیر",
+  "lockFajrFirst": "دن شروع کرنے سے پہلے فجر ادا کریں۔",
+  "lockItIsTimeFor": "{prayer} کا وقت ہو گیا ہے",
+  "@lockItIsTimeFor": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    }
+  },
+  "lockPerformPrayer": "اپنی نماز ادا کریں۔ تصدیق کرتے ہی آپ کی ایپس کھل جائیں گی۔",
+  "lockCompletedPrayer": "میں نے نماز مکمل کر لی",
+  "lockEmergencyUnlock": "ہنگامی انلاک",
+  "lockAppPaused": "{app} نماز پڑھنے تک روکا گیا ہے۔",
+  "@lockAppPaused": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "lockThatApp": "وہ ایپ",
+  "lockEssentialsNeverBlocked": "فون، پیغامات اور ترتیبات کبھی بلاک نہیں ہوتے۔",
+  "lockEmergencyTitle": "ہنگامی انلاک؟",
+  "lockEmergencyBody": "یہ آپ کی نماز کی تصدیق کے بغیر ایپس کھول دیتا ہے۔ اگر کسی کو کال کرنی ہو تو فون اور پیغامات ہمیشہ دستیاب ہیں۔",
+  "lockUnlockedTitle": "ایپس کھل گئیں",
+  "lockUnlockedBody": "آپ کی ایپس دوبارہ دستیاب ہیں۔ یہ درج کر لیا گیا ہے۔",
+  "lockNoUnlocksLeft": "آپ آج کے تمام ہنگامی انلاک استعمال کر چکے ہیں",
+  "lockWillUnlockAfter": "نماز مکمل اور تصدیق کرنے کے بعد ایپس کھل جائیں گی۔",
+  "verifyTitle": "{prayer} کی تصدیق",
+  "@verifyTitle": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    }
+  },
+  "verifyRecordTitle": "{prayer} درج کریں",
+  "@verifyRecordTitle": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    }
+  },
+  "verifyDidYouComplete": "کیا آپ نے {prayer} مکمل کر لی؟",
+  "@verifyDidYouComplete": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    }
+  },
+  "verifyYesCompleted": "جی ہاں، مکمل کر لی",
+  "verifyNotYet": "ابھی نہیں",
+  "verifyPhotoPrompt": "کیمرہ اپنی جائے نماز کی طرف کریں اور تصویر لیں۔",
+  "verifyManualPrompt": "تصدیق کریں کہ آپ نے نماز پڑھ لی ہے۔",
+  "verifyTakePhoto": "جائے نماز کی تصویر لیں",
+  "verifyWithoutPhoto": "تصویر کے بغیر درج کریں",
+  "verifyTrouble": "مشکل ہو رہی ہے؟ آپ یہ نماز تصویر کے بغیر درج کر سکتے ہیں۔",
+  "verifyNoCamera": "اس ڈیوائس میں کیمرہ نہیں ملا۔ آپ پھر بھی یہ نماز تصویر کے بغیر درج کر سکتے ہیں۔",
+  "verifyCameraDenied": "کیمرے کی اجازت مسترد ہوئی۔ ترتیبات میں اجازت دیں، یا تصویر کے بغیر درج کریں۔",
+  "verifyCameraFailed": "کیمرہ نہیں کھل سکا ({code})۔",
+  "@verifyCameraFailed": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "verifyPhotoFailed": "تصویر نہیں لی جا سکی ({code})۔",
+  "@verifyPhotoFailed": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "verifySaveFailed": "آپ کی نماز محفوظ نہیں ہو سکی۔ دوبارہ کوشش کریں۔",
+  "verifyWindowsPassed": "ادا اور قضا دونوں اوقات گزر چکے ہیں۔ یہ نماز اب فوت شدہ درج ہے۔",
+  "verifyNoSchedule": "نماز مکمل نہیں ہو سکتی: کوئی شیڈول دستیاب نہیں",
+  "qazaTitle": "قضا نمازیں",
+  "qazaOne": "ایک نماز قضا کرنی ہے",
+  "qazaMany": "{count} نمازیں قضا کرنی ہیں",
+  "@qazaMany": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "qazaHint": "جب ممکن ہو ادا کریں، پھر یہاں نشان لگائیں۔ سب سے پرانی پہلے ہے۔",
+  "qazaMarked": "{prayer} قضا کے طور پر درج ہو گئی۔",
+  "@qazaMarked": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    }
+  },
+  "qazaAlreadyMarked": "وہ نماز پہلے ہی قضا کے طور پر درج تھی۔",
+  "qazaNothing": "کچھ قضا نہیں",
+  "qazaNothingBody": "ہر وہ نماز جس کا وقت گزر چکا، شمار کر لی گئی ہے۔",
+  "qazaLoadFailed": "آپ کی قضا نمازیں لوڈ نہیں ہو سکیں۔",
+  "analyticsTitle": "آپ کی نمازیں",
+  "analyticsDayStreak": "دن کا تسلسل",
+  "analyticsLongestStreak": "طویل ترین تسلسل",
+  "analyticsAllTimeCompletion": "مجموعی تکمیل",
+  "analyticsPrayersFulfilled": "ادا شدہ نمازیں",
+  "analyticsOnTime": "وقت پر",
+  "analyticsQazaMakeUp": "قضا",
+  "analyticsMissed": "فوت شدہ",
+  "analyticsThisWeek": "اس ہفتے",
+  "analyticsCompletionRate": "تکمیل کی شرح",
+  "analyticsByPrayer": "نماز کے لحاظ سے",
+  "analyticsRangeWeek": "اس ہفتے",
+  "analyticsRangeMonth": "اس ماہ",
+  "analyticsRangeYear": "اس سال",
+  "analyticsVerificationHistory": "تصدیق کی تاریخ",
+  "analyticsLockHistory": "قفل کی تاریخ",
+  "analyticsEmergencyUnlocks": "ہنگامی انلاک",
+  "analyticsMostMissed": "{prayer} وہ نماز ہے جو سب سے زیادہ رہ جاتی ہے۔ تھوڑی سی توجہ پورا ہفتہ بہتر کر دے گی۔",
+  "@analyticsMostMissed": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsParked": "{count} ریکارڈ اپ لوڈ نہیں ہو سکے۔",
+  "@analyticsParked": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "analyticsPending": "{count} ریکارڈ ہم آہنگی کے منتظر ہیں۔",
+  "@analyticsPending": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "analyticsReleasedWithoutDetection": "بغیر تصدیق کے جاری",
+  "analyticsNotVerified": "غیر تصدیق شدہ",
+  "analyticsNoPrayersYet": "ابھی کوئی نماز درج نہیں",
+  "analyticsChartSummary": "{days} دنوں میں نماز کی تکمیل: {assessed} میں سے {fulfilled} ادا",
+  "@analyticsChartSummary": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      },
+      "fulfilled": {
+        "type": "int"
+      },
+      "assessed": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsSectionPrayerTimes": "نماز کے اوقات",
+  "settingsLocation": "مقام",
+  "settingsCalculationMethod": "حساب کا طریقہ",
+  "settingsIslamicSection": "اسلامی مسلک",
+  "settingsPrayerMode": "نماز کا انداز",
+  "settingsPrayerCards": "{mode} — {count} نماز کارڈ",
+  "@settingsPrayerCards": {
+    "placeholders": {
+      "mode": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsJumuah": "جمعہ",
+  "settingsAsrTiming": "عصر کا وقت",
+  "settingsResetSectionDefaults": "مسلک کی طے شدہ ترتیبات پر واپس",
+  "settingsReturnToSuggested": "{section} کی تجویز پر واپس جائیں",
+  "@settingsReturnToSuggested": {
+    "placeholders": {
+      "section": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsHijriDate": "ہجری تاریخ",
+  "settingsHijriCalculated": "حساب شدہ — اگر مقامی رویت سے مختلف ہو تو ایڈجسٹ کریں",
+  "settingsHijriAdjustment": "ہجری تاریخ کی ایڈجسٹمنٹ",
+  "settingsHijriAsCalculated": "جیسا حساب کیا گیا",
+  "settingsHijriDayLater": "1 دن بعد",
+  "settingsHijriDayEarlier": "1 دن پہلے",
+  "settingsHijriDaysLater": "{days} دن بعد",
+  "@settingsHijriDaysLater": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsHijriDaysEarlier": "{days} دن پہلے",
+  "@settingsHijriDaysEarlier": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsHighLatitude": "بلند عرض البلد کا قاعدہ",
+  "settingsSectionReminders": "یاد دہانیاں",
+  "settingsRemindBefore": "نماز سے پہلے یاد دلائیں",
+  "settingsMinutesBefore": "{minutes} منٹ پہلے",
+  "@settingsMinutesBefore": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsAtPrayerTime": "نماز کے وقت",
+  "settingsPlayAdhan": "اذان چلائیں",
+  "settingsPlayAdhanBody": "نماز کے وقت اذان کی آواز",
+  "settingsSectionBlocking": "ایپ بلاکنگ",
+  "settingsBlockingUnavailable": "اس پلیٹ فارم پر ایپ بلاکنگ دستیاب نہیں۔ نماز کے اوقات، یاد دہانیاں، ٹریکنگ اور تصدیق سب معمول کے مطابق کام کرتے ہیں۔",
+  "settingsBlockDuringPrayer": "نماز کے دوران ایپس بلاک کریں",
+  "settingsBlockedApps": "بلاک شدہ ایپس",
+  "settingsNoneSelected": "کوئی منتخب نہیں",
+  "settingsCountSelected": "{count} منتخب",
+  "@settingsCountSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsGracePeriod": "مہلت",
+  "settingsGraceBody": "اذان کے {minutes} منٹ بعد ایپس بند ہوں گی",
+  "@settingsGraceBody": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsLockImmediately": "فوراً بند کریں",
+  "settingsLockAfterMinutes": "{minutes} منٹ بعد بند کریں",
+  "@settingsLockAfterMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsWhenAppsUnlock": "ایپس کب کھلیں",
+  "settingsPrayerDurations": "نماز کے دورانیے",
+  "settingsPrayerDurationsBody": "دیکھیں کہ آج ہر نماز کا وقت کتنا ہے",
+  "settingsMorningProtection": "صبح کی حفاظت",
+  "settingsMorningProtectionBody": "فجر کے بعد نماز پڑھنے تک ایپس بند رکھیں",
+  "settingsBlockUntilQaza": "قضا ادا ہونے تک ایپس بند رکھیں",
+  "settingsBlockUntilQazaBody": "فوت شدہ نماز باقی دن ایپس بند رکھے گی جب تک آپ اسے ادا نہ کر لیں",
+  "settingsMakeUpPrayers": "قضا نمازیں",
+  "settingsMakeUpPrayersBody": "وہ نمازیں جو ابھی باقی ہیں",
+  "settingsSectionSource": "اوقات کا ماخذ",
+  "settingsConfirmOnline": "اوقات آن لائن تصدیق کریں",
+  "settingsConfirmOnlineBody": "جب ممکن ہو، اوقات آن لائن سروس سے ملائیں۔ اوقات ہمیشہ اس ڈیوائس پر بھی حساب ہوتے ہیں، اس لیے ایپ آف لائن بھی مکمل کام کرتی ہے۔",
+  "settingsNotifyWindowEnd": "وقت ختم ہونے پر اطلاع دیں",
+  "settingsNotifyWindowEndBody": "نماز کا وقت ختم ہونے سے پہلے خبردار کریں، اور ایپس کھلنے پر تصدیق کریں",
+  "settingsSectionAfterPrayer": "نماز کے بعد",
+  "settingsTasbih": "تسبیح کی یاد دہانی",
+  "settingsTasbihBody": "درج شدہ نماز کے بعد سبحان اللہ، الحمد للہ اور اللہ اکبر پیش کریں",
+  "settingsQuranReminder": "قرآن کی یاد دہانی",
+  "settingsQuranReminderBody": "بیٹھے بیٹھے پانچ منٹ تلاوت کی تجویز دیں",
+  "settingsSectionVerification": "تصدیق",
+  "settingsPhotoVerification": "تصویری تصدیق",
+  "settingsPhotoVerificationBody": "ایپس کھولنے کے لیے جائے نماز کی تصویر لیں",
+  "settingsPhotoPrivacy": "تصاویر کا تجزیہ کر کے فوراً حذف کر دی جاتی ہیں۔ نہ ڈیوائس پر محفوظ ہوتی ہیں، نہ اپ لوڈ، نہ شیئر۔",
+  "settingsSectionGeneral": "عمومی",
+  "blockedAppsTitle": "بلاک شدہ ایپس",
+  "blockedAppsIntro": "منتخب ایپس ہر نماز کے آغاز سے اس وقت تک بند رہیں گی جب تک آپ تصدیق نہ کریں۔",
+  "blockedAppsEssentials": "فون، پیغامات اور ترتیبات کبھی بلاک نہیں ہو سکتے۔",
+  "blockedAppsNoneFound": "کوئی ایپ نہیں ملی",
+  "blockedAppsAndroidOnly": "ایپ بلاکنگ صرف اینڈرائیڈ پر دستیاب ہے۔",
+  "blockedAppsListFailed": "آپ کی ایپس کی فہرست نہیں مل سکی",
+  "blockedAppsSuggested": "تجویز کردہ",
+  "blockedAppsChoose": "ایپس منتخب کریں",
+  "blockedAppsSelectedCount": "{count} ایپس یا زمرے منتخب",
+  "@blockedAppsSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "blockedAppsIosIntro": "منتخب کریں کہ نماز کے دوران کون سی ایپس روکی جائیں۔ آئی فون پر ایپل کے اسکرین ٹائم پکر سے منتخب ہوتی ہیں — پریئر لاک کو صرف تعداد معلوم ہوتی ہے، ایپس نہیں۔",
+  "durationsTitle": "نماز کے دورانیے",
+  "durationsTotalBlocking": "آج یہ کل ملا کر {duration} کی بلاکنگ ہے۔",
+  "@durationsTotalBlocking": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "durationsSetLocation": "آج کے نماز کے اوقات دیکھنے کے لیے اپنا مقام مقرر کریں۔",
+  "durationsSourceConfirmed": "اوقات کی سروس سے تصدیق ہو گئی۔",
+  "durationsSourceCachedOffline": "محفوظ اوقات دکھائے جا رہے ہیں۔ آن لائن ہونے پر تصدیق ہو گی۔",
+  "durationsSourceCached": "محفوظ اوقات دکھائے جا رہے ہیں۔",
+  "durationsSourceDevice": "اوقات اس ڈیوائس پر حساب کیے گئے۔ آن لائن ہونے پر تصدیق ہو گی۔",
+  "jumuahTitle": "جمعہ",
+  "jumuahLabel": "جمعہ",
+  "jumuahIntro": "جمعہ کے دن ظہر کی جگہ آپ کی مسجد کے وقت پر جمعہ ہوتا ہے۔ باقی دن بغیر تبدیلی کے۔",
+  "jumuahSmart": "اسمارٹ جمعہ",
+  "jumuahReplacesDhuhr": "جمعہ کے دن جمعہ ظہر کی جگہ لیتا ہے",
+  "jumuahDhuhrEveryDay": "ہر دن ظہر ہی استعمال ہوتی ہے",
+  "jumuahYourMosques": "آپ کی مساجد",
+  "jumuahChooseMosque": "مسجد منتخب کریں تاکہ اس جمعہ کو جمعہ ظہر کی جگہ لے سکے۔",
+  "jumuahFridayBehaviour": "جمعہ کا رویہ",
+  "jumuahAskWhenTravel": "سفر کے وقت پوچھیں",
+  "jumuahAskWhenTravelBody": "اگر آپ کہیں اور معلوم ہوں تو دوسری مسجد تجویز کریں",
+  "jumuahSilence": "جمعہ کے دوران خاموشی",
+  "jumuahSilenceBody": "جماعت کے لیے فون خاموش کریں، بعد میں بحال کر دیں",
+  "jumuahSilenceNeedsAccess": "خاموش کرنے سے پہلے پریئر لاک کو ڈسٹرب نہ کریں کی اجازت درکار ہے۔",
+  "jumuahGrantAccess": "اجازت دیں",
+  "jumuahReset": "دوبارہ ترتیب",
+  "jumuahResetTimes": "بلٹ اِن مسجد اوقات دوبارہ ترتیب دیں",
+  "jumuahResetTimesBody": "آپ کی شامل کردہ مساجد باقی رہیں گی",
+  "jumuahForget": "بھول جائیں میں کہاں پڑھتا ہوں",
+  "jumuahForgetBody": "اگلے جمعہ دوبارہ پوچھا جائے گا",
+  "jumuahAddMosque": "مسجد شامل کریں",
+  "jumuahEditMosque": "مسجد میں ترمیم",
+  "jumuahMosqueName": "مسجد کا نام",
+  "jumuahMosqueNameHelp": "جمعہ کارڈ اور اطلاعات میں دکھایا جائے گا",
+  "jumuahTime": "جمعہ کا وقت",
+  "jumuahStartsAt": "{time} شروع",
+  "@jumuahStartsAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "jumuahEndsAt": "{time} ختم",
+  "@jumuahEndsAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "jumuahTimeHelp": "ان اوقات کے درمیان ایپس بند رہیں گی، اور اسی دوران آپ نماز کی تصدیق کر سکتے ہیں۔",
+  "jumuahNotesHint": "پارکنگ، کون سا دروازہ، کوئی بھی کارآمد بات",
+  "jumuahNotes": "نوٹس",
+  "jumuahNoPosition": "کوئی مقام محفوظ نہیں",
+  "jumuahPositionSaved": "مقام محفوظ",
+  "jumuahPositionHelp": "قریب ہونے پر یہ مسجد تجویز کرنے کے لیے",
+  "jumuahUseCurrent": "موجودہ استعمال کریں",
+  "jumuahIPrayed": "میں نے جمعہ پڑھ لیا",
+  "jumuahConfirmedLate": "تاخیر سے تصدیق",
+  "jumuahMissed": "رہ گئی — اس کے بجائے ظہر پڑھیں",
+  "jumuahLeftToConfirm": "تصدیق کے لیے {duration} باقی",
+  "@jumuahLeftToConfirm": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "jumuahStartsIn": "{duration} میں شروع",
+  "@jumuahStartsIn": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "jumuahWhereToday": "آج آپ جمعہ کہاں پڑھیں گے؟",
+  "jumuahWhereTodayBody": "ہم اسے ہر جمعہ استعمال کریں گے۔ ترتیبات میں تبدیل کر سکتے ہیں۔",
+  "jumuahTravelTitle": "آج کہیں اور نماز پڑھ رہے ہیں؟",
+  "jumuahTravelBody": "آپ {mosque} سے تقریباً {near} پر ہیں، اور اپنی معمول کی مسجد سے {far} پر۔",
+  "@jumuahTravelBody": {
+    "placeholders": {
+      "near": {
+        "type": "String"
+      },
+      "mosque": {
+        "type": "String"
+      },
+      "far": {
+        "type": "String"
+      }
+    }
+  },
+  "jumuahTravelStay": "نہیں، ویسے ہی رہنے دیں",
+  "jumuahTravelUse": "آج یہی استعمال کریں",
+  "jumuahKilometres": "{value} کلومیٹر",
+  "@jumuahKilometres": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "jumuahNextFridayDays": "آج جمعہ نہیں ہے۔ جمعہ {days} دن بعد لاگو ہوگا۔",
+  "@jumuahNextFridayDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "jumuahNextFridayTomorrow": "آج جمعہ نہیں ہے۔ جمعہ کل لاگو ہوگا۔",
+  "jumuahTodayIsFriday": "آج جمعہ ہے۔",
+  "jumuahAppliedToday": "آج ظہر کی جگہ جمعہ ہے۔",
+  "jumuahAppliedClamped": "آج ظہر کی جگہ جمعہ ہے، جسے ظہر کے وقت میں سمانے کے لیے ایڈجسٹ کیا گیا۔",
+  "jumuahOutsideDhuhr": "آج آپ کا جمعہ کا وقت ظہر سے باہر ہے، اس لیے عام ظہر استعمال ہو رہی ہے۔",
+  "jumuahNotActive": "آج جمعہ فعال نہیں ہے۔",
+  "onboardingStepOf": "{count} میں سے مرحلہ {index}",
+  "@onboardingStepOf": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "onboardingStart": "وقت پر نماز شروع کریں",
+  "onboardingWhereAreYou": "آپ کہاں ہیں؟",
+  "onboardingWhereBody": "نماز کے اوقات آپ کے مقام پر منحصر ہیں۔ خودکار پتہ لگائیں یا قریب ترین شہر منتخب کریں۔",
+  "onboardingUseLocation": "میرا مقام استعمال کریں",
+  "onboardingDetecting": "پتہ لگایا جا رہا ہے…",
+  "onboardingSearchCity": "شہر تلاش کریں",
+  "onboardingLocationOff": "لوکیشن سروسز بند ہیں۔ انہیں آن کریں یا نیچے سے شہر منتخب کریں۔",
+  "onboardingLocationDenied": "مقام کی اجازت مسترد ہوئی۔ آپ نیچے سے شہر منتخب کر سکتے ہیں۔",
+  "onboardingLocationFailed": "آپ کا مقام معلوم نہیں ہو سکا۔ نیچے سے شہر منتخب کریں۔",
+  "onboardingSectionQuestion": "آپ کس اسلامی مسلک کی پیروی کرتے ہیں؟",
+  "onboardingSectionBody": "یہ نماز کے اوقات اور نمازوں کی ترتیب کا نقطۂ آغاز طے کرتا ہے۔ آپ بعد میں سب کچھ بدل سکتے ہیں۔",
+  "onboardingMethodBody": "مختلف ادارے فجر اور عشاء کے لیے مختلف زاویے استعمال کرتے ہیں۔ وہ منتخب کریں جو آپ کی مقامی مسجد اپناتی ہے۔",
+  "onboardingBlockingTitle": "ایپ بلاکنگ کی اجازت دیں",
+  "onboardingBlockingBody": "یہ اجازتیں پریئر لاک کو نماز کے دوران خلل ڈالنے والی ایپس روکنے دیتی ہیں۔ ان کے بغیر بلاکنگ کام نہیں کرتی۔ آپ چھوڑ کر بعد میں فعال کر سکتے ہیں۔",
+  "onboardingUsageAccess": "استعمال تک رسائی",
+  "onboardingUsageAccessBody": "ایپ کو معلوم ہوتا ہے کہ اس وقت کون سی ایپ کھلی ہے۔",
+  "onboardingOverlay": "دوسری ایپس کے اوپر دکھائیں",
+  "onboardingOverlayBody": "نماز کی یاد دہانی بلاک شدہ ایپ کے اوپر ظاہر ہو سکتی ہے۔",
+  "onboardingBattery": "بیٹری آپٹیمائزیشن نظرانداز کریں",
+  "onboardingBatteryBody": "سسٹم کو پس منظر میں یاد دہانی سروس روکنے سے بچاتا ہے۔ سام سنگ اور شیاؤمی پر خاص طور پر تجویز کردہ۔",
+  "onboardingAllow": "اجازت دیں",
+  "onboardingScreenTimeTitle": "اسکرین ٹائم رسائی کی اجازت دیں",
+  "onboardingScreenTimeBody": "پریئر لاک نماز کے دوران ایپس روکنے کے لیے اسکرین ٹائم استعمال کرتا ہے۔ آئی فون یہ ایک بار پوچھتا ہے۔ آپ چھوڑ کر بعد میں ترتیبات سے فعال کر سکتے ہیں۔",
+  "onboardingScreenTime": "اسکرین ٹائم",
+  "onboardingScreenTimeDetail": "پریئر لاک کو نماز کے دوران آپ کی منتخب ایپس روکنے اور نماز کے بعد کھولنے دیتا ہے۔ آپ کے انتخاب نجی رہتے ہیں — پریئر لاک بھی نہیں دیکھ سکتا۔",
+  "onboardingBlockingUnavailable": "اس پلیٹ فارم پر دوسری ایپس روکنا دستیاب نہیں۔ نماز کے اوقات، یاد دہانیاں، ٹریکنگ اور تصدیق سب معمول کے مطابق کام کرتے ہیں۔",
+  "dhikrPrayerRecorded": "نماز درج ہو گئی",
+  "dhikrSubhanAllahMeaning": "اللہ پاک ہے",
+  "dhikrAlhamdulillahMeaning": "تمام تعریف اللہ کے لیے",
+  "dhikrAllahuAkbarMeaning": "اللہ سب سے بڑا ہے",
+  "dhikrOfCount": "{count} میں سے",
+  "@dhikrOfCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dhikrComplete": "تسبیح مکمل",
+  "dhikrTapToCount": "گننے کے لیے دبائیں",
+  "dhikrQuranPrompt": "پانچ منٹ قرآن پڑھیں؟",
+  "dhikrQuranBody": "اپنی معمول کی قرآن ایپ یا نسخہ کھولیں — یہ صرف ایک یاد دہانی ہے جب آپ ابھی بیٹھے ہیں۔",
+  "calendarSacredMonth": "حرمت والا مہینہ",
+  "calendarSehriEndsIn": "سحری ختم ہونے میں",
+  "calendarIftarIn": "افطار میں",
+  "calendarAfterIsha": "عشاء کے بعد",
+  "calendarRamadanDay": "رمضان · دن {day}",
+  "@calendarRamadanDay": {
+    "placeholders": {
+      "day": {
+        "type": "int"
+      }
+    }
+  },
+  "calendarOddNight": "آخری عشرے کی طاق راتوں میں سے ایک",
+  "calendarLastTen": "آخری دس راتیں",
+  "calendarEidPrayer": "عید کی نماز",
+  "calendarAfterSunrise": "طلوعِ آفتاب کے بعد",
+  "countdownJustNow": "ابھی",
+  "countdownMinutesAgo": "{minutes} منٹ پہلے",
+  "@countdownMinutesAgo": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "countdownHoursAgo": "{hours} گھنٹے پہلے",
+  "@countdownHoursAgo": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "countdownDaysAgo": "{days} دن پہلے",
+  "@countdownDaysAgo": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "tileUpcoming": "آنے والی",
+  "tileMissed": "رہ گئی",
+  "tileExcused": "معذور",
+  "lockEmergencyBodyCount": "یہ آپ کی نماز کی تصدیق کے بغیر ایپس کھول دیتا ہے۔ آپ کے پاس روزانہ {count} ہیں۔\n\nاگر کسی کو کال کرنی ہو تو فون اور پیغامات ہمیشہ دستیاب ہیں۔",
+  "@lockEmergencyBodyCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "analyticsQazaShort": "قضا",
+  "analyticsVerified": "تصدیق شدہ",
+  "jumuahChooseMosqueTitle": "منتخب کریں کہ آپ جمعہ کہاں پڑھتے ہیں",
+  "jumuahOptional": "اختیاری",
+  "jumuahAddress": "پتہ",
+  "actionClear": "صاف کریں",
+  "jumuahType": "قسم",
+  "statPercentDetail": "{label}: {percent} فیصد، {detail}",
+  "@statPercentDetail": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "int"
+      },
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "tileSemantics": "{prayer}، {time}، {phase}",
+  "@tileSemantics": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      },
+      "phase": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsStatsFailed": "آپ کے اعدادوشمار لوڈ نہیں ہو سکے۔",
+  "analyticsLockActive": "{prayer} — فعال",
+  "@analyticsLockActive": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsLockEnded": "{prayer} — {reason}",
+  "@analyticsLockEnded": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsUnlockNumbered": "انلاک #{sequence} — {reason}",
+  "@analyticsUnlockNumbered": {
+    "placeholders": {
+      "sequence": {
+        "type": "int"
+      },
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "analyticsUnlockPlain": "ہنگامی انلاک #{sequence}",
+  "@analyticsUnlockPlain": {
+    "placeholders": {
+      "sequence": {
+        "type": "int"
+      }
+    }
+  },
+  "lockEndVerified": "نماز کے بعد کھلا",
+  "lockEndEmergency": "ہنگامی انلاک",
+  "lockEndWindowExpired": "نماز کا وقت ختم",
+  "lockEndDisabled": "بلاکنگ بند کر دی گئی",
+  "lockEndRestarted": "ایپ دوبارہ شروع ہوئی",
+  "dashboardNextUpper": "اگلی: {prayer}",
+  "@dashboardNextUpper": {
+    "placeholders": {
+      "prayer": {
+        "type": "String"
+      }
+    }
+  },
+  "dhikrSubhanAllah": "سبحان اللہ",
+  "dhikrAlhamdulillah": "الحمد للہ",
+  "dhikrAllahuAkbar": "اللہ اکبر",
+  "sectionSummaryPrayerTimes": "نماز کے اوقات",
+  "sectionSummaryAsr": "عصر کا وقت",
+  "sectionSummaryGrouping": "نمازوں کی ترتیب",
+  "jumuahStartsLabel": "جمعہ شروع",
+  "jumuahClosesLabel": "تصدیق بند",
+  "settingsHijriDayOffset": "{days} دن",
+  "@settingsHijriDayOffset": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      }
+    }
+  }
 }

@@ -12,6 +12,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
+import 'package:timezone/timezone.dart' as tz;
 
 import 'core/config/app_router.dart';
 import 'core/config/locale_config.dart';
@@ -31,6 +32,10 @@ import 'shared/theme/app_theme.dart';
 /// transition and every non-UTC location produces wrong times.
 void _initialiseTimezones() {
   tz_data.initializeTimeZones();
+  // A guaranteed-initialised default. The notification scheduler resets this to
+  // the prayer location's zone on every reschedule; until then, tz.local must
+  // still resolve rather than throw, which it does not do on its own.
+  tz.setLocalLocation(tz.getLocation('UTC'));
 }
 
 Future<void> main() async {

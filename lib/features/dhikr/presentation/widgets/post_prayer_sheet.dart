@@ -13,6 +13,7 @@ library;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../../settings/presentation/providers/settings_provider.dart';
 
@@ -31,26 +32,34 @@ class DhikrPhrase {
   final int count;
 
   /// The tasbih of Fatimah, as it is most commonly counted.
-  static const List<DhikrPhrase> afterPrayer = [
-    DhikrPhrase(
-      arabic: 'سُبْحَانَ اللَّه',
-      transliteration: 'SubhanAllah',
-      meaning: 'Glory be to Allah',
-      count: 33,
-    ),
-    DhikrPhrase(
-      arabic: 'الْحَمْدُ لِلَّه',
-      transliteration: 'Alhamdulillah',
-      meaning: 'All praise is for Allah',
-      count: 33,
-    ),
-    DhikrPhrase(
-      arabic: 'اللَّهُ أَكْبَر',
-      transliteration: 'Allahu Akbar',
-      meaning: 'Allah is the greatest',
-      count: 34,
-    ),
-  ];
+  ///
+  /// Built per call rather than held as a constant, because the meanings are
+  /// translated. The Arabic and its transliteration are not: the phrase is the
+  /// phrase in every language, and transliterating it into Urdu script would
+  /// help nobody who can already read the line above it.
+  static List<DhikrPhrase> afterPrayer(BuildContext context) {
+    final strings = AppLocalizations.of(context);
+    return [
+      DhikrPhrase(
+        arabic: 'سُبْحَانَ اللَّه',
+        transliteration: 'SubhanAllah',
+        meaning: strings.dhikrSubhanAllahMeaning,
+        count: 33,
+      ),
+      DhikrPhrase(
+        arabic: 'الْحَمْدُ لِلَّه',
+        transliteration: 'Alhamdulillah',
+        meaning: strings.dhikrAlhamdulillahMeaning,
+        count: 33,
+      ),
+      DhikrPhrase(
+        arabic: 'اللَّهُ أَكْبَر',
+        transliteration: 'Allahu Akbar',
+        meaning: strings.dhikrAllahuAkbarMeaning,
+        count: 34,
+      ),
+    ];
+  }
 }
 
 /// Show the post-prayer offers, if any are enabled.
@@ -84,7 +93,7 @@ class _PostPrayerSheetState extends ConsumerState<_PostPrayerSheet> {
   int _count = 0;
 
   void _tap() {
-    final phrase = DhikrPhrase.afterPrayer[_phraseIndex];
+    final phrase = DhikrPhrase.afterPrayer(context)[_phraseIndex];
 
     setState(() {
       if (_count + 1 < phrase.count) {
@@ -92,7 +101,7 @@ class _PostPrayerSheetState extends ConsumerState<_PostPrayerSheet> {
         return;
       }
       // Phrase complete — advance, or finish.
-      if (_phraseIndex + 1 < DhikrPhrase.afterPrayer.length) {
+      if (_phraseIndex + 1 < DhikrPhrase.afterPrayer(context).length) {
         _phraseIndex++;
         _count = 0;
       } else {
@@ -102,14 +111,14 @@ class _PostPrayerSheetState extends ConsumerState<_PostPrayerSheet> {
   }
 
   bool get _isComplete =>
-      _phraseIndex == DhikrPhrase.afterPrayer.length - 1 &&
-      _count >= DhikrPhrase.afterPrayer.last.count;
+      _phraseIndex == DhikrPhrase.afterPrayer(context).length - 1 &&
+      _count >= DhikrPhrase.afterPrayer(context).last.count;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final settings = ref.watch(settingsProvider);
-    final phrase = DhikrPhrase.afterPrayer[_phraseIndex];
+    final phrase = DhikrPhrase.afterPrayer(context)[_phraseIndex];
 
     return SafeArea(
       child: Padding(
@@ -122,7 +131,7 @@ class _PostPrayerSheetState extends ConsumerState<_PostPrayerSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Prayer recorded', style: theme.textTheme.titleMedium),
+            Text(AppLocalizations.of(context).dhikrPrayerRecorded, style: theme.textTheme.titleMedium),
             const SizedBox(height: AppSpacing.lg),
 
             if (settings.dhikrRemindersEnabled) ...[
@@ -164,7 +173,7 @@ class _PostPrayerSheetState extends ConsumerState<_PostPrayerSheet> {
                         ),
                       ),
                       Text(
-                        'of ${phrase.count}',
+                        AppLocalizations.of(context).dhikrOfCount(phrase.count),
                         style: theme.textTheme.bodySmall,
                       ),
                     ],
@@ -175,8 +184,8 @@ class _PostPrayerSheetState extends ConsumerState<_PostPrayerSheet> {
               const SizedBox(height: AppSpacing.sm),
               Text(
                 _isComplete
-                    ? 'Tasbih complete'
-                    : 'Tap to count',
+                    ? AppLocalizations.of(context).dhikrComplete
+                    : AppLocalizations.of(context).dhikrTapToCount,
                 style: theme.textTheme.bodySmall,
               ),
               const SizedBox(height: AppSpacing.lg),
@@ -194,15 +203,14 @@ class _PostPrayerSheetState extends ConsumerState<_PostPrayerSheet> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Read the Quran for five minutes?',
+                      AppLocalizations.of(context).dhikrQuranPrompt,
                       style: theme.textTheme.titleSmall,
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       // The app does not ship a mushaf and does not pretend to.
                       // It nudges and gets out of the way.
-                      'Open your usual Quran app or copy — this is just a '
-                      'reminder while you are still sitting.',
+                      AppLocalizations.of(context).dhikrQuranBody,
                       style: theme.textTheme.bodySmall,
                     ),
                   ],

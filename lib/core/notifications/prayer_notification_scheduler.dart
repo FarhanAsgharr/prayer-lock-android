@@ -14,7 +14,6 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:timezone/timezone.dart' as tz;
 
-import '../../features/jumuah/domain/usecases/jumuah_notification_manager.dart';
 import '../../features/jumuah/domain/usecases/jumuah_scheduler.dart';
 import '../../features/prayer_times/domain/entities/prayer_day.dart';
 import '../../features/prayer_times/domain/entities/prayer_enums.dart';
@@ -24,6 +23,7 @@ import '../../features/prayer_times/domain/usecases/dynamic_duration_calculator.
 import '../../features/prayer_times/domain/usecases/prayer_time_calculator.dart';
 import '../../features/settings/domain/entities/app_settings.dart';
 import 'notification_service.dart';
+import 'strategies/notification_strategy.dart';
 
 /// What a planned notification is for. Drives channel choice and lets tests
 /// assert on intent rather than on wording.
@@ -71,8 +71,19 @@ class PrayerNotificationScheduler {
   final NotificationService _service;
 
   /// Friday wording. Owns only the copy — never when anything fires.
-  static const JumuahNotificationManager _jumuahCopy =
-      JumuahNotificationManager();
+  /// Which vocabulary each window gets.
+  ///
+  /// Static because the scheduler is itself static, and injectable through
+  /// [useNotifications] so a test can pin the copy without a container.
+  static NotificationRegistry _notifications = NotificationRegistry.standard();
+
+  /// Substitute the vocabularies. Returns the previous set so a caller can
+  /// restore it.
+  static NotificationRegistry useNotifications(NotificationRegistry registry) {
+    final previous = _notifications;
+    _notifications = registry;
+    return previous;
+  }
 
   /// iOS silently drops anything beyond 64 pending notifications, and drops
   /// the *newest* — so exceeding the cap loses the far future first, which is
@@ -104,7 +115,15 @@ class PrayerNotificationScheduler {
   }) async {
     await _service.cancelScheduledPrayerNotifications();
 
-    if (settings.location == null) return const [];
+    final location = settings.location;
+    if (location == null) return const [];
+
+    // Anchor the notification clock to the prayer location's fixed timezone.
+    // scheduleAt schedules against tz.local, and the whole point (see
+    // NotificationService) is that a reminder fires at the prayer's local time
+    // regardless of where the device thinks it is. Without this tz.local is
+    // never set at all, and the first schedule throws LateInitializationError.
+    _anchorTimezone(location.timezone);
 
     final planned = plan(settings: settings, from: from);
     final scheduled = <PlannedNotification>[];
@@ -136,6 +155,19 @@ class PrayerNotificationScheduler {
     }
 
     return scheduled;
+  }
+
+  /// Point tz.local at [timezoneName], falling back to UTC for an unknown zone.
+  ///
+  /// A bad zone name must not crash scheduling — UTC produces times that are
+  /// wrong by an offset, which is recoverable, where a throw silently disables
+  /// every reminder.
+  void _anchorTimezone(String timezoneName) {
+    try {
+      tz.setLocalLocation(tz.getLocation(timezoneName));
+    } on tz.LocationNotFoundException {
+      tz.setLocalLocation(tz.getLocation('UTC'));
+    }
   }
 
   /// Compute the notifications that should exist, without scheduling them.
@@ -265,8 +297,18 @@ class PrayerNotificationScheduler {
 
     // On a Friday the Dhuhr window has already been replaced by the mosque's
     // Jumu'ah window, so nothing here checks the weekday — only whether the
-    // window it was handed is a congregation, which decides the wording.
-    final jumuah = slot.isJumuah ? settings.jumuah.activeMosque : null;
+    // window it was handed is a congregation, which selects the vocabulary.
+    final copy = _notifications.forWindow(isJumuah: slot.isJumuah);
+
+    final context = NotificationContext(
+      prayerName: name,
+      windowDuration: window.duration,
+      boundaryName: window.boundary.displayName,
+      blockingEnabled: settings.blockingEnabled,
+      unlockPolicy: settings.unlockPolicy,
+      formattedDuration: duration,
+      mosque: slot.isJumuah ? settings.jumuah.activeMosque : null,
+    );
 
     // The adhan. Added first so that if the platform starts rejecting
     // scheduling mid-loop, the most important notice for each prayer is
@@ -274,17 +316,8 @@ class PrayerNotificationScheduler {
     add(
       id: NotificationIds.adhan(date, prayer),
       instant: window.startsAt,
-      title: jumuah != null
-          ? _jumuahCopy.startedTitle()
-          : "It's time for $name",
-      body: jumuah != null
-          ? _jumuahCopy.startedBody(
-              mosque: jumuah,
-              blockingEnabled: settings.blockingEnabled,
-            )
-          : settings.blockingEnabled
-              ? _adhanBody(settings, duration)
-              : 'May Allah accept your prayer.',
+      title: copy.adhanTitle(context),
+      body: copy.adhanBody(context),
       kind: PrayerNotificationKind.adhan,
     );
 
@@ -293,21 +326,8 @@ class PrayerNotificationScheduler {
       add(
         id: NotificationIds.reminder(date, prayer, rung: rung),
         instant: window.startsAt.subtract(Duration(minutes: minutes)),
-        title: jumuah != null
-            ? _jumuahCopy.reminderTitle(minutes)
-            : '$name in $minutes ${minutes == 1 ? 'minute' : 'minutes'}',
-        body: jumuah != null
-            ? _jumuahCopy.reminderBody(
-                mosque: jumuah,
-                minutes: minutes,
-                blockingEnabled: settings.blockingEnabled,
-              )
-            : settings.blockingEnabled && minutes <= 5
-                // The last rung is the one that should change behaviour, so it
-                // says what is about to happen rather than repeating the
-                // countdown.
-                ? 'Selected apps lock when $name begins.'
-                : 'Prepare for prayer.',
+        title: copy.reminderTitle(context, minutes),
+        body: copy.reminderBody(context, minutes),
         kind: PrayerNotificationKind.reminder,
       );
     }
@@ -315,28 +335,17 @@ class PrayerNotificationScheduler {
     if (!settings.notifyOnWindowEnd) return result;
 
     // Only worth warning when there is meaningfully more window left than the
-    // lead time — otherwise the warning lands on top of the adhan.
-    // A Jumu'ah window is short by design — often fifteen minutes — so the
-    // usual "warn well before it closes" lead is scaled down rather than
-    // skipped, which would leave a congregation with no closing warning at all.
-    final endingLead = jumuah != null
-        ? Duration(minutes: (window.duration.inMinutes / 3).clamp(1, 15).round())
-        : windowEndingLead;
+    // lead time — otherwise the warning lands on top of the adhan. How far
+    // ahead to warn is the strategy's call, because it depends on how long the
+    // window is, and a congregation's is an order of magnitude shorter.
+    final endingLead = copy.endingLead(context, windowEndingLead);
 
     if (window.duration > endingLead * 2) {
       add(
         id: NotificationIds.windowEnding(date, prayer),
         instant: window.endsAt.subtract(endingLead),
-        title: jumuah != null
-            ? _jumuahCopy.endingTitle()
-            : '$name window ends soon',
-        body: jumuah != null
-            ? _jumuahCopy.endingBody(
-                mosque: jumuah,
-                leadMinutes: endingLead.inMinutes,
-              )
-            : '${endingLead.inMinutes} minutes left to pray $name '
-                'before ${window.boundary.displayName}.',
+        title: copy.endingTitle(context),
+        body: copy.endingBody(context, endingLead),
         kind: PrayerNotificationKind.windowEnding,
       );
     }
@@ -344,14 +353,8 @@ class PrayerNotificationScheduler {
     add(
       id: NotificationIds.windowEnded(date, prayer),
       instant: window.endsAt,
-      title: jumuah != null
-          ? _jumuahCopy.endedTitle()
-          : '$name window has ended',
-      body: jumuah != null
-          ? _jumuahCopy.endedBody(blockingEnabled: settings.blockingEnabled)
-          : settings.blockingEnabled
-              ? 'Apps are unlocked. You can still pray $name as qaza today.'
-              : 'You can still pray $name as qaza today.',
+      title: copy.endedTitle(context),
+      body: copy.endedBody(context),
       kind: PrayerNotificationKind.windowEnded,
     );
 
@@ -360,15 +363,6 @@ class PrayerNotificationScheduler {
 
   /// What the adhan notification promises, which depends on the unlock policy —
   /// telling a Mode B user they can verify to unlock would be a lie.
-  static String _adhanBody(AppSettings settings, String duration) =>
-      switch (settings.unlockPolicy) {
-        UnlockPolicy.fullDuration =>
-          'Apps are locked for the next $duration.',
-        UnlockPolicy.onVerification =>
-          'Apps are locked. Verify your prayer to unlock.',
-        UnlockPolicy.earliestOf =>
-          'Apps are locked. Verify your prayer, or wait $duration.',
-      };
 
   static PrayerSchedule _scheduleFor(
     AppSettings settings,

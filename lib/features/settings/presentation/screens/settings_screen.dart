@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../core/config/locale_config.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../../blocking/data/datasources/blocking_platform_channel.dart';
@@ -29,19 +30,19 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.only(bottom: AppSpacing.xxl),
         children: [
-          const _SectionHeader('Prayer times'),
+          _SectionHeader(AppLocalizations.of(context).settingsSectionPrayerTimes),
 
           ListTile(
             leading: const Icon(Icons.place_outlined),
             title: const Text('Location'),
-            subtitle: Text(settings.location?.label ?? 'Not set'),
+            subtitle: Text(settings.location?.label ?? AppLocalizations.of(context).commonNotSet),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/onboarding'),
           ),
 
           ListTile(
             leading: const Icon(Icons.schedule),
-            title: const Text('Calculation method'),
+            title: Text(AppLocalizations.of(context).settingsCalculationMethod),
             subtitle: Text(settings.calculationMethod.displayName),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _pickCalculationMethod(context, ref),
@@ -49,7 +50,7 @@ class SettingsScreen extends ConsumerWidget {
 
           ListTile(
             leading: const Icon(Icons.groups_outlined),
-            title: const Text('Islamic section'),
+            title: Text(AppLocalizations.of(context).settingsIslamicSection),
             subtitle: Text(settings.section.displayName),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/settings/islamic-section'),
@@ -57,12 +58,11 @@ class SettingsScreen extends ConsumerWidget {
 
           ListTile(
             leading: const Icon(Icons.view_agenda_outlined),
-            title: const Text('Prayer mode'),
+            title: Text(AppLocalizations.of(context).settingsPrayerMode),
             subtitle: Text(
               settings.prayerGrouping.combinesAnything
-                  ? '${settings.prayerGrouping.displayName} — '
-                      '${settings.prayerGrouping.slotCount} prayer cards'
-                  : 'Five separate prayers',
+                  ? AppLocalizations.of(context).settingsPrayerCards(settings.prayerGrouping.displayName, settings.prayerGrouping.slotCount)
+                  : AppLocalizations.of(context).groupingNone,
             ),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/settings/prayer-mode'),
@@ -70,15 +70,15 @@ class SettingsScreen extends ConsumerWidget {
 
           ListTile(
             leading: const Icon(Icons.mosque_outlined),
-            title: const Text("Jumu'ah"),
-            subtitle: Text(_jumuahSubtitle(settings)),
+            title: Text(AppLocalizations.of(context).settingsJumuah),
+            subtitle: Text(_jumuahSubtitle(context, settings)),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => context.push('/settings/jumuah'),
           ),
 
           ListTile(
             leading: const Icon(Icons.wb_shade),
-            title: const Text('Asr timing'),
+            title: Text(AppLocalizations.of(context).settingsAsrTiming),
             subtitle: Text(settings.madhab.description),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _pickMadhab(context, ref),
@@ -89,9 +89,9 @@ class SettingsScreen extends ConsumerWidget {
           if (settings.hasSectionOverrides)
             ListTile(
               leading: const Icon(Icons.restart_alt),
-              title: const Text('Reset to section defaults'),
+              title: Text(AppLocalizations.of(context).settingsResetSectionDefaults),
               subtitle: Text(
-                'Return to what ${settings.section.displayName} suggests',
+                AppLocalizations.of(context).settingsReturnToSuggested(settings.section.displayName),
               ),
               onTap: () =>
                   ref.read(settingsProvider.notifier).resetToSectionDefaults(),
@@ -99,13 +99,21 @@ class SettingsScreen extends ConsumerWidget {
 
           ListTile(
             leading: const Icon(Icons.calendar_month_outlined),
-            title: const Text('Hijri date'),
+            title: Text(AppLocalizations.of(context).settingsHijriDate),
             subtitle: Text(
               settings.hijriAdjustmentDays == 0
-                  ? 'Calculated — adjust if it differs from your local sighting'
-                  : '${settings.hijriAdjustmentDays > 0 ? '+' : ''}'
-                      '${settings.hijriAdjustmentDays} day'
-                      '${settings.hijriAdjustmentDays.abs() == 1 ? '' : 's'}',
+                  ? AppLocalizations.of(context).settingsHijriCalculated
+                  : settings.hijriAdjustmentDays > 0
+                      ? (settings.hijriAdjustmentDays == 1
+                          ? AppLocalizations.of(context).settingsHijriDayLater
+                          : AppLocalizations.of(context)
+                              .settingsHijriDaysLater(
+                                  settings.hijriAdjustmentDays))
+                      : (settings.hijriAdjustmentDays == -1
+                          ? AppLocalizations.of(context).settingsHijriDayEarlier
+                          : AppLocalizations.of(context)
+                              .settingsHijriDaysEarlier(
+                                  settings.hijriAdjustmentDays.abs())),
             ),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _pickHijriAdjustment(context, ref),
@@ -113,7 +121,7 @@ class SettingsScreen extends ConsumerWidget {
 
           ListTile(
             leading: const Icon(Icons.explore_outlined),
-            title: const Text('High latitude rule'),
+            title: Text(AppLocalizations.of(context).settingsHighLatitude),
             subtitle: Text(settings.highLatitudeRule.displayName),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _pickHighLatitudeRule(context, ref),
@@ -127,42 +135,40 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => _pickLanguage(context, ref),
           ),
 
-          const _SectionHeader('Reminders'),
+          _SectionHeader(AppLocalizations.of(context).settingsSectionReminders),
 
           ListTile(
             leading: const Icon(Icons.notifications_outlined),
-            title: const Text('Remind me before prayer'),
-            subtitle: Text('${settings.reminderMinutesBefore} minutes before'),
+            title: Text(AppLocalizations.of(context).settingsRemindBefore),
+            subtitle: Text(AppLocalizations.of(context).settingsMinutesBefore(settings.reminderMinutesBefore)),
             trailing: const Icon(Icons.chevron_right),
             onTap: () => _pickReminderMinutes(context, ref),
           ),
 
           SwitchListTile(
             secondary: const Icon(Icons.volume_up_outlined),
-            title: const Text('Play adhan'),
-            subtitle: const Text('Sound the call to prayer at prayer time'),
+            title: Text(AppLocalizations.of(context).settingsPlayAdhan),
+            subtitle: Text(AppLocalizations.of(context).settingsPlayAdhanBody),
             value: settings.adhanEnabled,
             onChanged: notifier.setAdhanEnabled,
           ),
 
-          const _SectionHeader('App blocking'),
+          _SectionHeader(AppLocalizations.of(context).settingsSectionBlocking),
 
           if (!BlockingPlatformChannel.isSupported)
-            const Padding(
-              padding: EdgeInsets.symmetric(
+            Padding(
+              padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.md,
                 vertical: AppSpacing.sm,
               ),
               child: Text(
-                'Blocking other apps is not available on this platform. '
-                'Prayer times, reminders, tracking and verification all work '
-                'normally.',
+                AppLocalizations.of(context).settingsBlockingUnavailable,
               ),
             )
           else ...[
             SwitchListTile(
               secondary: const Icon(Icons.lock_outline),
-              title: const Text('Block apps during prayer'),
+              title: Text(AppLocalizations.of(context).settingsBlockDuringPrayer),
               value: settings.blockingEnabled,
               onChanged: notifier.setBlockingEnabled,
             ),
@@ -170,11 +176,11 @@ class SettingsScreen extends ConsumerWidget {
             ListTile(
               enabled: settings.blockingEnabled,
               leading: const Icon(Icons.apps),
-              title: const Text('Blocked apps'),
+              title: Text(AppLocalizations.of(context).settingsBlockedApps),
               subtitle: Text(
                 settings.blockedPackages.isEmpty
-                    ? 'None selected'
-                    : '${settings.blockedPackages.length} selected',
+                    ? AppLocalizations.of(context).settingsNoneSelected
+                    : AppLocalizations.of(context).settingsCountSelected(settings.blockedPackages.length),
               ),
               trailing: const Icon(Icons.chevron_right),
               onTap: settings.blockingEnabled
@@ -185,10 +191,9 @@ class SettingsScreen extends ConsumerWidget {
             ListTile(
               enabled: settings.blockingEnabled,
               leading: const Icon(Icons.timer_outlined),
-              title: const Text('Grace period'),
+              title: Text(AppLocalizations.of(context).settingsGracePeriod),
               subtitle: Text(
-                '${settings.lockGracePeriodMinutes} minutes after the adhan '
-                'before apps lock',
+                AppLocalizations.of(context).settingsGraceBody(settings.lockGracePeriodMinutes),
               ),
               trailing: const Icon(Icons.chevron_right),
               onTap: settings.blockingEnabled
@@ -199,7 +204,7 @@ class SettingsScreen extends ConsumerWidget {
             ListTile(
               enabled: settings.blockingEnabled,
               leading: const Icon(Icons.lock_open_outlined),
-              title: const Text('When apps unlock'),
+              title: Text(AppLocalizations.of(context).settingsWhenAppsUnlock),
               subtitle: Text(settings.unlockPolicy.description),
               trailing: const Icon(Icons.chevron_right),
               onTap: settings.blockingEnabled
@@ -210,9 +215,9 @@ class SettingsScreen extends ConsumerWidget {
             ListTile(
               enabled: settings.blockingEnabled,
               leading: const Icon(Icons.hourglass_bottom),
-              title: const Text('Prayer durations'),
-              subtitle: const Text(
-                'See how long each prayer window lasts today',
+              title: Text(AppLocalizations.of(context).settingsPrayerDurations),
+              subtitle: Text(
+                AppLocalizations.of(context).settingsPrayerDurationsBody,
               ),
               trailing: const Icon(Icons.chevron_right),
               onTap: settings.blockingEnabled
@@ -222,9 +227,9 @@ class SettingsScreen extends ConsumerWidget {
 
             SwitchListTile(
               secondary: const Icon(Icons.wb_twilight),
-              title: const Text('Morning protection'),
-              subtitle: const Text(
-                'Keep apps locked after Fajr begins until you have prayed',
+              title: Text(AppLocalizations.of(context).settingsMorningProtection),
+              subtitle: Text(
+                AppLocalizations.of(context).settingsMorningProtectionBody,
               ),
               value: settings.morningProtectionEnabled,
               onChanged: settings.blockingEnabled
@@ -234,14 +239,13 @@ class SettingsScreen extends ConsumerWidget {
 
             SwitchListTile(
               secondary: const Icon(Icons.history_toggle_off),
-              title: const Text('Keep apps locked until qaza is made'),
+              title: Text(AppLocalizations.of(context).settingsBlockUntilQaza),
               // Stated plainly rather than softened. Turning this on can mean
               // a missed Fajr keeps apps blocked until the following dawn, and
               // a user who is surprised by that will uninstall rather than
               // hunt for the setting.
-              subtitle: const Text(
-                'A missed prayer keeps apps blocked for the rest of the day '
-                'until you make it up',
+              subtitle: Text(
+                AppLocalizations.of(context).settingsBlockUntilQazaBody,
               ),
               value: settings.blockUntilQazaCompleted,
               onChanged: settings.blockingEnabled
@@ -251,22 +255,20 @@ class SettingsScreen extends ConsumerWidget {
 
             ListTile(
               leading: const Icon(Icons.event_repeat),
-              title: const Text('Make-up prayers'),
-              subtitle: const Text('Prayers you still owe'),
+              title: Text(AppLocalizations.of(context).settingsMakeUpPrayers),
+              subtitle: Text(AppLocalizations.of(context).settingsMakeUpPrayersBody),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => context.push('/qaza'),
             ),
           ],
 
-          const _SectionHeader('Prayer time source'),
+          _SectionHeader(AppLocalizations.of(context).settingsSectionSource),
 
           SwitchListTile(
             secondary: const Icon(Icons.cloud_sync_outlined),
-            title: const Text('Confirm times online'),
-            subtitle: const Text(
-              'Check prayer times against an online service when possible. '
-              'Times are always calculated on this device as well, so the app '
-              'works fully offline either way.',
+            title: Text(AppLocalizations.of(context).settingsConfirmOnline),
+            subtitle: Text(
+              AppLocalizations.of(context).settingsConfirmOnlineBody,
             ),
             value: settings.preferRemotePrayerTimes,
             onChanged: notifier.setPreferRemotePrayerTimes,
@@ -274,23 +276,21 @@ class SettingsScreen extends ConsumerWidget {
 
           SwitchListTile(
             secondary: const Icon(Icons.notifications_active_outlined),
-            title: const Text('Notify when a window ends'),
-            subtitle: const Text(
-              'Warn before a prayer window closes, and confirm when apps '
-              'unlock',
+            title: Text(AppLocalizations.of(context).settingsNotifyWindowEnd),
+            subtitle: Text(
+              AppLocalizations.of(context).settingsNotifyWindowEndBody,
             ),
             value: settings.notifyOnWindowEnd,
             onChanged: notifier.setNotifyOnWindowEnd,
           ),
 
-          const _SectionHeader('After prayer'),
+          _SectionHeader(AppLocalizations.of(context).settingsSectionAfterPrayer),
 
           SwitchListTile(
             secondary: const Icon(Icons.repeat),
-            title: const Text('Tasbih reminder'),
-            subtitle: const Text(
-              'Offer SubhanAllah, Alhamdulillah and Allahu Akbar after a '
-              'recorded prayer',
+            title: Text(AppLocalizations.of(context).settingsTasbih),
+            subtitle: Text(
+              AppLocalizations.of(context).settingsTasbihBody,
             ),
             value: settings.dhikrRemindersEnabled,
             onChanged: notifier.setDhikrReminders,
@@ -298,37 +298,36 @@ class SettingsScreen extends ConsumerWidget {
 
           SwitchListTile(
             secondary: const Icon(Icons.menu_book_outlined),
-            title: const Text('Quran reminder'),
-            subtitle: const Text(
-              'Suggest five minutes of reading while you are still sitting',
+            title: Text(AppLocalizations.of(context).settingsQuranReminder),
+            subtitle: Text(
+              AppLocalizations.of(context).settingsQuranReminderBody,
             ),
             value: settings.quranRemindersEnabled,
             onChanged: notifier.setQuranReminders,
           ),
 
-          const _SectionHeader('Verification'),
+          _SectionHeader(AppLocalizations.of(context).settingsSectionVerification),
 
           SwitchListTile(
             secondary: const Icon(Icons.camera_alt_outlined),
-            title: const Text('Photo verification'),
-            subtitle: const Text(
-              'Take a photo of your prayer mat to unlock apps',
+            title: Text(AppLocalizations.of(context).settingsPhotoVerification),
+            subtitle: Text(
+              AppLocalizations.of(context).settingsPhotoVerificationBody,
             ),
             value: settings.requireAiVerification,
             onChanged: notifier.setRequireAiVerification,
           ),
 
-          const Padding(
-            padding: EdgeInsets.fromLTRB(
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
               AppSpacing.md,
               AppSpacing.sm,
               AppSpacing.md,
               AppSpacing.md,
             ),
             child: Text(
-              'Photos are analysed and immediately discarded. They are never '
-              'saved to your device, uploaded to storage, or shared.',
-              style: TextStyle(fontSize: 13),
+              AppLocalizations.of(context).settingsPhotoPrivacy,
+              style: const TextStyle(fontSize: 13),
             ),
           ),
         ],
@@ -341,7 +340,7 @@ class SettingsScreen extends ConsumerWidget {
     final current = ref.read(settingsProvider).calculationMethod;
     final choice = await _showOptionSheet<CalculationMethod>(
       context: context,
-      title: 'Calculation method',
+      title: AppLocalizations.of(context).settingsCalculationMethod,
       options: CalculationMethod.values,
       current: current,
       labelFor: (method) => method.displayName,
@@ -368,7 +367,7 @@ class SettingsScreen extends ConsumerWidget {
       BuildContext context, WidgetRef ref) async {
     final choice = await _showOptionSheet<HighLatitudeRule>(
       context: context,
-      title: 'High latitude rule',
+      title: AppLocalizations.of(context).settingsHighLatitude,
       options: HighLatitudeRule.values,
       current: ref.read(settingsProvider).highLatitudeRule,
       labelFor: (rule) => rule.displayName,
@@ -382,11 +381,11 @@ class SettingsScreen extends ConsumerWidget {
     const options = [0, 5, 10, 15, 20, 30, 45, 60];
     final choice = await _showOptionSheet<int>(
       context: context,
-      title: 'Remind me before prayer',
+      title: AppLocalizations.of(context).settingsRemindBefore,
       options: options,
       current: ref.read(settingsProvider).reminderMinutesBefore,
       labelFor: (minutes) =>
-          minutes == 0 ? 'At prayer time' : '$minutes minutes before',
+          minutes == 0 ? AppLocalizations.of(context).settingsAtPrayerTime : AppLocalizations.of(context).settingsMinutesBefore(minutes),
     );
     if (choice != null) {
       await ref.read(settingsProvider.notifier).setReminderMinutes(choice);
@@ -395,12 +394,12 @@ class SettingsScreen extends ConsumerWidget {
 
   /// One line describing the Friday setup, so the user can see it is
   /// configured without opening the screen.
-  static String _jumuahSubtitle(AppSettings settings) {
+  static String _jumuahSubtitle(BuildContext context, AppSettings settings) {
     final jumuah = settings.jumuah;
-    if (!jumuah.enabled) return 'Off — Dhuhr is used every day';
+    if (!jumuah.enabled) return AppLocalizations.of(context).jumuahDhuhrEveryDay;
 
     final mosque = jumuah.activeMosque;
-    if (mosque == null) return "Choose where you pray Jumu'ah";
+    if (mosque == null) return AppLocalizations.of(context).jumuahChooseMosqueTitle;
 
     return '${mosque.displayName} · ${mosque.formattedRange}';
   }
@@ -413,14 +412,14 @@ class SettingsScreen extends ConsumerWidget {
   Future<void> _pickHijriAdjustment(BuildContext context, WidgetRef ref) async {
     final choice = await _showOptionSheet<int>(
       context: context,
-      title: 'Hijri date adjustment',
+      title: AppLocalizations.of(context).settingsHijriAdjustment,
       options: const [-2, -1, 0, 1, 2],
       current: ref.read(settingsProvider).hijriAdjustmentDays,
       labelFor: (days) => switch (days) {
-        0 => 'As calculated',
-        1 => '1 day later',
-        -1 => '1 day earlier',
-        _ => days > 0 ? '$days days later' : '${days.abs()} days earlier',
+        0 => AppLocalizations.of(context).settingsHijriAsCalculated,
+        1 => AppLocalizations.of(context).settingsHijriDayLater,
+        -1 => AppLocalizations.of(context).settingsHijriDayEarlier,
+        _ => days > 0 ? AppLocalizations.of(context).settingsHijriDaysLater(days) : AppLocalizations.of(context).settingsHijriDaysEarlier(days.abs()),
       },
     );
     if (choice != null) {
@@ -446,7 +445,7 @@ class SettingsScreen extends ConsumerWidget {
   Future<void> _pickUnlockPolicy(BuildContext context, WidgetRef ref) async {
     final choice = await _showOptionSheet<UnlockPolicy>(
       context: context,
-      title: 'When apps unlock',
+      title: AppLocalizations.of(context).settingsWhenAppsUnlock,
       options: UnlockPolicy.values,
       current: ref.read(settingsProvider).unlockPolicy,
       labelFor: (policy) => policy.displayName,
@@ -460,11 +459,11 @@ class SettingsScreen extends ConsumerWidget {
     const options = [0, 2, 5, 10, 15, 20, 30];
     final choice = await _showOptionSheet<int>(
       context: context,
-      title: 'Grace period',
+      title: AppLocalizations.of(context).settingsGracePeriod,
       options: options,
       current: ref.read(settingsProvider).lockGracePeriodMinutes,
       labelFor: (minutes) =>
-          minutes == 0 ? 'Lock immediately' : 'Lock after $minutes minutes',
+          minutes == 0 ? AppLocalizations.of(context).settingsLockImmediately : AppLocalizations.of(context).settingsLockAfterMinutes(minutes),
     );
     if (choice != null) {
       await ref.read(settingsProvider.notifier).setGracePeriod(choice);

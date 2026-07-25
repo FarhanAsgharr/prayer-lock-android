@@ -23,6 +23,9 @@ class AppDatabase {
 
   Database get raw => _database;
 
+  /// The file this database is backed by, for tests that reopen it.
+  String get path => _database.path;
+
   static const String _fileName = 'prayer_lock.db';
   // v2 added the qaza columns (verification_deadline, qaza_deadline,
   // qaza_completed_at) for the on-time / qaza / missed model.

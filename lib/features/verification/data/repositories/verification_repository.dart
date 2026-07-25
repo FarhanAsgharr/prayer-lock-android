@@ -12,8 +12,9 @@ import 'package:dio/dio.dart';
 import '../../../../core/config/api_config.dart';
 import '../../../prayer_times/domain/entities/prayer_enums.dart';
 import '../../domain/entities/verification_result.dart';
+import '../../domain/strategies/verification_strategy.dart';
 
-class VerificationRepository {
+class VerificationRepository implements VerificationGateway {
   VerificationRepository({Dio? client, Connectivity? connectivity})
       : _client = client ?? ApiConfig.createClient(),
         _connectivity = connectivity ?? Connectivity();
@@ -21,6 +22,7 @@ class VerificationRepository {
   final Dio _client;
   final Connectivity _connectivity;
 
+  @override
   Future<VerificationResult> submit({
     required PrayerName prayer,
     required String imageBase64,

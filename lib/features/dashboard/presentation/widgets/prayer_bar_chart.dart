@@ -9,6 +9,7 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../../tracking/domain/entities/prayer_statistics.dart';
 
@@ -32,7 +33,7 @@ class PrayerBarChart extends StatelessWidget {
         height: height,
         child: Center(
           child: Text(
-            'No prayers recorded yet',
+            AppLocalizations.of(context).analyticsNoPrayersYet,
             style: Theme.of(context).textTheme.bodyMedium,
           ),
         ),
@@ -42,7 +43,7 @@ class PrayerBarChart extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Semantics(
-      label: _semanticSummary(),
+      label: _semanticSummary(context),
       child: SizedBox(
         height: height,
         child: LayoutBuilder(
@@ -69,13 +70,13 @@ class PrayerBarChart extends StatelessWidget {
     );
   }
 
-  String _semanticSummary() {
+  String _semanticSummary(BuildContext context) {
     final totalFulfilled =
         days.fold(0, (sum, day) => sum + day.counts.fulfilled);
     final totalAssessed =
         days.fold(0, (sum, day) => sum + day.counts.assessed);
-    return 'Prayer completion over ${days.length} days: '
-        '$totalFulfilled of $totalAssessed prayers fulfilled';
+    return AppLocalizations.of(context).analyticsChartSummary(
+        days.length, totalFulfilled, totalAssessed);
   }
 }
 

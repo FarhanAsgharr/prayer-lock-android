@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../core/sync/sync_engine.dart';
 import '../../../../core/storage/storage_providers.dart';
 import '../../../../shared/theme/app_theme.dart';
@@ -25,14 +26,14 @@ class AnalyticsScreen extends ConsumerWidget {
     final statsAsync = ref.watch(prayerStatisticsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Your prayers')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).analyticsTitle)),
       body: statsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => Center(
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.xl),
             child: Text(
-              'Could not load your statistics.\n$error',
+              '${AppLocalizations.of(context).analyticsStatsFailed}\n$error',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
@@ -70,7 +71,7 @@ class _AnalyticsBody extends ConsumerWidget {
             Expanded(
               child: StatTile(
                 value: '${stats.streak.current}',
-                label: stats.streak.current == 1 ? 'day streak' : 'day streak',
+                label: stats.streak.current == 1 ? AppLocalizations.of(context).analyticsDayStreak : AppLocalizations.of(context).analyticsDayStreak,
                 icon: Icons.local_fire_department,
                 accent: AppColors.accent,
               ),
@@ -79,7 +80,7 @@ class _AnalyticsBody extends ConsumerWidget {
             Expanded(
               child: StatTile(
                 value: '${stats.streak.longest}',
-                label: 'longest streak',
+                label: AppLocalizations.of(context).analyticsLongestStreak,
                 icon: Icons.emoji_events_outlined,
               ),
             ),
@@ -91,7 +92,7 @@ class _AnalyticsBody extends ConsumerWidget {
             Expanded(
               child: StatTile(
                 value: '${(stats.allTime.successRate * 100).round()}%',
-                label: 'all-time completion',
+                label: AppLocalizations.of(context).analyticsAllTimeCompletion,
                 icon: Icons.check_circle_outline,
                 accent: AppColors.success,
               ),
@@ -100,7 +101,7 @@ class _AnalyticsBody extends ConsumerWidget {
             Expanded(
               child: StatTile(
                 value: '${stats.allTime.fulfilled}',
-                label: 'prayers fulfilled',
+                label: AppLocalizations.of(context).analyticsPrayersFulfilled,
                 icon: Icons.mosque_outlined,
               ),
             ),
@@ -112,7 +113,7 @@ class _AnalyticsBody extends ConsumerWidget {
             Expanded(
               child: StatTile(
                 value: '${stats.allTime.completed}',
-                label: 'on time',
+                label: AppLocalizations.of(context).analyticsOnTime,
                 icon: Icons.schedule,
                 accent: AppColors.primary,
               ),
@@ -121,7 +122,7 @@ class _AnalyticsBody extends ConsumerWidget {
             Expanded(
               child: StatTile(
                 value: '${stats.allTime.qaza}',
-                label: 'qaza (make-up)',
+                label: AppLocalizations.of(context).analyticsQazaMakeUp,
                 icon: Icons.history,
                 accent: AppColors.warning,
               ),
@@ -130,7 +131,7 @@ class _AnalyticsBody extends ConsumerWidget {
             Expanded(
               child: StatTile(
                 value: '${stats.allTime.missed}',
-                label: 'missed',
+                label: AppLocalizations.of(context).analyticsMissed,
                 icon: Icons.remove_circle_outline,
                 accent: AppColors.danger,
               ),
@@ -141,7 +142,7 @@ class _AnalyticsBody extends ConsumerWidget {
         const SizedBox(height: AppSpacing.lg),
 
         // --- Weekly chart -------------------------------------------------
-        Text('THIS WEEK', style: theme.textTheme.labelLarge),
+        Text(AppLocalizations.of(context).analyticsThisWeek, style: theme.textTheme.labelLarge),
         const SizedBox(height: AppSpacing.sm),
         _card(
           context,
@@ -157,17 +158,17 @@ class _AnalyticsBody extends ConsumerWidget {
         const SizedBox(height: AppSpacing.lg),
 
         // --- Period comparison -------------------------------------------
-        Text('COMPLETION RATE', style: theme.textTheme.labelLarge),
+        Text(AppLocalizations.of(context).analyticsCompletionRate, style: theme.textTheme.labelLarge),
         const SizedBox(height: AppSpacing.sm),
         _card(
           context,
           child: Column(
             children: [
-              _PeriodRow(label: 'This week', counts: stats.week),
+              _PeriodRow(label: AppLocalizations.of(context).analyticsRangeWeek, counts: stats.week),
               Divider(color: theme.dividerColor, height: AppSpacing.lg),
-              _PeriodRow(label: 'This month', counts: stats.month),
+              _PeriodRow(label: AppLocalizations.of(context).analyticsRangeMonth, counts: stats.month),
               Divider(color: theme.dividerColor, height: AppSpacing.lg),
-              _PeriodRow(label: 'This year', counts: stats.year),
+              _PeriodRow(label: AppLocalizations.of(context).analyticsRangeYear, counts: stats.year),
             ],
           ),
         ),
@@ -175,7 +176,7 @@ class _AnalyticsBody extends ConsumerWidget {
         const SizedBox(height: AppSpacing.lg),
 
         // --- Per-prayer breakdown ----------------------------------------
-        Text('BY PRAYER', style: theme.textTheme.labelLarge),
+        Text(AppLocalizations.of(context).analyticsByPrayer, style: theme.textTheme.labelLarge),
         const SizedBox(height: AppSpacing.sm),
         _card(
           context,
@@ -186,7 +187,7 @@ class _AnalyticsBody extends ConsumerWidget {
                   label: prayer.displayName,
                   rate: (stats.byPrayer[prayer] ?? const PrayerCounts())
                       .successRate,
-                  detail: _prayerDetail(stats.byPrayer[prayer]),
+                  detail: _prayerDetail(context, stats.byPrayer[prayer]),
                 ),
             ],
           ),
@@ -210,11 +211,11 @@ class _AnalyticsBody extends ConsumerWidget {
               _historyLink(
                 context,
                 icon: Icons.camera_alt_outlined,
-                label: 'Verification history',
+                label: AppLocalizations.of(context).analyticsVerificationHistory,
                 onTap: () => _showHistory(
                   context,
                   ref,
-                  'Verification history',
+                  AppLocalizations.of(context).analyticsVerificationHistory,
                   verificationHistoryProvider,
                   _describeVerification,
                 ),
@@ -222,11 +223,11 @@ class _AnalyticsBody extends ConsumerWidget {
               _historyLink(
                 context,
                 icon: Icons.lock_outline,
-                label: 'Lock history',
+                label: AppLocalizations.of(context).analyticsLockHistory,
                 onTap: () => _showHistory(
                   context,
                   ref,
-                  'Lock history',
+                  AppLocalizations.of(context).analyticsLockHistory,
                   lockHistoryProvider,
                   _describeLock,
                 ),
@@ -234,11 +235,11 @@ class _AnalyticsBody extends ConsumerWidget {
               _historyLink(
                 context,
                 icon: Icons.lock_open_outlined,
-                label: 'Emergency unlocks',
+                label: AppLocalizations.of(context).analyticsEmergencyUnlocks,
                 onTap: () => _showHistory(
                   context,
                   ref,
-                  'Emergency unlocks',
+                  AppLocalizations.of(context).analyticsEmergencyUnlocks,
                   emergencyUnlockHistoryProvider,
                   _describeEmergencyUnlock,
                 ),
@@ -294,7 +295,7 @@ class _AnalyticsBody extends ConsumerWidget {
     WidgetRef ref,
     String title,
     ProviderListenable<AsyncValue<List<Map<String, Object?>>>> provider,
-    String Function(Map<String, Object?>) describe,
+    String Function(BuildContext, Map<String, Object?>) describe,
   ) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -314,8 +315,8 @@ class _AnalyticsBody extends ConsumerWidget {
     return recent;
   }
 
-  static String _prayerDetail(PrayerCounts? counts) {
-    if (counts == null || counts.assessed == 0) return 'No data';
+  static String _prayerDetail(BuildContext context, PrayerCounts? counts) {
+    if (counts == null || counts.assessed == 0) return AppLocalizations.of(context).commonNoData;
     return '${counts.fulfilled}/${counts.assessed}';
   }
 }
@@ -359,14 +360,14 @@ class _ChartLegend extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
+    return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _LegendDot(color: AppColors.primary, label: 'On time'),
-        SizedBox(width: AppSpacing.md),
-        _LegendDot(color: AppColors.warning, label: 'Qaza'),
-        SizedBox(width: AppSpacing.md),
-        _LegendDot(color: AppColors.danger, label: 'Missed'),
+        _LegendDot(color: AppColors.primary, label: AppLocalizations.of(context).analyticsOnTime),
+        const SizedBox(width: AppSpacing.md),
+        _LegendDot(color: AppColors.warning, label: AppLocalizations.of(context).analyticsQazaShort),
+        const SizedBox(width: AppSpacing.md),
+        const _LegendDot(color: AppColors.danger, label: 'Missed'),
       ],
     );
   }
@@ -414,8 +415,7 @@ class _WeakestPrayerNote extends StatelessWidget {
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Text(
-              '${prayer.displayName} is the prayer you miss most. '
-              'A little extra focus there will lift your whole week.',
+              AppLocalizations.of(context).analyticsMostMissed(prayer.displayName),
               style: theme.textTheme.bodyMedium,
             ),
           ),
@@ -454,8 +454,8 @@ class _SyncBanner extends ConsumerWidget {
           Expanded(
             child: Text(
               needsAttention
-                  ? '${status.parked} record(s) could not be uploaded.'
-                  : '${status.pending} record(s) waiting to sync.',
+                  ? AppLocalizations.of(context).analyticsParked(status.parked)
+                  : AppLocalizations.of(context).analyticsPending(status.pending),
               style: theme.textTheme.bodyMedium,
             ),
           ),
@@ -480,7 +480,7 @@ class _HistoryListScreen extends ConsumerWidget {
 
   final String title;
   final ProviderListenable<AsyncValue<List<Map<String, Object?>>>> provider;
-  final String Function(Map<String, Object?>) describe;
+  final String Function(BuildContext, Map<String, Object?>) describe;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -490,14 +490,14 @@ class _HistoryListScreen extends ConsumerWidget {
       appBar: AppBar(title: Text(title)),
       body: async.when(
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => Center(child: Text('Could not load: $error')),
+        error: (error, _) => Center(child: Text(AppLocalizations.of(context).commonLoadFailed(error.toString()))),
         data: (rows) {
           if (rows.isEmpty) {
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(AppSpacing.xl),
                 child: Text(
-                  'Nothing here yet.',
+                  AppLocalizations.of(context).commonNothingYet,
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ),
@@ -510,7 +510,7 @@ class _HistoryListScreen extends ConsumerWidget {
             itemBuilder: (context, index) {
               final row = rows[index];
               return ListTile(
-                title: Text(describe(row)),
+                title: Text(describe(context, row)),
                 subtitle: Text(_formatTimestamp(row)),
               );
             },
@@ -528,35 +528,35 @@ class _HistoryListScreen extends ConsumerWidget {
   }
 }
 
-String _describeVerification(Map<String, Object?> row) {
+String _describeVerification(BuildContext context, Map<String, Object?> row) {
   final approved = (row['approved'] as int?) == 1;
   final released = (row['released_without_detection'] as int?) == 1;
-  if (released) return 'Released without detection';
-  return approved ? 'Verified' : 'Not verified';
+  if (released) return AppLocalizations.of(context).analyticsReleasedWithoutDetection;
+  return approved ? AppLocalizations.of(context).analyticsVerified : AppLocalizations.of(context).analyticsNotVerified;
 }
 
-String _describeLock(Map<String, Object?> row) {
+String _describeLock(BuildContext context, Map<String, Object?> row) {
   final prayer = row['prayer'] as String? ?? 'prayer';
   final reason = row['end_reason'] as String?;
   final ended = row['ended_at'] != null;
   final name = prayer.isEmpty ? prayer : prayer[0].toUpperCase() + prayer.substring(1);
-  if (!ended) return '$name — active';
-  return '$name — ${_endReasonLabel(reason)}';
+  if (!ended) return AppLocalizations.of(context).analyticsLockActive(name);
+  return AppLocalizations.of(context).analyticsLockEnded(name, _endReasonLabel(context, reason));
 }
 
-String _describeEmergencyUnlock(Map<String, Object?> row) {
+String _describeEmergencyUnlock(BuildContext context, Map<String, Object?> row) {
   final sequence = row['daily_sequence'] as int? ?? 1;
   final reason = row['reason'] as String?;
   return reason?.isNotEmpty == true
-      ? 'Unlock #$sequence — $reason'
-      : 'Emergency unlock #$sequence';
+      ? AppLocalizations.of(context).analyticsUnlockNumbered(sequence, reason!)
+      : AppLocalizations.of(context).analyticsUnlockPlain(sequence);
 }
 
-String _endReasonLabel(String? reason) => switch (reason) {
-      'verified' => 'unlocked after prayer',
-      'emergency_unlock' => 'emergency unlock',
-      'window_expired' => 'prayer window ended',
-      'user_disabled' => 'blocking turned off',
-      'app_restarted' => 'app restarted',
+String _endReasonLabel(BuildContext context, String? reason) => switch (reason) {
+      'verified' => AppLocalizations.of(context).lockEndVerified,
+      'emergency_unlock' => AppLocalizations.of(context).lockEndEmergency,
+      'window_expired' => AppLocalizations.of(context).lockEndWindowExpired,
+      'user_disabled' => AppLocalizations.of(context).lockEndDisabled,
+      'app_restarted' => AppLocalizations.of(context).lockEndRestarted,
       _ => 'ended',
     };

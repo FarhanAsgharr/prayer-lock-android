@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../l10n/app_localizations.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../../../shared/widgets/countdown_text.dart';
 import '../../../prayer_times/domain/entities/prayer_enums.dart';
@@ -61,7 +62,7 @@ class JumuahCard extends ConsumerWidget {
                 JumuahIcon(size: 22, color: theme.colorScheme.primary),
                 const SizedBox(width: AppSpacing.sm),
                 Text(
-                  "JUMU'AH",
+                  AppLocalizations.of(context).jumuahLabel,
                   style: theme.textTheme.labelLarge?.copyWith(
                     color: theme.colorScheme.primary,
                     letterSpacing: 1.2,
@@ -101,7 +102,7 @@ class JumuahCard extends ConsumerWidget {
               const SizedBox(height: AppSpacing.md),
               FilledButton.icon(
                 icon: const Icon(Icons.check),
-                label: const Text("I prayed Jumu'ah"),
+                label: Text(AppLocalizations.of(context).jumuahIPrayed),
                 onPressed: () => context.push('/verify/dhuhr'),
               ),
             ],
@@ -147,7 +148,7 @@ class _StatusLine extends StatelessWidget {
           Icons.check_circle,
         ),
       PrayerPhase.qazaCompleted => (
-          'Confirmed late',
+          AppLocalizations.of(context).jumuahConfirmedLate,
           AppColors.warning,
           Icons.check_circle_outline,
         ),
@@ -155,18 +156,18 @@ class _StatusLine extends StatelessWidget {
       // Jumu'ah has no qaza — a missed one is prayed as Dhuhr instead, so the
       // message says that rather than offering a make-up.
       PrayerPhase.missed || PrayerPhase.qazaAvailable => (
-          'Missed — pray Dhuhr instead',
+          AppLocalizations.of(context).jumuahMissed,
           AppColors.danger,
           Icons.info_outline,
         ),
       PrayerPhase.verifyOnTime => (
-          '${formatCountdown(remaining)} left to confirm',
+          AppLocalizations.of(context).jumuahLeftToConfirm(formatCountdown(remaining)),
           theme.colorScheme.primary,
           Icons.timelapse,
         ),
       PrayerPhase.upcoming => isBefore
           ? (
-              'Starts in ${formatCountdown(untilStart)}',
+              AppLocalizations.of(context).jumuahStartsIn(formatCountdown(untilStart)),
               theme.colorScheme.primary,
               Icons.schedule,
             )

@@ -24,16 +24,25 @@ import 'package:timezone/timezone.dart' as tz;
 import '../../../settings/domain/entities/app_settings.dart';
 import '../../domain/entities/prayer_enums.dart';
 import 'prayer_time_provider.dart';
+import '../../domain/strategies/calculation_strategy.dart';
 
 class AlAdhanPrayerTimeProvider implements PrayerTimeProvider {
-  AlAdhanPrayerTimeProvider({Dio? client, String? baseUrl})
-      : _client = client ?? _defaultClient(baseUrl ?? _defaultBaseUrl),
-        _baseUrl = baseUrl ?? _defaultBaseUrl;
+  AlAdhanPrayerTimeProvider({
+    Dio? client,
+    String? baseUrl,
+    CalculationRegistry? registry,
+  })  : _client = client ?? _defaultClient(baseUrl ?? _defaultBaseUrl),
+        _baseUrl = baseUrl ?? _defaultBaseUrl,
+        _registry = registry ?? CalculationRegistry.standard();
 
   static const String _defaultBaseUrl = 'https://api.aladhan.com/v1';
 
   final Dio _client;
   final String _baseUrl;
+
+  /// Where this authority's remote id comes from. Injected so a test can pin
+  /// the mapping without reaching through a global.
+  final CalculationRegistry _registry;
 
   static Dio _defaultClient(String baseUrl) => Dio(
         BaseOptions(
@@ -54,27 +63,6 @@ class AlAdhanPrayerTimeProvider implements PrayerTimeProvider {
 
   @override
   bool get requiresNetwork => true;
-
-  /// AlAdhan's numeric method identifiers.
-  ///
-  /// Not derivable from our own enum — they are an arbitrary registry defined
-  /// by the service — so the mapping is explicit and pinned by a test.
-  static const Map<CalculationMethod, int> methodIds = {
-    // 0 is AlAdhan's "Shia Ithna-Ashari, Leva Institute, Qum".
-    CalculationMethod.jafari: 0,
-    CalculationMethod.karachi: 1,
-    CalculationMethod.northAmerica: 2,
-    CalculationMethod.muslimWorldLeague: 3,
-    CalculationMethod.ummAlQura: 4,
-    CalculationMethod.egyptian: 5,
-    CalculationMethod.tehran: 7,
-    CalculationMethod.kuwait: 9,
-    CalculationMethod.qatar: 10,
-    CalculationMethod.singapore: 11,
-    CalculationMethod.turkey: 13,
-    CalculationMethod.moonsightingCommittee: 15,
-    CalculationMethod.dubai: 16,
-  };
 
   /// AlAdhan's high-latitude adjustment identifiers.
   static const Map<HighLatitudeRule, int> _latitudeAdjustmentIds = {
@@ -199,7 +187,10 @@ class AlAdhanPrayerTimeProvider implements PrayerTimeProvider {
       // Pinning the zone stops the service inferring one from the coordinates
       // and disagreeing with what the rest of the app computes against.
       'timezonestring': location.timezone,
-      'method': methodIds[settings.calculationMethod] ?? 3,
+      // Resolved through the strategy that also owns this authority's solar
+      // angles, so the remote request and the offline fallback can never
+      // disagree about which authority the user selected.
+      'method': _registry.remoteIdFor(settings.calculationMethod) ?? 3,
       'school': settings.madhab.shadowFactor == 2 ? 1 : 0,
       'latitudeAdjustmentMethod':
           _latitudeAdjustmentIds[settings.highLatitudeRule] ?? 1,
