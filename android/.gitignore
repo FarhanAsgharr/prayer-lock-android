@@ -1,14 +1,12 @@
-gradle-wrapper.jar
-/.gradle
-/captures/
-/gradlew
-/gradlew.bat
-/local.properties
-GeneratedPluginRegistrant.java
-.cxx/
-
-# Remember to never publicly share your keystore.
-# See https://flutter.dev/to/reference-keystore
+# Never commit signing secrets. Also covered by the repo-root .gitignore; this
+# is a second guard so a partial clone or a tool that ignores the root file
+# still cannot stage the keystore or its passwords.
 key.properties
-**/*.keystore
-**/*.jks
+*.jks
+*.keystore
+*.p12
+
+# Gradle build output.
+.gradle/
+build/
+/captures/

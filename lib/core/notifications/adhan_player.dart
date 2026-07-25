@@ -21,6 +21,8 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import '../../core/utils/app_log.dart';
+
 class AdhanPlayer {
   AdhanPlayer({AudioPlayer? player}) : _player = player ?? AudioPlayer();
 
@@ -79,7 +81,7 @@ class AdhanPlayer {
     } on Exception catch (error) {
       // Audio failure must never break the prayer flow; the notification has
       // already been delivered by this point.
-      debugPrint('Adhan playback failed: $error');
+      logDiagnostic('Adhan playback failed: $error');
       return false;
     }
   }

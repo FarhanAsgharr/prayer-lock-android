@@ -1,7 +1,25 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+// Release signing is configured entirely through android/key.properties, which
+// is git-ignored and never committed. When that file is present the release
+// build is signed with the real upload key; when it is absent — a fresh clone,
+// CI without secrets, a developer running `flutter run --release` — the build
+// falls back to the debug key so nothing breaks.
+//
+// Switching from debug to release signing therefore requires no code change:
+// create the keystore, fill in the four values in key.properties, and rebuild.
+// See docs/RELEASE_SIGNING.md for the exact commands.
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+val hasReleaseKeystore = keystorePropertiesFile.exists()
+if (hasReleaseKeystore) {
+    keystorePropertiesFile.inputStream().use { keystoreProperties.load(it) }
 }
 
 android {
@@ -28,12 +46,32 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        // Only declared when key.properties exists. Referencing a keystore that
+        // is not there would fail every build, including debug builds and CI,
+        // so the config is created conditionally and the release build picks it
+        // up only when it is real.
+        if (hasReleaseKeystore) {
+            create("release") {
+                storeFile = keystoreProperties["KEYSTORE_FILE"]?.let { file(it) }
+                storePassword = keystoreProperties["KEYSTORE_PASSWORD"] as String?
+                keyAlias = keystoreProperties["KEY_ALIAS"] as String?
+                keyPassword = keystoreProperties["KEY_PASSWORD"] as String?
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // Signed with the debug key so `flutter run --release` works during
-            // development. Replace with a real upload key before publishing:
-            // see docs/RELEASE.md for the keystore setup.
-            signingConfig = signingConfigs.getByName("debug")
+            // The real upload key when key.properties is present, the debug key
+            // otherwise. The debug fallback keeps `flutter run --release` and
+            // secret-less CI working; the release key is used the moment the
+            // four values in key.properties are filled in — no code change.
+            signingConfig = if (hasReleaseKeystore) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
 
             isMinifyEnabled = true
             isShrinkResources = true

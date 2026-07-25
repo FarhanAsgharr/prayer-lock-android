@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Network security policy.
+
+  The app talks to exactly two kinds of host: the AlAdhan prayer-time API and,
+  optionally, the user's own sync backend. Both are HTTPS. Cleartext (plain
+  HTTP) is denied everywhere, so a downgrade or a man-in-the-middle cannot feed
+  the app tampered prayer times over an unencrypted channel.
+
+  cleartextTrafficPermitted="false" is also the modern default on Android 9+,
+  but declaring it explicitly makes the guarantee visible to a Play reviewer and
+  survives a targetSdk change that might otherwise flip a default.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <!-- System CAs only. The app pins nothing, because the endpoints
+                 are third-party (AlAdhan) or user-configured, and a hard pin
+                 there would break the app the day either rotates its cert. -->
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

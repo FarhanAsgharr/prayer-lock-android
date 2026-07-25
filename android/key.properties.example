@@ -1,0 +1,28 @@
+# Release signing configuration for Prayer Lock.
+#
+# HOW TO USE
+#   1. Create an upload keystore (see docs/RELEASE_SIGNING.md for the command).
+#   2. Copy this file to android/key.properties  (same folder, drop ".example").
+#   3. Fill in the four values below with YOUR values.
+#   4. Build: `flutter build appbundle --release`.
+#
+# key.properties is git-ignored and must NEVER be committed. It contains the
+# passwords to your signing key; anyone with it can publish updates as you.
+#
+# The build reads this file if it exists and signs the release with it. If the
+# file is absent, the release falls back to the debug key (usable for sideload
+# testing, but NOT accepted by the Play Store).
+
+# Path to the keystore file. Absolute, or relative to the android/ folder.
+# Example: KEYSTORE_FILE=/Users/you/keys/prayer-lock-upload.jks
+KEYSTORE_FILE=
+
+# The password for the keystore file itself.
+KEYSTORE_PASSWORD=
+
+# The alias you gave the key inside the keystore (keytool -alias).
+# Example: KEY_ALIAS=upload
+KEY_ALIAS=
+
+# The password for that specific key. Often the same as KEYSTORE_PASSWORD.
+KEY_PASSWORD=

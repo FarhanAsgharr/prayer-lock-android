@@ -24,6 +24,7 @@ import '../../features/prayer_times/domain/usecases/prayer_time_calculator.dart'
 import '../../features/settings/domain/entities/app_settings.dart';
 import 'notification_service.dart';
 import 'strategies/notification_strategy.dart';
+import '../../core/utils/app_log.dart';
 
 /// What a planned notification is for. Drives channel choice and lets tests
 /// assert on intent rather than on wording.
@@ -148,7 +149,7 @@ class PrayerNotificationScheduler {
     }
 
     if (scheduled.length != planned.length) {
-      debugPrint(
+      logDiagnostic(
         'Only ${scheduled.length} of ${planned.length} prayer notifications '
         'could be scheduled.',
       );

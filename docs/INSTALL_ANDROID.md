@@ -82,28 +82,33 @@ SDK**. Consequences:
   whose signature does not match. The user has to uninstall first, which
   **erases their prayer history**.
 
-For anything beyond testing on your own device, generate a real upload key:
+**The build is already wired for release signing** — you only need to supply the
+key. `android/app/build.gradle.kts` reads `android/key.properties` if it exists
+and signs with it; otherwise it falls back to the debug key. So switching to
+your real key is **four values in one file, no code changes**:
 
 ```bash
-keytool -genkey -v -keystore ~/prayer-lock-upload.jks \
-  -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+# 1. Create your keystore (choose your own passwords):
+keytool -genkeypair -v -keystore ~/prayer-lock-upload.jks \
+  -alias upload -keyalg RSA -keysize 2048 -validity 10000
+
+# 2. Fill in the four placeholders:
+cd mobile/android && cp key.properties.example key.properties
+#    edit key.properties → KEYSTORE_FILE, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD
+
+# 3. Build — now signed with your key:
+cd .. && flutter build appbundle --release
 ```
 
-Then reference it from `android/key.properties` and point
-`signingConfigs.release` at it in `android/app/build.gradle.kts`, replacing:
+The full walkthrough, including how to verify the build is signed with your key
+and not the debug key, is in **[RELEASE_SIGNING.md](RELEASE_SIGNING.md)**.
 
-```kotlin
-signingConfig = signingConfigs.getByName("debug")   // ← replace this
-```
+Keep the keystore and its passwords backed up. **If you lose them**, Play offers
+an upload-key reset (recoverable); a self-signed distribution has no recovery,
+and sideloaded users would have to uninstall and lose their data.
 
-Keep the keystore and its password backed up somewhere you will not lose them.
-**If you lose that key you can never update the app again** — Play has no
-recovery for it, and sideloaded users would have to uninstall and lose their
-data.
-
-I can wire this up if you generate the keystore and tell me where it lives — I
-have deliberately not created one, because it is a private key and you should
-choose its password rather than inherit one from me.
+The keystore is deliberately not created for you — it is a private key, and you
+should choose its password rather than inherit one.
 
 ---
 
